@@ -18,7 +18,7 @@ import type {
  *
  * @returns {Cli_Commands_Settings_GetSettings_Returns}
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 function getSettings(configPath: Cli_Commands_Settings_GetSettings_ConfigPath): Cli_Commands_Settings_GetSettings_Returns {
   return configSchema.parse(loadConfig(configPath))['settings'];
@@ -32,7 +32,7 @@ function getSettings(configPath: Cli_Commands_Settings_GetSettings_ConfigPath): 
  *
  * @returns {Cli_Commands_Settings_UpdateSettings_Returns}
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 function updateSettings(configPath: Cli_Commands_Settings_UpdateSettings_ConfigPath, updates: Cli_Commands_Settings_UpdateSettings_Updates): Cli_Commands_Settings_UpdateSettings_Returns {
   const config: Cli_Commands_Settings_UpdateSettings_Config = configSchema.parse(loadConfig(configPath));

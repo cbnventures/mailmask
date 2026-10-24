@@ -54,7 +54,7 @@ import type {
  * Directory that contains the dotenv file, resolved by searching
  * the working directory, project root, and config directory.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 const envDir: Cli_Index_EnvDir = Bootstrap.resolveFileDir(APP_NAME, '.env', [
   'cwd',
@@ -74,7 +74,7 @@ if (envDir !== undefined) {
  *
  * @returns {Cli_Index_GetConfigFilePath_Returns}
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 function getConfigFilePath(): Cli_Index_GetConfigFilePath_Returns {
   const configDir: Cli_Index_ConfigDir = Bootstrap.resolveFileDir(APP_NAME, 'config.json', [
@@ -108,7 +108,7 @@ function getConfigFilePath(): Cli_Index_GetConfigFilePath_Returns {
  *
  * @returns {Cli_Index_SplitSenders_Returns}
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 function splitSenders(value: Cli_Index_SplitSenders_Value): Cli_Index_SplitSenders_Returns {
   if (value === undefined || value.trim() === '') {
@@ -124,7 +124,7 @@ function splitSenders(value: Cli_Index_SplitSenders_Value): Cli_Index_SplitSende
  * Creates the top-level Commander program instance used to
  * register all subcommands and parse CLI arguments.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 const program: Cli_Index_Program = new Command();
 
@@ -138,7 +138,7 @@ program.name('mailmask').alias('mm').description('CLI management tool').version(
  *
  * @returns {Cli_Index_Main_Returns}
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 async function main(): Cli_Index_Main_Returns {
   if (process.argv['length'] <= 2) {

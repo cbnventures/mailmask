@@ -11,7 +11,7 @@ import * as vitest from 'vitest';
  * double-quote rule lives in @cbnventures/nova/rules/vitest; this wrapper supplies the
  * configuration that points at the repository-root .env files this package consumes.
  *
- * @since 0.20.0
+ * @since 0.0.1
  */
 const currentFilePath = fileURLToPath(import.meta.url);
 const repositoryRoot = join(dirname(currentFilePath), '../../../../');

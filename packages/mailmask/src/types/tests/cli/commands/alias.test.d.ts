@@ -3,7 +3,7 @@ import type { Lib_Schema_AliasConfig, Lib_Schema_ConfigSchema } from '../../../l
 /**
  * Tests - CLI - Commands - Alias.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Tests_Cli_Commands_Alias_TestConfigPath = string;
 
@@ -12,21 +12,21 @@ export type Tests_Cli_Commands_Alias_BaseConfig = { [Key in keyof Lib_Schema_Con
 /**
  * Tests - CLI - Commands - Alias - Alias Commands.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Tests_Cli_Commands_Alias_AliasCommands_ConfigJson = string;
 
 /**
  * Tests - CLI - Commands - Alias - Alias Commands - Adds A Custom Alias With An Expiry And Sender Rules.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Tests_Cli_Commands_Alias_AliasCommands_AddsACustomAliasWithAnExpiryAndSenderRules_Alias = { [Key in keyof Lib_Schema_AliasConfig]: Lib_Schema_AliasConfig[Key] };
 
 /**
  * Tests - CLI - Commands - Alias - Alias Commands - Disables Changes Expiry Of And Removes Aliases.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Tests_Cli_Commands_Alias_AliasCommands_DisablesChangesExpiryOfAndRemovesAliases_Alias = { [Key in keyof Lib_Schema_AliasConfig]: Lib_Schema_AliasConfig[Key] };
 
@@ -35,7 +35,7 @@ export type Tests_Cli_Commands_Alias_AliasCommands_DisablesChangesExpiryOfAndRem
 /**
  * Tests - CLI - Commands - Alias - Alias Commands - Rejects Duplicates And Unknown Destinations.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Tests_Cli_Commands_Alias_AliasCommands_RejectsDuplicatesAndUnknownDestinations_Options_Address = string;
 
@@ -64,7 +64,7 @@ export type Tests_Cli_Commands_Alias_AliasCommands_RejectsDuplicatesAndUnknownDe
 /**
  * Tests - CLI - Commands - Alias - Generate Address - Generates Word And Random Styles.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Tests_Cli_Commands_Alias_GenerateAddress_GeneratesWordAndRandomStyles_WordPart = string;
 
@@ -75,6 +75,6 @@ export type Tests_Cli_Commands_Alias_GenerateAddress_GeneratesWordAndRandomStyle
 /**
  * Tests - CLI - Commands - Alias - Parse Expiry - Handles Durations Dates And Never.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Tests_Cli_Commands_Alias_ParseExpiry_HandlesDurationsDatesAndNever_Now = number;

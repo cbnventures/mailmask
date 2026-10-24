@@ -5,9 +5,9 @@
   "private": true,
   "scripts": {
     "dev": "nova utility run-scripts --parallel --node-env development \"dev:*\"",
-    "dev:start": "PORTLESS_PORT=3000 portless dev-mm-docs docusaurus start --host 0.0.0.0 --no-open",
+    "dev:start": "PORTLESS_PORT=3000 portless dev-mailmask-docs docusaurus start --host 0.0.0.0 --no-open",
     "prod": "nova utility run-scripts --sequential --node-env production \"prod:*\"",
-    "prod:serve": "PORTLESS_PORT=3000 portless prod-mm-docs docusaurus serve --host 0.0.0.0 --no-open",
+    "prod:serve": "PORTLESS_PORT=3000 portless prod-mailmask-docs docusaurus serve --host 0.0.0.0 --no-open",
     "check": "nova utility run-scripts --sequential \"check:*\"",
     "check:lint": "eslint ./ --max-warnings=0",
     "check:types-app": "nova utility type-check --project tsconfig.app.json",

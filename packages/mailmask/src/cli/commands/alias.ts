@@ -62,7 +62,7 @@ import type {
  * Characters used for random-style aliases. Visually ambiguous
  * characters (l, o, 0, 1) are left out so addresses are easy to read.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 const RANDOM_ALPHABET = 'abcdefghijkmnpqrstuvwxyz23456789';
 
@@ -77,7 +77,7 @@ const RANDOM_ALPHABET = 'abcdefghijkmnpqrstuvwxyz23456789';
  *
  * @returns {Cli_Commands_Alias_AddAlias_Returns}
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 function addAlias(configPath: Cli_Commands_Alias_AddAlias_ConfigPath, options: Cli_Commands_Alias_AddAlias_Options): Cli_Commands_Alias_AddAlias_Returns {
   const config: Cli_Commands_Alias_AddAlias_Config = configSchema.parse(loadConfig(configPath));
@@ -125,7 +125,7 @@ function addAlias(configPath: Cli_Commands_Alias_AddAlias_ConfigPath, options: C
  *
  * @returns {Cli_Commands_Alias_ListAliases_Returns}
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 function listAliases(configPath: Cli_Commands_Alias_ListAliases_ConfigPath): Cli_Commands_Alias_ListAliases_Returns {
   return configSchema.parse(loadConfig(configPath))['aliases'];
@@ -143,7 +143,7 @@ function listAliases(configPath: Cli_Commands_Alias_ListAliases_ConfigPath): Cli
  *
  * @returns {Cli_Commands_Alias_SetAliasEnabled_Returns}
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 function setAliasEnabled(configPath: Cli_Commands_Alias_SetAliasEnabled_ConfigPath, address: Cli_Commands_Alias_SetAliasEnabled_Address, enabled: Cli_Commands_Alias_SetAliasEnabled_Enabled): Cli_Commands_Alias_SetAliasEnabled_Returns {
   const config: Cli_Commands_Alias_SetAliasEnabled_Config = configSchema.parse(loadConfig(configPath));
@@ -168,7 +168,7 @@ function setAliasEnabled(configPath: Cli_Commands_Alias_SetAliasEnabled_ConfigPa
  *
  * @returns {Cli_Commands_Alias_SetAliasExpiry_Returns}
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 function setAliasExpiry(configPath: Cli_Commands_Alias_SetAliasExpiry_ConfigPath, address: Cli_Commands_Alias_SetAliasExpiry_Address, expires: Cli_Commands_Alias_SetAliasExpiry_Expires): Cli_Commands_Alias_SetAliasExpiry_Returns {
   const config: Cli_Commands_Alias_SetAliasExpiry_Config = configSchema.parse(loadConfig(configPath));
@@ -197,7 +197,7 @@ function setAliasExpiry(configPath: Cli_Commands_Alias_SetAliasExpiry_ConfigPath
  *
  * @returns {Cli_Commands_Alias_RemoveAlias_Returns}
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 function removeAlias(configPath: Cli_Commands_Alias_RemoveAlias_ConfigPath, address: Cli_Commands_Alias_RemoveAlias_Address): Cli_Commands_Alias_RemoveAlias_Returns {
   const config: Cli_Commands_Alias_RemoveAlias_Config = configSchema.parse(loadConfig(configPath));
@@ -225,7 +225,7 @@ function removeAlias(configPath: Cli_Commands_Alias_RemoveAlias_ConfigPath, addr
  *
  * @returns {Cli_Commands_Alias_DescribeAliasStatus_Returns}
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 function describeAliasStatus(alias: Cli_Commands_Alias_DescribeAliasStatus_Alias, now: Cli_Commands_Alias_DescribeAliasStatus_Now): Cli_Commands_Alias_DescribeAliasStatus_Returns {
   if (alias['enabled'] === false) {
@@ -254,7 +254,7 @@ function describeAliasStatus(alias: Cli_Commands_Alias_DescribeAliasStatus_Alias
  *
  * @returns {Cli_Commands_Alias_FindAlias_Returns}
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 function findAlias(config: Cli_Commands_Alias_FindAlias_Config, address: Cli_Commands_Alias_FindAlias_Address): Cli_Commands_Alias_FindAlias_Returns {
   const alias: Cli_Commands_Alias_FindAlias_Alias = config['aliases'].find((configAlias) => configAlias['address'] === address);
@@ -277,7 +277,7 @@ function findAlias(config: Cli_Commands_Alias_FindAlias_Config, address: Cli_Com
  *
  * @returns {Cli_Commands_Alias_GenerateAddress_Returns}
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 function generateAddress(style: Cli_Commands_Alias_GenerateAddress_Style): Cli_Commands_Alias_GenerateAddress_Returns {
   if (style === 'random') {
@@ -305,7 +305,7 @@ function generateAddress(style: Cli_Commands_Alias_GenerateAddress_Style): Cli_C
  *
  * @returns {Cli_Commands_Alias_ParseExpiry_Returns}
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 function parseExpiry(value: Cli_Commands_Alias_ParseExpiry_Value, now: Cli_Commands_Alias_ParseExpiry_Now): Cli_Commands_Alias_ParseExpiry_Returns {
   if (

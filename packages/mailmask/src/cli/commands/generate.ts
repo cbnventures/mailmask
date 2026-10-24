@@ -45,7 +45,7 @@ import type {
  * Absolute path to the resolved project root, falling back to
  * the current working directory when no root can be detected.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 const projectRoot: Cli_Commands_Generate_ProjectRoot = Bootstrap.getProjectRoot() ?? process.cwd();
 
@@ -55,7 +55,7 @@ const projectRoot: Cli_Commands_Generate_ProjectRoot = Bootstrap.getProjectRoot(
  * Absolute path to the wrangler.toml written at the project
  * root when no explicit output path is passed to the command.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 const defaultWranglerTomlPath: Cli_Commands_Generate_DefaultWranglerTomlPath = resolve(projectRoot, 'wrangler.toml');
 
@@ -65,7 +65,7 @@ const defaultWranglerTomlPath: Cli_Commands_Generate_DefaultWranglerTomlPath = r
  * Maximum UTF-8 size of one ALIASES_n var, kept under Cloudflare's
  * 5 KB per-variable limit with room to spare.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 const ALIAS_PART_BYTES = 4000;
 
@@ -75,7 +75,7 @@ const ALIAS_PART_BYTES = 4000;
  * Maximum number of ALIASES_n vars, leaving room under Cloudflare's
  * 64-variable limit for the other vars.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 const ALIAS_PART_LIMIT = 60;
 
@@ -90,7 +90,7 @@ const ALIAS_PART_LIMIT = 60;
  *
  * @returns {Cli_Commands_Generate_SplitByBytes_Returns}
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 function splitByBytes(text: Cli_Commands_Generate_SplitByBytes_Text, maxBytes: Cli_Commands_Generate_SplitByBytes_MaxBytes): Cli_Commands_Generate_SplitByBytes_Returns {
   const parts: Cli_Commands_Generate_SplitByBytes_Parts = [];
@@ -129,7 +129,7 @@ function splitByBytes(text: Cli_Commands_Generate_SplitByBytes_Text, maxBytes: C
  *
  * @returns {Cli_Commands_Generate_GenerateWranglerToml_Returns}
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 function generateWranglerToml(configPath: Cli_Commands_Generate_GenerateWranglerToml_ConfigPath, outputPath: Cli_Commands_Generate_GenerateWranglerToml_OutputPath = defaultWranglerTomlPath, accountId?: Cli_Commands_Generate_GenerateWranglerToml_AccountId): Cli_Commands_Generate_GenerateWranglerToml_Returns {
   const config: Cli_Commands_Generate_GenerateWranglerToml_Config = configSchema.parse(loadConfig(configPath));

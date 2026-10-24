@@ -21,7 +21,7 @@ import type {
  *
  * @returns {Cli_Commands_ConfigIo_LoadConfig_Returns}
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 function loadConfig(configPath: Cli_Commands_ConfigIo_LoadConfig_ConfigPath): Cli_Commands_ConfigIo_LoadConfig_Returns {
   return JSON.parse(readFileSync(configPath, 'utf-8'));
@@ -35,7 +35,7 @@ function loadConfig(configPath: Cli_Commands_ConfigIo_LoadConfig_ConfigPath): Cl
  *
  * @returns {Cli_Commands_ConfigIo_NormalizeConfig_Returns}
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 function normalizeConfig(config: Cli_Commands_ConfigIo_NormalizeConfig_Config): Cli_Commands_ConfigIo_NormalizeConfig_Returns {
   const sortedDestinations: Cli_Commands_ConfigIo_NormalizeConfig_SortedDestinations = [...config['destinations']].sort(
@@ -62,7 +62,7 @@ function normalizeConfig(config: Cli_Commands_ConfigIo_NormalizeConfig_Config): 
  *
  * @returns {Cli_Commands_ConfigIo_SaveConfig_Returns}
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 function saveConfig(configPath: Cli_Commands_ConfigIo_SaveConfig_ConfigPath, config: Cli_Commands_ConfigIo_SaveConfig_Config): Cli_Commands_ConfigIo_SaveConfig_Returns {
   writeFileSync(configPath, `${JSON.stringify(normalizeConfig(config), null, 2)}\n`);

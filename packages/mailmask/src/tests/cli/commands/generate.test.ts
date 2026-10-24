@@ -24,7 +24,7 @@ const sampleConfigPath: Tests_Cli_Commands_Generate_SampleConfigPath = join(dirn
 /**
  * Tests - CLI - Commands - Generate - Wrangler Toml.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 describe('generateWranglerToml', () => {
   afterEach(() => {

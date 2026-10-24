@@ -3,7 +3,7 @@ import type { Lib_Schema_ConfigSchema, Lib_Schema_DestinationConfig } from '../.
 /**
  * CLI - Commands - Destination - Add Destination.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Cli_Commands_Destination_AddDestination_ConfigPath = string;
 
@@ -18,7 +18,7 @@ export type Cli_Commands_Destination_AddDestination_Parsed = { [Key in keyof Lib
 /**
  * CLI - Commands - Destination - List Destinations.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Cli_Commands_Destination_ListDestinations_ConfigPath = string;
 
@@ -27,7 +27,7 @@ export type Cli_Commands_Destination_ListDestinations_Returns = Array<Lib_Schema
 /**
  * CLI - Commands - Destination - Remove Destination.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Cli_Commands_Destination_RemoveDestination_ConfigPath = string;
 

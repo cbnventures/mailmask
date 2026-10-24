@@ -1,7 +1,7 @@
 /**
  * Shared - Route Decision.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Shared_RouteDecision_Action = 'forward' | 'reject' | 'drop';
 

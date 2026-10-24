@@ -9,7 +9,7 @@ import type { Shared_RouteDecision } from '../shared.d.ts';
 /**
  * Worker - Router - Matches Sender.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Worker_Router_MatchesSender_Sender = string;
 
@@ -24,7 +24,7 @@ export type Worker_Router_MatchesSender_SenderDomain = string;
 /**
  * Worker - Router - Resolve Route.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Worker_Router_ResolveRoute_Recipient = string;
 

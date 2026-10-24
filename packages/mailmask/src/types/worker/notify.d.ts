@@ -3,7 +3,7 @@ import type { Lib_Schema_NotifierConfig } from '../lib/schema.d.ts';
 /**
  * Worker - Notify - Send Notifications.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Worker_Notify_SendNotifications_Notifiers = Lib_Schema_NotifierConfig[];
 

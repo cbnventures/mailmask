@@ -5,7 +5,7 @@
  * characters, dots, hyphens, and underscores are allowed, but the address
  * cannot start or end with a separator.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 const LIB_REGEX_ALIAS_ADDRESS = /^[a-z0-9]([a-z0-9._-]*[a-z0-9])?$/;
 
@@ -15,7 +15,7 @@ const LIB_REGEX_ALIAS_ADDRESS = /^[a-z0-9]([a-z0-9._-]*[a-z0-9])?$/;
  * Validates a fully qualified domain name with at least two labels,
  * each composed of lowercase alphanumeric characters and inner hyphens.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 const LIB_REGEX_BASE_DOMAIN = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/;
 
@@ -25,7 +25,7 @@ const LIB_REGEX_BASE_DOMAIN = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9
  * Validates the short name used to reference a destination inbox
  * from aliases and settings (lowercase alphanumeric and hyphens).
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 const LIB_REGEX_DESTINATION_NAME = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/;
 
@@ -35,7 +35,7 @@ const LIB_REGEX_DESTINATION_NAME = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/;
  * Matches a relative duration such as "30m", "12h", "7d", or "4w"
  * used when setting an alias expiry from the command line.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 const LIB_REGEX_DURATION = /^(\d+)([mhdw])$/;
 
@@ -45,7 +45,7 @@ const LIB_REGEX_DURATION = /^(\d+)([mhdw])$/;
  * Loose structural check for a single email address. Mailbox
  * verification is left to Cloudflare Email Routing.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 const LIB_REGEX_EMAIL_ADDRESS = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -55,7 +55,7 @@ const LIB_REGEX_EMAIL_ADDRESS = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
  * Validates a sender rule, either a full address ("news@shop.com")
  * or a whole-domain wildcard ("*@shop.com").
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 const LIB_REGEX_SENDER_PATTERN = /^(\*|[^\s@*]+)@[^\s@*]+\.[^\s@*]+$/;
 
@@ -65,7 +65,7 @@ const LIB_REGEX_SENDER_PATTERN = /^(\*|[^\s@*]+)@[^\s@*]+\.[^\s@*]+$/;
  * Matches a single leading or trailing quote character so dotenv
  * values written as "token" or 'token' are read back unquoted.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 const LIB_REGEX_SURROUNDING_QUOTES = /^["']|["']$/;
 
@@ -75,7 +75,7 @@ const LIB_REGEX_SURROUNDING_QUOTES = /^["']|["']$/;
  * Validates a Cloudflare Worker script name: lowercase alphanumeric
  * characters and hyphens, not starting or ending with a hyphen.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 const LIB_REGEX_WORKER_NAME = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/;
 

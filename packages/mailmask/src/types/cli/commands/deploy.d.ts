@@ -19,7 +19,7 @@ import type { Cli_Commands_Validate_ValidateConfig_Returns } from './validate.d.
 /**
  * CLI - Commands - Deploy - Cloudflare Request.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Cli_Commands_Deploy_CloudflareRequest_Token = string;
 
@@ -42,7 +42,7 @@ export type Cli_Commands_Deploy_CloudflareRequest_ErrorDetails = string;
 /**
  * CLI - Commands - Deploy - Deploy.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Cli_Commands_Deploy_Deploy_ConfigPath = string;
 
@@ -77,7 +77,7 @@ export type Cli_Commands_Deploy_Deploy_WranglerTomlPath = string;
 /**
  * CLI - Commands - Deploy - Deploy Worker.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Cli_Commands_Deploy_DeployWorker_Returns = void;
 
@@ -90,7 +90,7 @@ export type Cli_Commands_Deploy_DeployWorker_DeployResult = SpawnSyncReturns<str
 /**
  * CLI - Commands - Deploy - Ensure Destination Addresses.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Cli_Commands_Deploy_EnsureDestinationAddresses_ConfigPath = string;
 
@@ -115,7 +115,7 @@ export type Cli_Commands_Deploy_EnsureDestinationAddresses_Existing = Lib_Schema
 /**
  * CLI - Commands - Deploy - Ensure Email Routing Enabled.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Cli_Commands_Deploy_EnsureEmailRoutingEnabled_Token = string;
 
@@ -132,7 +132,7 @@ export type Cli_Commands_Deploy_EnsureEmailRoutingEnabled_Routing = { [Key in ke
 /**
  * CLI - Commands - Deploy - Get Zone Info.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Cli_Commands_Deploy_GetZoneInfo_Token = string;
 
@@ -167,7 +167,7 @@ export type Cli_Commands_Deploy_GetZoneInfo_FirstZone = Lib_Schema_CloudflareZon
 /**
  * CLI - Commands - Deploy - Has Permission.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Cli_Commands_Deploy_HasPermission_Token = string;
 
@@ -178,7 +178,7 @@ export type Cli_Commands_Deploy_HasPermission_Returns = Promise<boolean>;
 /**
  * CLI - Commands - Deploy - Load Env Token.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Cli_Commands_Deploy_LoadEnvToken_Returns = string | undefined;
 
@@ -193,7 +193,7 @@ export type Cli_Commands_Deploy_LoadEnvToken_Value = string;
 /**
  * CLI - Commands - Deploy - Print Alias Summary.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Cli_Commands_Deploy_PrintAliasSummary_ConfigPath = string;
 
@@ -208,7 +208,7 @@ export type Cli_Commands_Deploy_PrintAliasSummary_Status = string;
 /**
  * CLI - Commands - Deploy - Prompt For Api Token.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Cli_Commands_Deploy_PromptForApiToken_Returns = Promise<string>;
 
@@ -223,7 +223,7 @@ export type Cli_Commands_Deploy_PromptForApiToken_Token = string;
 /**
  * CLI - Commands - Deploy - Resolve Api Token.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Cli_Commands_Deploy_ResolveApiToken_Interactive = boolean;
 
@@ -234,7 +234,7 @@ export type Cli_Commands_Deploy_ResolveApiToken_EnvToken = string | undefined;
 /**
  * CLI - Commands - Deploy - Save Env Token.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Cli_Commands_Deploy_SaveEnvToken_Token = string;
 
@@ -247,7 +247,7 @@ export type Cli_Commands_Deploy_SaveEnvToken_Regex = RegExp;
 /**
  * CLI - Commands - Deploy - Set Catch All.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Cli_Commands_Deploy_SetCatchAll_Token = string;
 
@@ -270,7 +270,7 @@ export type Cli_Commands_Deploy_SetCatchAll_PreviousTarget = string;
 /**
  * CLI - Commands - Deploy - Verify Api Token.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Cli_Commands_Deploy_VerifyApiToken_Token = string;
 
@@ -285,7 +285,7 @@ export type Cli_Commands_Deploy_VerifyApiToken_Envelope = z.ZodSafeParseResult<L
 /**
  * CLI - Commands - Deploy - Verify Permissions.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Cli_Commands_Deploy_VerifyPermissions_Token = string;
 

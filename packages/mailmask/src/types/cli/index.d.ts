@@ -6,14 +6,14 @@ import type { Cli_Commands_Validate_ValidateConfig_Returns } from './commands/va
 /**
  * CLI - Env Dir.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Cli_Index_EnvDir = string | undefined;
 
 /**
  * CLI - Get Config File Path.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Cli_Index_GetConfigFilePath_Returns = string;
 
@@ -28,7 +28,7 @@ export type Cli_Index_SamplePath = string;
 /**
  * CLI - Main.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Cli_Index_Main_Returns = Promise<void>;
 
@@ -59,14 +59,14 @@ export type Cli_Index_Main_Message = string;
 /**
  * CLI - Program.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Cli_Index_Program = Command;
 
 /**
  * CLI - Split Senders.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Cli_Index_SplitSenders_Value = string | undefined;
 

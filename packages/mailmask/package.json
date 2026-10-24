@@ -1,6 +1,6 @@
 {
   "name": "mailmask",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Self-hosted disposable email aliases on Cloudflare Workers that forward to your real inbox",
   "keywords": [
     "email",

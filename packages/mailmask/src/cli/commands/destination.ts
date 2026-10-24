@@ -28,7 +28,7 @@ import type {
  *
  * @returns {Cli_Commands_Destination_AddDestination_Returns}
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 function addDestination(configPath: Cli_Commands_Destination_AddDestination_ConfigPath, destination: Cli_Commands_Destination_AddDestination_Destination): Cli_Commands_Destination_AddDestination_Returns {
   const config: Cli_Commands_Destination_AddDestination_Config = configSchema.parse(loadConfig(configPath));
@@ -62,7 +62,7 @@ function addDestination(configPath: Cli_Commands_Destination_AddDestination_Conf
  *
  * @returns {Cli_Commands_Destination_ListDestinations_Returns}
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 function listDestinations(configPath: Cli_Commands_Destination_ListDestinations_ConfigPath): Cli_Commands_Destination_ListDestinations_Returns {
   return configSchema.parse(loadConfig(configPath))['destinations'];
@@ -79,7 +79,7 @@ function listDestinations(configPath: Cli_Commands_Destination_ListDestinations_
  *
  * @returns {Cli_Commands_Destination_RemoveDestination_Returns}
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 function removeDestination(configPath: Cli_Commands_Destination_RemoveDestination_ConfigPath, name: Cli_Commands_Destination_RemoveDestination_Name): Cli_Commands_Destination_RemoveDestination_Returns {
   const config: Cli_Commands_Destination_RemoveDestination_Config = configSchema.parse(loadConfig(configPath));

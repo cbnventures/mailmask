@@ -3,7 +3,7 @@ import type { Lib_Schema_AliasConfig, Lib_Schema_ConfigSchema } from '../../lib/
 /**
  * CLI - Commands - Alias - Add Alias.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Cli_Commands_Alias_AddAlias_ConfigPath = string;
 
@@ -48,7 +48,7 @@ export type Cli_Commands_Alias_AddAlias_Alias = { [Key in keyof Lib_Schema_Alias
 /**
  * CLI - Commands - Alias - Describe Alias Status.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Cli_Commands_Alias_DescribeAliasStatus_Alias = { [Key in keyof Lib_Schema_AliasConfig]: Lib_Schema_AliasConfig[Key] };
 
@@ -59,7 +59,7 @@ export type Cli_Commands_Alias_DescribeAliasStatus_Returns = string;
 /**
  * CLI - Commands - Alias - Find Alias.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Cli_Commands_Alias_FindAlias_Config = { [Key in keyof Lib_Schema_ConfigSchema]: Lib_Schema_ConfigSchema[Key] };
 
@@ -72,7 +72,7 @@ export type Cli_Commands_Alias_FindAlias_Alias = Lib_Schema_AliasConfig | undefi
 /**
  * CLI - Commands - Alias - Generate Address.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Cli_Commands_Alias_GenerateAddress_Style = 'words' | 'random';
 
@@ -87,7 +87,7 @@ export type Cli_Commands_Alias_GenerateAddress_Suffix = string;
 /**
  * CLI - Commands - Alias - List Aliases.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Cli_Commands_Alias_ListAliases_ConfigPath = string;
 
@@ -96,7 +96,7 @@ export type Cli_Commands_Alias_ListAliases_Returns = Array<Lib_Schema_AliasConfi
 /**
  * CLI - Commands - Alias - Parse Expiry.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Cli_Commands_Alias_ParseExpiry_Value = string | undefined;
 
@@ -117,7 +117,7 @@ export type Cli_Commands_Alias_ParseExpiry_Parsed = number;
 /**
  * CLI - Commands - Alias - Remove Alias.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Cli_Commands_Alias_RemoveAlias_ConfigPath = string;
 
@@ -132,7 +132,7 @@ export type Cli_Commands_Alias_RemoveAlias_Filtered = Array<Lib_Schema_AliasConf
 /**
  * CLI - Commands - Alias - Set Alias Enabled.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Cli_Commands_Alias_SetAliasEnabled_ConfigPath = string;
 
@@ -149,7 +149,7 @@ export type Cli_Commands_Alias_SetAliasEnabled_Alias = { [Key in keyof Lib_Schem
 /**
  * CLI - Commands - Alias - Set Alias Expiry.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Cli_Commands_Alias_SetAliasExpiry_ConfigPath = string;
 

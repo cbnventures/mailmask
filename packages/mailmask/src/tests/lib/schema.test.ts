@@ -10,7 +10,7 @@ import type {
 /**
  * Tests - Lib - Schema - Alias Schema.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 describe('aliasSchema', () => {
   it('validates addresses, expiry, and sender rules', () => {
@@ -49,7 +49,7 @@ describe('aliasSchema', () => {
 /**
  * Tests - Lib - Schema - Notifier Schema.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 describe('notifierSchema', () => {
   it('requires https and ntfy tokens', () => {

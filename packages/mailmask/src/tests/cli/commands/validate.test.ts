@@ -34,7 +34,7 @@ const baseSettings: Tests_Cli_Commands_Validate_BaseSettings = {
 /**
  * Tests - CLI - Commands - Validate - Config.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 describe('validateConfig', () => {
   afterEach(() => {

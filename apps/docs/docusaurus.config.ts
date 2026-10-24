@@ -131,28 +131,22 @@ const config: DocusaurusNovaConfig = {
     '@cbnventures/docusaurus-preset-nova',
     {
       // Preset Identity.
-      preset: 'envoy',
+      preset: 'lantern',
 
       // Preset Overrides (undefined = use preset default).
       overrides: {
         colors: {
-          primary: {
-            light: '#0D9488',
-            dark: '#0D9488',
-          },
-          secondary: {
-            light: '#D97706',
-            dark: '#D97706',
-          },
+          primary: undefined,
+          secondary: undefined,
           text: undefined,
           border: undefined,
           warning: undefined,
           danger: undefined,
         },
         fonts: {
-          display: 'Outfit',
-          body: 'Be Vietnam Pro',
-          code: 'Fira Code',
+          display: undefined,
+          body: undefined,
+          code: undefined,
         },
         navbar: undefined,
         footer: undefined,

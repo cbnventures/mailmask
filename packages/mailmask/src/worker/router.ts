@@ -35,7 +35,7 @@ import type {
  *
  * @returns {Worker_Router_MatchesSender_Returns}
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 function matchesSender(sender: Worker_Router_MatchesSender_Sender, pattern: Worker_Router_MatchesSender_Pattern): Worker_Router_MatchesSender_Returns {
   const normalizedPattern: Worker_Router_MatchesSender_NormalizedPattern = pattern.toLowerCase();
@@ -63,7 +63,7 @@ function matchesSender(sender: Worker_Router_MatchesSender_Sender, pattern: Work
  *
  * @returns {Worker_Router_ResolveRoute_Returns}
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 function resolveRoute(recipient: Worker_Router_ResolveRoute_Recipient, sender: Worker_Router_ResolveRoute_Sender, config: Worker_Router_ResolveRoute_Config, now: Worker_Router_ResolveRoute_Now): Worker_Router_ResolveRoute_Returns {
   const settings: Worker_Router_ResolveRoute_Settings = config['settings'];

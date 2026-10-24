@@ -5,7 +5,7 @@ import type { Lib_Schema_ConfigSchema } from '../lib/schema.d.ts';
 /**
  * Worker - Index - Module Exports.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Worker_Index_ModuleExports_FetchReturns = Promise<Response>;
 
@@ -27,7 +27,7 @@ export type Worker_Index_ModuleExports = {
 /**
  * Worker - Index - Email.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Worker_Index_Email_Message = ForwardableEmailMessage;
 
@@ -50,6 +50,6 @@ export type Worker_Index_Email_Result = z.ZodSafeParseResult<Lib_Schema_ConfigSc
 /**
  * Worker - Index - Fetch.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Worker_Index_Fetch_Returns = Promise<Response>;

@@ -1,7 +1,7 @@
 /**
  * Lib - Schema.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Lib_Schema_AliasConfigAddress = string;
 

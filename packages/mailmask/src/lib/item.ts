@@ -4,7 +4,7 @@
  * Application identifier used for resolving the XDG
  * config directory and environment file paths.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 const APP_NAME = 'mailmask';
 

@@ -1,7 +1,7 @@
 /**
  * Lib - Package Runtime - Get Config Sample Path.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Lib_PackageRuntime_GetConfigSamplePath_Returns = string;
 
@@ -14,7 +14,7 @@ export type Lib_PackageRuntime_GetConfigSamplePath_RepositorySamplePath = string
 /**
  * Lib - Package Runtime - Get Package Root.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Lib_PackageRuntime_GetPackageRoot_Returns = string;
 
@@ -29,7 +29,7 @@ export type Lib_PackageRuntime_GetPackageRoot_ParentDirectory = string;
 /**
  * Lib - Package Runtime - Get Package Version.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Lib_PackageRuntime_GetPackageVersion_Returns = string;
 
@@ -46,7 +46,7 @@ export type Lib_PackageRuntime_GetPackageVersion_Version = unknown;
 /**
  * Lib - Package Runtime - Get Worker Entry Path.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Lib_PackageRuntime_GetWorkerEntryPath_Returns = string;
 

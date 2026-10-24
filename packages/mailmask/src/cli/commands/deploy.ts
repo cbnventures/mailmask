@@ -124,7 +124,7 @@ import type {
  * Base URL for the Cloudflare v4 REST API used by every
  * authenticated request made during the deployment pipeline.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 const CLOUDFLARE_API_BASE = 'https://api.cloudflare.com/client/v4';
 
@@ -134,7 +134,7 @@ const CLOUDFLARE_API_BASE = 'https://api.cloudflare.com/client/v4';
  * Absolute path to the per-user configuration directory that
  * stores the persisted Cloudflare API token and related files.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 const configDir = Bootstrap.getConfigDir(APP_NAME);
 
@@ -144,7 +144,7 @@ const configDir = Bootstrap.getConfigDir(APP_NAME);
  * Absolute path to the dotenv file inside the configuration
  * directory where the Cloudflare API token is written.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 const envFilePath = resolve(configDir, '.env');
 
@@ -154,7 +154,7 @@ const envFilePath = resolve(configDir, '.env');
  * Environment variable name under which the Cloudflare API
  * token is stored and later read back during deployment.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 const ENV_TOKEN_KEY = 'CLOUDFLARE_API_TOKEN';
 
@@ -170,7 +170,7 @@ const ENV_TOKEN_KEY = 'CLOUDFLARE_API_TOKEN';
  *
  * @returns {Cli_Commands_Deploy_Deploy_Returns}
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 async function deploy(configPath: Cli_Commands_Deploy_Deploy_ConfigPath, interactive: Cli_Commands_Deploy_Deploy_Interactive = false): Cli_Commands_Deploy_Deploy_Returns {
   // Step 1: Resolve API token.
@@ -255,7 +255,7 @@ async function deploy(configPath: Cli_Commands_Deploy_Deploy_ConfigPath, interac
  *
  * @returns {Cli_Commands_Deploy_ResolveApiToken_Returns}
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 async function resolveApiToken(interactive: Cli_Commands_Deploy_ResolveApiToken_Interactive): Cli_Commands_Deploy_ResolveApiToken_Returns {
   const envToken: Cli_Commands_Deploy_ResolveApiToken_EnvToken = loadEnvToken();
@@ -291,7 +291,7 @@ async function resolveApiToken(interactive: Cli_Commands_Deploy_ResolveApiToken_
  *
  * @returns {Cli_Commands_Deploy_VerifyApiToken_Returns}
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 async function verifyApiToken(token: Cli_Commands_Deploy_VerifyApiToken_Token): Cli_Commands_Deploy_VerifyApiToken_Returns {
   try {
@@ -320,7 +320,7 @@ async function verifyApiToken(token: Cli_Commands_Deploy_VerifyApiToken_Token): 
  *
  * @returns {Cli_Commands_Deploy_VerifyPermissions_Returns}
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 async function verifyPermissions(token: Cli_Commands_Deploy_VerifyPermissions_Token, zoneId: Cli_Commands_Deploy_VerifyPermissions_ZoneId, accountId: Cli_Commands_Deploy_VerifyPermissions_AccountId, interactive: Cli_Commands_Deploy_VerifyPermissions_Interactive): Cli_Commands_Deploy_VerifyPermissions_Returns {
   const hasWorkersScripts: Cli_Commands_Deploy_VerifyPermissions_HasWorkersScripts = await hasPermission(token, `/accounts/${accountId}/workers/scripts`);
@@ -395,7 +395,7 @@ async function verifyPermissions(token: Cli_Commands_Deploy_VerifyPermissions_To
  *
  * @returns {Cli_Commands_Deploy_HasPermission_Returns}
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 async function hasPermission(token: Cli_Commands_Deploy_HasPermission_Token, path: Cli_Commands_Deploy_HasPermission_Path): Cli_Commands_Deploy_HasPermission_Returns {
   try {
@@ -415,7 +415,7 @@ async function hasPermission(token: Cli_Commands_Deploy_HasPermission_Token, pat
  *
  * @returns {Cli_Commands_Deploy_PromptForApiToken_Returns}
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 async function promptForApiToken(): Cli_Commands_Deploy_PromptForApiToken_Returns {
   Logger.info('');
@@ -473,7 +473,7 @@ async function promptForApiToken(): Cli_Commands_Deploy_PromptForApiToken_Return
  *
  * @returns {Cli_Commands_Deploy_CloudflareRequest_Returns}
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 async function cloudflareRequest(token: Cli_Commands_Deploy_CloudflareRequest_Token, method: Cli_Commands_Deploy_CloudflareRequest_Method, path: Cli_Commands_Deploy_CloudflareRequest_Path, body: Cli_Commands_Deploy_CloudflareRequest_Body): Cli_Commands_Deploy_CloudflareRequest_Returns {
   const response: Cli_Commands_Deploy_CloudflareRequest_Response = await fetch(`${CLOUDFLARE_API_BASE}${path}`, {
@@ -511,7 +511,7 @@ async function cloudflareRequest(token: Cli_Commands_Deploy_CloudflareRequest_To
  *
  * @returns {Cli_Commands_Deploy_GetZoneInfo_Returns}
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 async function getZoneInfo(token: Cli_Commands_Deploy_GetZoneInfo_Token, baseDomain: Cli_Commands_Deploy_GetZoneInfo_BaseDomain): Cli_Commands_Deploy_GetZoneInfo_Returns {
   // e.g., "mail.example.co.uk" -> try "mail.example.co.uk", then "example.co.uk", then "co.uk".
@@ -555,7 +555,7 @@ async function getZoneInfo(token: Cli_Commands_Deploy_GetZoneInfo_Token, baseDom
  *
  * @returns {Cli_Commands_Deploy_EnsureEmailRoutingEnabled_Returns}
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 async function ensureEmailRoutingEnabled(token: Cli_Commands_Deploy_EnsureEmailRoutingEnabled_Token, zoneId: Cli_Commands_Deploy_EnsureEmailRoutingEnabled_ZoneId, zoneName: Cli_Commands_Deploy_EnsureEmailRoutingEnabled_ZoneName): Cli_Commands_Deploy_EnsureEmailRoutingEnabled_Returns {
   const result: Cli_Commands_Deploy_EnsureEmailRoutingEnabled_Result = await cloudflareRequest(token, 'GET', `/zones/${zoneId}/email/routing`, undefined);
@@ -581,7 +581,7 @@ async function ensureEmailRoutingEnabled(token: Cli_Commands_Deploy_EnsureEmailR
  *
  * @returns {Cli_Commands_Deploy_EnsureDestinationAddresses_Returns}
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 async function ensureDestinationAddresses(configPath: Cli_Commands_Deploy_EnsureDestinationAddresses_ConfigPath, token: Cli_Commands_Deploy_EnsureDestinationAddresses_Token, accountId: Cli_Commands_Deploy_EnsureDestinationAddresses_AccountId): Cli_Commands_Deploy_EnsureDestinationAddresses_Returns {
   const destinations: Cli_Commands_Deploy_EnsureDestinationAddresses_Destinations = listDestinations(configPath);
@@ -633,7 +633,7 @@ async function ensureDestinationAddresses(configPath: Cli_Commands_Deploy_Ensure
  *
  * @returns {Cli_Commands_Deploy_SetCatchAll_Returns}
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 async function setCatchAll(token: Cli_Commands_Deploy_SetCatchAll_Token, zoneId: Cli_Commands_Deploy_SetCatchAll_ZoneId, workerName: Cli_Commands_Deploy_SetCatchAll_WorkerName): Cli_Commands_Deploy_SetCatchAll_Returns {
   const result: Cli_Commands_Deploy_SetCatchAll_Result = await cloudflareRequest(token, 'GET', `/zones/${zoneId}/email/routing/rules/catch_all`, undefined);
@@ -676,7 +676,7 @@ async function setCatchAll(token: Cli_Commands_Deploy_SetCatchAll_Token, zoneId:
  *
  * @returns {Cli_Commands_Deploy_DeployWorker_Returns}
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 function deployWorker(): Cli_Commands_Deploy_DeployWorker_Returns {
   const projectRoot: Cli_Commands_Deploy_DeployWorker_ProjectRoot = Bootstrap.getProjectRoot() ?? process.cwd();
@@ -707,7 +707,7 @@ function deployWorker(): Cli_Commands_Deploy_DeployWorker_Returns {
  *
  * @returns {Cli_Commands_Deploy_LoadEnvToken_Returns}
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 function loadEnvToken(): Cli_Commands_Deploy_LoadEnvToken_Returns {
   const envValue: Cli_Commands_Deploy_LoadEnvToken_EnvValue = process.env[ENV_TOKEN_KEY];
@@ -742,7 +742,7 @@ function loadEnvToken(): Cli_Commands_Deploy_LoadEnvToken_Returns {
  *
  * @returns {Cli_Commands_Deploy_SaveEnvToken_Returns}
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 function saveEnvToken(token: Cli_Commands_Deploy_SaveEnvToken_Token): Cli_Commands_Deploy_SaveEnvToken_Returns {
   if (existsSync(envFilePath) === true) {
@@ -778,7 +778,7 @@ function saveEnvToken(token: Cli_Commands_Deploy_SaveEnvToken_Token): Cli_Comman
  *
  * @returns {Cli_Commands_Deploy_PrintAliasSummary_Returns}
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 function printAliasSummary(configPath: Cli_Commands_Deploy_PrintAliasSummary_ConfigPath): Cli_Commands_Deploy_PrintAliasSummary_Returns {
   const aliases: Cli_Commands_Deploy_PrintAliasSummary_Aliases = listAliases(configPath);

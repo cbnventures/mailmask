@@ -20,7 +20,7 @@ import type {
  *
  * @returns {Worker_Notify_SendNotifications_Returns}
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 async function sendNotifications(notifiers: Worker_Notify_SendNotifications_Notifiers, title: Worker_Notify_SendNotifications_Title, body: Worker_Notify_SendNotifications_Body): Worker_Notify_SendNotifications_Returns {
   const requests: Worker_Notify_SendNotifications_Requests = notifiers.map(async (notifier) => {

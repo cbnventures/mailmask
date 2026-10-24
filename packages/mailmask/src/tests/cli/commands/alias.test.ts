@@ -53,7 +53,7 @@ const baseConfig: Tests_Cli_Commands_Alias_BaseConfig = {
 /**
  * Tests - CLI - Commands - Alias - Generate Address.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 describe('generateAddress', () => {
   it('generates word and random styles', () => {
@@ -77,7 +77,7 @@ describe('generateAddress', () => {
 /**
  * Tests - CLI - Commands - Alias - Parse Expiry.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 describe('parseExpiry', () => {
   it('handles durations, dates, and never', () => {
@@ -106,7 +106,7 @@ describe('parseExpiry', () => {
 /**
  * Tests - CLI - Commands - Alias - Alias Commands.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 describe('alias commands', () => {
   beforeEach(() => {

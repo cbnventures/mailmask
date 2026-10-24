@@ -1,7 +1,7 @@
 /**
  * Tests - CLI - Commands - Validate.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Tests_Cli_Commands_Validate_TestConfigPath = string;
 
@@ -28,7 +28,7 @@ export type Tests_Cli_Commands_Validate_BaseSettings = {
 /**
  * Tests - CLI - Commands - Validate - Validate Config - Accepts The Sample Config.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Tests_Cli_Commands_Validate_ValidateConfig_AcceptsTheSampleConfig_Result_Valid = boolean;
 
@@ -42,7 +42,7 @@ export type Tests_Cli_Commands_Validate_ValidateConfig_AcceptsTheSampleConfig_Re
 /**
  * Tests - CLI - Commands - Validate - Validate Config - Reports Missing Destinations And Duplicate Aliases.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Tests_Cli_Commands_Validate_ValidateConfig_ReportsMissingDestinationsAndDuplicateAliases_Result_Valid = boolean;
 
@@ -56,7 +56,7 @@ export type Tests_Cli_Commands_Validate_ValidateConfig_ReportsMissingDestination
 /**
  * Tests - CLI - Commands - Validate - Validate Config - Requires A Default Destination When Forwarding Unknown Mail.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Tests_Cli_Commands_Validate_ValidateConfig_RequiresADefaultDestinationWhenForwardingUnknownMail_Result_Valid = boolean;
 

@@ -22,7 +22,7 @@ import type {
  * configuration from the environment and routes each message; the fetch
  * handler only answers health checks because the Worker has no routes.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 const moduleExports: Worker_Index_ModuleExports = {
   async fetch(): Worker_Index_Fetch_Returns {

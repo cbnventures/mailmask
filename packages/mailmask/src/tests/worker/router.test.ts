@@ -69,7 +69,7 @@ const baseConfig: Tests_Worker_Router_BaseConfig = {
 /**
  * Tests - Worker - Router - Matches Sender.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 describe('matchesSender', () => {
   it('matches exact addresses case-insensitively', () => {
@@ -98,7 +98,7 @@ describe('matchesSender', () => {
 /**
  * Tests - Worker - Router - Resolve Route.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 describe('resolveRoute', () => {
   it('forwards an active alias to its destination', () => {

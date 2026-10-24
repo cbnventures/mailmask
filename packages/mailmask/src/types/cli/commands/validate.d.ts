@@ -5,7 +5,7 @@ import type { Lib_Schema_ConfigSchema } from '../../lib/schema.d.ts';
 /**
  * CLI - Commands - Validate - Validate Config.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Cli_Commands_Validate_ValidateConfig_ConfigPath = string;
 

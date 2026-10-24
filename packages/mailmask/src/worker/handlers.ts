@@ -25,7 +25,7 @@ import type {
  *
  * @returns {Worker_Handlers_HandleEmail_Returns}
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 async function handleEmail(message: Worker_Handlers_HandleEmail_Message, config: Worker_Handlers_HandleEmail_Config, now: Worker_Handlers_HandleEmail_Now): Worker_Handlers_HandleEmail_Returns {
   const settings: Worker_Handlers_HandleEmail_Settings = config['settings'];

@@ -3,7 +3,7 @@ import type { Lib_Schema_ConfigSchema, Lib_Schema_NotifierConfig } from '../../l
 /**
  * CLI - Commands - Notifier - Add Notifier.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Cli_Commands_Notifier_AddNotifier_ConfigPath = string;
 
@@ -18,7 +18,7 @@ export type Cli_Commands_Notifier_AddNotifier_Parsed = Lib_Schema_NotifierConfig
 /**
  * CLI - Commands - Notifier - List Notifiers.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Cli_Commands_Notifier_ListNotifiers_ConfigPath = string;
 
@@ -27,7 +27,7 @@ export type Cli_Commands_Notifier_ListNotifiers_Returns = Array<Lib_Schema_Notif
 /**
  * CLI - Commands - Notifier - Remove Notifier.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Cli_Commands_Notifier_RemoveNotifier_ConfigPath = string;
 

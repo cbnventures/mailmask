@@ -36,7 +36,7 @@ import type {
  *
  * @returns {Lib_PackageRuntime_GetConfigSamplePath_Returns}
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 function getConfigSamplePath(): Lib_PackageRuntime_GetConfigSamplePath_Returns {
   const packageRoot: Lib_PackageRuntime_GetConfigSamplePath_PackageRoot = getPackageRoot();
@@ -63,7 +63,7 @@ function getConfigSamplePath(): Lib_PackageRuntime_GetConfigSamplePath_Returns {
  *
  * @returns {Lib_PackageRuntime_GetPackageRoot_Returns}
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 function getPackageRoot(): Lib_PackageRuntime_GetPackageRoot_Returns {
   const currentFilePath: Lib_PackageRuntime_GetPackageRoot_CurrentFilePath = fileURLToPath(import.meta.url);
@@ -96,7 +96,7 @@ function getPackageRoot(): Lib_PackageRuntime_GetPackageRoot_Returns {
  *
  * @returns {Lib_PackageRuntime_GetPackageVersion_Returns}
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 function getPackageVersion(): Lib_PackageRuntime_GetPackageVersion_Returns {
   const packageRoot: Lib_PackageRuntime_GetPackageVersion_PackageRoot = getPackageRoot();
@@ -120,7 +120,7 @@ function getPackageVersion(): Lib_PackageRuntime_GetPackageVersion_Returns {
  *
  * @returns {Lib_PackageRuntime_GetWorkerEntryPath_Returns}
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 function getWorkerEntryPath(): Lib_PackageRuntime_GetWorkerEntryPath_Returns {
   const currentFilePath: Lib_PackageRuntime_GetWorkerEntryPath_CurrentFilePath = fileURLToPath(import.meta.url);

@@ -26,7 +26,7 @@ import type {
  *
  * @returns {Cli_Commands_Validate_ValidateConfig_Returns}
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 function validateConfig(configPath: Cli_Commands_Validate_ValidateConfig_ConfigPath): Cli_Commands_Validate_ValidateConfig_Returns {
   const errors: Cli_Commands_Validate_ValidateConfig_Errors = [];

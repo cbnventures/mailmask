@@ -158,7 +158,7 @@ function resolveConfigJson() {
  *
  * @returns {string[]}
  *
- * @since UNRELEASED
+ * @since 0.0.0
  */
 function aliasVarLines(aliasesJson) {
   const parts = [];

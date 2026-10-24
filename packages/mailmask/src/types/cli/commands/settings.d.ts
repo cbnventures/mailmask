@@ -3,7 +3,7 @@ import type { Lib_Schema_ConfigSchema, Lib_Schema_SettingsConfig } from '../../l
 /**
  * CLI - Commands - Settings - Get Settings.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Cli_Commands_Settings_GetSettings_ConfigPath = string;
 
@@ -14,7 +14,7 @@ export type Cli_Commands_Settings_GetSettings_Config = { [Key in keyof Lib_Schem
 /**
  * CLI - Commands - Settings - Update Settings.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Cli_Commands_Settings_UpdateSettings_ConfigPath = string;
 

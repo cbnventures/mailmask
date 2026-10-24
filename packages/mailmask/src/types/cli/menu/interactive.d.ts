@@ -10,7 +10,7 @@ import type {
 /**
  * CLI - Menu - Interactive - Alias Menu.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Cli_Menu_Interactive_AliasMenu_ConfigPath = string;
 
@@ -27,7 +27,7 @@ export type Cli_Menu_Interactive_AliasMenu_ErrorMessage = string;
 /**
  * CLI - Menu - Interactive - Create Alias Flow.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Cli_Menu_Interactive_CreateAliasFlow_ConfigPath = string;
 
@@ -44,7 +44,7 @@ export type Cli_Menu_Interactive_CreateAliasFlow_Alias = { [Key in keyof Lib_Sch
 /**
  * CLI - Menu - Interactive - Destination Menu.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Cli_Menu_Interactive_DestinationMenu_ConfigPath = string;
 
@@ -67,7 +67,7 @@ export type Cli_Menu_Interactive_DestinationMenu_ErrorMessage = string;
 /**
  * CLI - Menu - Interactive - Interactive Menu.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Cli_Menu_Interactive_InteractiveMenu_ConfigDirs = string[];
 
@@ -94,7 +94,7 @@ export type Cli_Menu_Interactive_InteractiveMenu_ErrorMessage = string;
 /**
  * CLI - Menu - Interactive - Modify Alias Flow.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Cli_Menu_Interactive_ModifyAliasFlow_ConfigPath = string;
 
@@ -113,7 +113,7 @@ export type Cli_Menu_Interactive_ModifyAliasFlow_ExpiresAt = string | undefined;
 /**
  * CLI - Menu - Interactive - Notifier Menu.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Cli_Menu_Interactive_NotifierMenu_ConfigPath = string;
 
@@ -140,7 +140,7 @@ export type Cli_Menu_Interactive_NotifierMenu_ErrorMessage = string;
 /**
  * CLI - Menu - Interactive - Print Aliases.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Cli_Menu_Interactive_PrintAliases_ConfigPath = string;
 
@@ -159,7 +159,7 @@ export type Cli_Menu_Interactive_PrintAliases_LabelSuffix = string;
 /**
  * CLI - Menu - Interactive - Settings Flow.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Cli_Menu_Interactive_SettingsFlow_ConfigPath = string;
 
@@ -174,7 +174,7 @@ export type Cli_Menu_Interactive_SettingsFlow_ErrorMessage = string;
 /**
  * CLI - Menu - Interactive - Split List.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Cli_Menu_Interactive_SplitList_Value = unknown;
 

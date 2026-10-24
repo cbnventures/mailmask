@@ -5,7 +5,7 @@ import type { Lib_Schema_ConfigSchema } from '../../lib/schema.d.ts';
 /**
  * Tests - Worker - Handlers.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Tests_Worker_Handlers_Now = number;
 
@@ -14,7 +14,7 @@ export type Tests_Worker_Handlers_BaseConfig = { [Key in keyof Lib_Schema_Config
 /**
  * Tests - Worker - Handlers - Handle Email - Forwards With Identifying Headers.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Tests_Worker_Handlers_HandleEmail_ForwardsWithIdentifyingHeaders_Message_To = string;
 
@@ -36,7 +36,7 @@ export type Tests_Worker_Handlers_HandleEmail_ForwardsWithIdentifyingHeaders_For
 /**
  * Tests - Worker - Handlers - Handle Email - Notifies When A Known Alias Refuses Mail.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Tests_Worker_Handlers_HandleEmail_NotifiesWhenAKnownAliasRefusesMail_Message_To = string;
 
@@ -60,7 +60,7 @@ export type Tests_Worker_Handlers_HandleEmail_NotifiesWhenAKnownAliasRefusesMail
 /**
  * Tests - Worker - Handlers - Handle Email - Rejects Unknown Recipients Without Notifying.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Tests_Worker_Handlers_HandleEmail_RejectsUnknownRecipientsWithoutNotifying_Message_To = string;
 
@@ -84,7 +84,7 @@ export type Tests_Worker_Handlers_HandleEmail_RejectsUnknownRecipientsWithoutNot
 /**
  * Tests - Worker - Handlers - Handle Email - Still Rejects When The Notification Fails.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Tests_Worker_Handlers_HandleEmail_StillRejectsWhenTheNotificationFails_Message_To = string;
 

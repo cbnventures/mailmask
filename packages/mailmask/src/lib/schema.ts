@@ -15,7 +15,7 @@ import {
  * Validates a destination inbox: a short name that aliases reference
  * and the real email address that forwarded mail is delivered to.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 const destinationSchema = z.object({
   name: z.string().min(1).regex(LIB_REGEX_DESTINATION_NAME, { message: 'Destination name must contain only lowercase alphanumeric characters and hyphens, and cannot start or end with a hyphen' }),
@@ -28,7 +28,7 @@ const destinationSchema = z.object({
  * Validates a single sender rule used by the allow and block lists,
  * either a full address or a "*@domain" wildcard.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 const senderPatternSchema = z.string().min(1).regex(LIB_REGEX_SENDER_PATTERN, { message: 'Sender rules must be a full address (news@shop.com) or a domain wildcard (*@shop.com)' });
 
@@ -38,7 +38,7 @@ const senderPatternSchema = z.string().min(1).regex(LIB_REGEX_SENDER_PATTERN, { 
  * Validates an alias: the local part that receives mail, the destination
  * it forwards to, and the optional label, expiry, and sender rules.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 const aliasSchema = z.object({
   address: z.string().min(1).max(64).regex(LIB_REGEX_ALIAS_ADDRESS, { message: 'Alias address must contain only lowercase alphanumeric characters, dots, hyphens, and underscores, and cannot start or end with a separator' }),
@@ -56,7 +56,7 @@ const aliasSchema = z.object({
  * Validates a notifier that publishes straight to an ntfy server topic
  * with an access token, the same shape Branded Short Links uses.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 const ntfyNotifierSchema = z.object({
   type: z.literal('ntfy'),
@@ -72,7 +72,7 @@ const ntfyNotifierSchema = z.object({
  * Validates a notifier that posts to a Reverse Proxy for ntfy context
  * URL, with the context token when the context requires one.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 const ntfyReverseProxyNotifierSchema = z.object({
   type: z.literal('ntfy-reverse-proxy'),
@@ -87,7 +87,7 @@ const ntfyReverseProxyNotifierSchema = z.object({
  * Discriminated union over the notifier type field, so each notifier
  * is validated against the fields its type needs.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 const notifierSchema = z.discriminatedUnion('type', [
   ntfyNotifierSchema,
@@ -100,7 +100,7 @@ const notifierSchema = z.discriminatedUnion('type', [
  * Validates global settings such as the Worker name, the email domain,
  * and what happens to mail for addresses that are not aliases.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 const settingsSchema = z.object({
   worker_name: z.string().min(1).regex(LIB_REGEX_WORKER_NAME, { message: 'Worker name must contain only lowercase alphanumeric characters and hyphens, and cannot start or end with a hyphen' }),
@@ -124,7 +124,7 @@ const settingsSchema = z.object({
  * Top-level schema that composes destinations, aliases, notifiers, and
  * settings into a single validated configuration object.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 const configSchema = z.object({
   destinations: z.array(destinationSchema),
@@ -139,7 +139,7 @@ const configSchema = z.object({
  * Validates the response envelope that wraps every Cloudflare v4
  * API result, including the error list returned on failure.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 const cloudflareEnvelopeSchema = z.object({
   success: z.boolean(),
@@ -156,7 +156,7 @@ const cloudflareEnvelopeSchema = z.object({
  * Validates the zone list returned when looking up the zone
  * (and owning account) that serves the base domain.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 const cloudflareZonesSchema = z.array(z.object({
   id: z.string(),
@@ -172,7 +172,7 @@ const cloudflareZonesSchema = z.array(z.object({
  * Validates the Email Routing settings of a zone, used to confirm
  * that Email Routing is enabled before the catch-all is configured.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 const cloudflareEmailRoutingSettingsSchema = z.object({
   enabled: z.boolean(),
@@ -184,7 +184,7 @@ const cloudflareEmailRoutingSettingsSchema = z.object({
  * Validates the account-level destination addresses that Email
  * Routing is allowed to forward to, with their verification time.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 const cloudflareDestinationAddressesSchema = z.array(z.object({
   email: z.string(),
@@ -197,7 +197,7 @@ const cloudflareDestinationAddressesSchema = z.array(z.object({
  * Validates the catch-all rule of a zone so the previous action
  * can be reported before it is pointed at the Worker.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 const cloudflareCatchAllSchema = z.object({
   enabled: z.boolean().optional(),

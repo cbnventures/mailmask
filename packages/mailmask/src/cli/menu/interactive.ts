@@ -96,7 +96,7 @@ import type {
  *
  * @returns {Cli_Menu_Interactive_InteractiveMenu_Returns}
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 async function interactiveMenu(configDirs: Cli_Menu_Interactive_InteractiveMenu_ConfigDirs): Cli_Menu_Interactive_InteractiveMenu_Returns {
   const version: Cli_Menu_Interactive_InteractiveMenu_Version = getPackageVersion();
@@ -208,7 +208,7 @@ async function interactiveMenu(configDirs: Cli_Menu_Interactive_InteractiveMenu_
  *
  * @returns {Cli_Menu_Interactive_AliasMenu_Returns}
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 async function aliasMenu(configPath: Cli_Menu_Interactive_AliasMenu_ConfigPath): Cli_Menu_Interactive_AliasMenu_Returns {
   let inMenu: Cli_Menu_Interactive_AliasMenu_InMenu = true;
@@ -273,7 +273,7 @@ async function aliasMenu(configPath: Cli_Menu_Interactive_AliasMenu_ConfigPath):
  *
  * @returns {Cli_Menu_Interactive_CreateAliasFlow_Returns}
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 async function createAliasFlow(configPath: Cli_Menu_Interactive_CreateAliasFlow_ConfigPath): Cli_Menu_Interactive_CreateAliasFlow_Returns {
   const destinations: Cli_Menu_Interactive_CreateAliasFlow_Destinations = listDestinations(configPath);
@@ -368,7 +368,7 @@ async function createAliasFlow(configPath: Cli_Menu_Interactive_CreateAliasFlow_
  *
  * @returns {Cli_Menu_Interactive_ModifyAliasFlow_Returns}
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 async function modifyAliasFlow(configPath: Cli_Menu_Interactive_ModifyAliasFlow_ConfigPath): Cli_Menu_Interactive_ModifyAliasFlow_Returns {
   const aliases: Cli_Menu_Interactive_ModifyAliasFlow_Aliases = listAliases(configPath);
@@ -480,7 +480,7 @@ async function modifyAliasFlow(configPath: Cli_Menu_Interactive_ModifyAliasFlow_
  *
  * @returns {Cli_Menu_Interactive_DestinationMenu_Returns}
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 async function destinationMenu(configPath: Cli_Menu_Interactive_DestinationMenu_ConfigPath): Cli_Menu_Interactive_DestinationMenu_Returns {
   let inMenu: Cli_Menu_Interactive_DestinationMenu_InMenu = true;
@@ -589,7 +589,7 @@ async function destinationMenu(configPath: Cli_Menu_Interactive_DestinationMenu_
  *
  * @returns {Cli_Menu_Interactive_NotifierMenu_Returns}
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 async function notifierMenu(configPath: Cli_Menu_Interactive_NotifierMenu_ConfigPath): Cli_Menu_Interactive_NotifierMenu_Returns {
   let inMenu: Cli_Menu_Interactive_NotifierMenu_InMenu = true;
@@ -744,7 +744,7 @@ async function notifierMenu(configPath: Cli_Menu_Interactive_NotifierMenu_Config
  *
  * @returns {Cli_Menu_Interactive_SettingsFlow_Returns}
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 async function settingsFlow(configPath: Cli_Menu_Interactive_SettingsFlow_ConfigPath): Cli_Menu_Interactive_SettingsFlow_Returns {
   const currentSettings: Cli_Menu_Interactive_SettingsFlow_CurrentSettings = getSettings(configPath);
@@ -843,7 +843,7 @@ async function settingsFlow(configPath: Cli_Menu_Interactive_SettingsFlow_Config
  *
  * @returns {Cli_Menu_Interactive_PrintAliases_Returns}
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 function printAliases(configPath: Cli_Menu_Interactive_PrintAliases_ConfigPath): Cli_Menu_Interactive_PrintAliases_Returns {
   const aliases: Cli_Menu_Interactive_PrintAliases_Aliases = listAliases(configPath);
@@ -876,7 +876,7 @@ function printAliases(configPath: Cli_Menu_Interactive_PrintAliases_ConfigPath):
  *
  * @returns {Cli_Menu_Interactive_SplitList_Returns}
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 function splitList(value: Cli_Menu_Interactive_SplitList_Value): Cli_Menu_Interactive_SplitList_Returns {
   if (typeof value !== 'string' || value.trim() === '') {

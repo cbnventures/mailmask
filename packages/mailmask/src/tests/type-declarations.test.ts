@@ -8,7 +8,7 @@ import * as vitest from 'vitest';
  * inspector rules live in @cbnventures/nova/rules/vitest; this wrapper
  * supplies the configuration that reproduces this package's conventions.
  *
- * @since 0.20.0
+ * @since 0.0.1
  */
 registerTypeDeclarationSuite({
   vitest,

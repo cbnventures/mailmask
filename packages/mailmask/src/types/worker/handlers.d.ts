@@ -4,7 +4,7 @@ import type { Shared_RouteDecision } from '../shared.d.ts';
 /**
  * Worker - Handlers - Handle Email.
  *
- * @since UNRELEASED
+ * @since 0.0.1
  */
 export type Worker_Handlers_HandleEmail_Message = Pick<ForwardableEmailMessage, 'to' | 'from' | 'forward' | 'setReject'>;
 
