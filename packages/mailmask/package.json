@@ -1,0 +1,100 @@
+{
+  "name": "mailmask",
+  "version": "0.0.0",
+  "description": "Self-hosted disposable email aliases on Cloudflare Workers that forward to your real inbox",
+  "keywords": [
+    "email",
+    "email-alias",
+    "disposable-email",
+    "temporary-email",
+    "privacy",
+    "cloudflare-workers",
+    "email-routing",
+    "anonymous-email"
+  ],
+  "license": "MIT",
+  "homepage": "https://mailmask.cbnventures.io/",
+  "bugs": {
+    "email": "bugs@cbnventures.io",
+    "url": "https://github.com/cbnventures/mailmask/issues"
+  },
+  "author": {
+    "name": "CBN Ventures",
+    "email": "contact@cbnventures.io",
+    "url": "https://www.cbnventures.io/"
+  },
+  "contributors": [
+    {
+      "name": "Jacky Liang",
+      "email": "hello@mrjackyliang.com",
+      "url": "https://www.mrjackyliang.com/"
+    }
+  ],
+  "funding": [
+    "https://github.com/sponsors/cbnventures",
+    "https://www.paypal.com/biz/profile/cbnventures"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cbnventures/mailmask.git",
+    "directory": "packages/mailmask"
+  },
+  "type": "module",
+  "files": [
+    "build"
+  ],
+  "bin": {
+    "mailmask": "build/src/cli/index.js",
+    "mm": "build/src/cli/index.js"
+  },
+  "private": false,
+  "scripts": {
+    "dev": "nova utility run-scripts --parallel --node-env development \"dev:*\"",
+    "dev:worker": "node ../../scripts/dev-worker.mjs",
+    "check": "nova utility run-scripts --sequential \"check:*\"",
+    "check:generate-types": "node ../../scripts/generate-wrangler-types.mjs",
+    "check:lint": "eslint ./ --max-warnings=0",
+    "check:types-cli": "nova utility type-check --project tsconfig.cli.json",
+    "check:types-worker": "nova utility type-check --project tsconfig.worker.json",
+    "check:types-config": "nova utility type-check --project tsconfig.config.json",
+    "check:types-tests": "nova utility type-check --project tsconfig.tests.json",
+    "check:test": "vitest run",
+    "build": "nova utility run-scripts --sequential --node-env production \"build:*\"",
+    "build:generate-types": "node ../../scripts/generate-wrangler-types.mjs",
+    "build:transpile-cli": "nova utility transpile --project tsconfig.cli.json",
+    "build:transpile-worker": "nova utility transpile --project tsconfig.worker.json",
+    "build:copy-types": "shx rm -rf \"./build/src/types\" && shx cp -r \"./src/types\" \"./build/src/types\"",
+    "build:copy-config": "shx cp ../../config.sample.json ./build/config.sample.json",
+    "build:fix-perms": "shx chmod +x ./build/src/cli/index.js",
+    "build:verify-package": "node ../../scripts/verify-package.mjs",
+    "deploy": "nova utility run-scripts --sequential --node-env production \"deploy:*\"",
+    "deploy:worker": "node build/src/cli/index.js deploy",
+    "clean": "nova utility run-scripts --parallel \"clean:*\"",
+    "clean:build": "shx rm -rf ./build",
+    "manage": "tsx src/cli/index.ts"
+  },
+  "engines": {
+    "node": "^22 || ^24"
+  },
+  "dependencies": {
+    "@cbnventures/nova": "0.33.0",
+    "@scure/bip39": "2.4.0",
+    "chalk": "6.0.0",
+    "commander": "15.0.0",
+    "prompts": "2.4.2",
+    "wrangler": "4.151.0",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "5.20261015.1",
+    "@types/node": "24.9.1",
+    "@types/prompts": "2.4.9",
+    "eslint": "9.39.5",
+    "glob": "13.0.6",
+    "node-pty": "1.2.0-beta.14",
+    "shx": "0.4.0",
+    "tsx": "4.23.15",
+    "typescript": "6.0.3",
+    "vitest": "4.1.11"
+  }
+}

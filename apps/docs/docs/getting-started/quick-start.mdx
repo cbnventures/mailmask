@@ -1,0 +1,97 @@
+---
+id: quick-start
+title: Quick Start
+description: Install the Mailmask CLI, add a real inbox, create your first disposable alias, and deploy the Cloudflare Worker that forwards its mail.
+sidebar_position: 1
+keywords:
+  - mailmask
+  - quick start
+  - installation
+  - first alias
+  - setup guide
+tags:
+  - quickstart
+  - installation
+---
+
+import { Terminology } from '@cbnventures/docusaurus-preset-nova/blocks';
+
+Install the CLI, create your first <Terminology title="address on your domain that forwards mail" to="/docs/reference/terminology#alias">alias</Terminology>, and deploy the <Terminology title="Cloudflare Worker that routes your mail" to="/docs/reference/terminology#worker">Worker</Terminology> that forwards its mail to your real inbox.
+
+## Prerequisites
+
+- **Node.js** — v22 or v24, with npm.
+- **Cloudflare account** — The free plan includes Workers and <Terminology title="Cloudflare service that receives mail for your domain" to="/docs/reference/terminology#cloudflare-email-routing">Cloudflare Email Routing</Terminology>.
+- **A domain on Cloudflare** — The domain's DNS must be managed by Cloudflare.
+- **Email Routing enabled** — Turn it on under **Email > Email Routing** in the Cloudflare dashboard so the mail (MX) records are added.
+
+:::warning
+The deploy command never changes your DNS. If <Terminology title="Cloudflare service that receives mail for your domain" to="/docs/reference/terminology#cloudflare-email-routing">Cloudflare Email Routing</Terminology> is not enabled on the domain, deploy stops and asks you to enable it in the dashboard first.
+:::
+
+## Install
+
+Install the package globally to use the `mm` command anywhere:
+
+```bash
+npm install -g mailmask
+```
+
+Or run it without installing:
+
+```bash
+npx mailmask
+```
+
+`mailmask` and `mm` are the same command. The first run copies a starter `config.json` into your platform config directory, so you don't need to clone the repository.
+
+## First-Time Setup
+
+Run `mm` with no arguments to open the interactive menu, then work through these steps.
+
+1. **Open Settings.** Set the <Terminology title="Cloudflare Worker that routes your mail" to="/docs/reference/terminology#worker">Worker</Terminology> name and the email domain, which becomes your <Terminology title="domain whose catch-all points at the Worker" to="/docs/reference/terminology#base-domain">base domain</Terminology> (for example `mail.example.com`).
+2. **Add a destination.** Under **Manage Destinations**, give your real inbox a short name like `personal` and enter its address.
+3. **Create an alias.** Under **Manage Aliases**, choose **Create**, pick an address style, and choose the <Terminology title="verified real inbox that aliases forward to" to="/docs/reference/terminology#destination">destination</Terminology> to forward to.
+4. **Deploy.** Choose **Deploy** and paste a Cloudflare <Terminology title="Cloudflare credential the CLI deploys with" to="/docs/reference/terminology#api-token">API token</Terminology> when asked.
+
+The same steps work as direct commands:
+
+```bash
+# Add your real inbox.
+mm destination add personal you@example.com
+
+# Create a memorable alias that forwards to it.
+mm alias add -d personal -l "Online shopping"
+
+# Validate, register the inbox, deploy, and point the catch-all at the Worker.
+mm deploy
+```
+
+## Verify Your Inbox
+
+On the first deploy, Cloudflare sends a verification email to each new <Terminology title="verified real inbox that aliases forward to" to="/docs/reference/terminology#destination">destination</Terminology>. Mail for an <Terminology title="address on your domain that forwards mail" to="/docs/reference/terminology#alias">alias</Terminology> can't reach that inbox until you click the link in that email.
+
+:::tip
+Run `mm deploy` again after verifying. The summary confirms that every <Terminology title="verified real inbox that aliases forward to" to="/docs/reference/terminology#destination">destination</Terminology> is verified and lists each <Terminology title="address on your domain that forwards mail" to="/docs/reference/terminology#alias">alias</Terminology> with its full address.
+:::
+
+## Send a Test Message
+
+Send an email from any account to the address the CLI printed, such as `velvet-harbor-42@mail.example.com`. It arrives in your real inbox within a few seconds.
+
+When alias headers are enabled, the forwarded message carries `X-Mailmask-Alias` and `X-Mailmask-Label` headers. You can use them to build filters in your mail client.
+
+## If Something Goes Wrong
+
+Check [Troubleshooting](/docs/reference/troubleshooting/) for the most common first-run problems:
+
+- Email Routing not enabled on the domain.
+- A <Terminology title="verified real inbox that aliases forward to" to="/docs/reference/terminology#destination">destination</Terminology> that has not been verified yet.
+- An <Terminology title="Cloudflare credential the CLI deploys with" to="/docs/reference/terminology#api-token">API token</Terminology> missing one of the three required permissions.
+
+## What Is Next
+
+- **[Configuration](/docs/getting-started/configuration/)** — Every field in `config.json`.
+- **[Aliases and Expiry](/docs/features/aliases/)** — Time-limit and retire addresses.
+- **[Sender Rules](/docs/features/sender-rules/)** — Allow or block specific senders per <Terminology title="address on your domain that forwards mail" to="/docs/reference/terminology#alias">alias</Terminology>.
+- **[CLI Reference](/docs/reference/cli/)** — Every command and flag.

@@ -1,0 +1,64 @@
+---
+id: unknown-addresses
+title: Unknown Addresses
+description: Choose whether mail for addresses that are not aliases bounces, disappears silently, or forwards to a default destination inbox of your choice.
+sidebar_position: 3
+keywords:
+  - mailmask
+  - unknown alias action
+  - catch-all
+  - reject
+  - default destination
+tags:
+  - features
+  - routing
+---
+
+import { Terminology } from '@cbnventures/docusaurus-preset-nova/blocks';
+
+Decide what happens to mail sent to any address on your <Terminology title="domain whose catch-all points at the Worker" to="/docs/reference/terminology#base-domain">base domain</Terminology> that isn't one of your aliases.
+
+## Why Use This Feature?
+
+1. Rejecting unknown addresses tells senders the address doesn't exist so guessed addresses get a clear bounce.
+2. Dropping unknown addresses gives spammers no signal about which addresses are real.
+3. Forwarding unknown addresses lets you make up an address on the spot and still receive the mail.
+
+## Options
+
+Set `unknown_alias_action` in the <Terminology title="config.json file with destinations, aliases, and settings" to="/docs/reference/terminology#config">config</Terminology>, or choose it under **Settings** in the `mm` menu.
+
+| Value     | What happens                                               |
+|-----------|------------------------------------------------------------|
+| `reject`  | The sender gets a bounce saying the address was not found. |
+| `drop`    | The message is accepted and silently discarded.            |
+| `forward` | The message is forwarded to `default_destination`.         |
+
+```json title="config.json"
+{
+  "settings": {
+    "unknown_alias_action": "forward",
+    "default_destination": "personal"
+  }
+}
+```
+
+The <Terminology title="what happens to mail for non-alias addresses" to="/docs/reference/terminology#unknown-alias-action">unknown alias action</Terminology> applies because the <Terminology title="Email Routing rule for addresses without their own rule" to="/docs/reference/terminology#catch-all">catch-all</Terminology> sends every address without its own Email Routing rule to the <Terminology title="Cloudflare Worker that routes your mail" to="/docs/reference/terminology#worker">Worker</Terminology>.
+
+## Refusals Never Fall Through
+
+A known <Terminology title="address on your domain that forwards mail" to="/docs/reference/terminology#alias">alias</Terminology> that is disabled, expired, or refuses a sender never forwards to the default <Terminology title="verified real inbox that aliases forward to" to="/docs/reference/terminology#destination">destination</Terminology>. That way, turning off an <Terminology title="address on your domain that forwards mail" to="/docs/reference/terminology#alias">alias</Terminology> really stops its mail, even with `forward` selected.
+
+| Setting   | What a refusal does      |
+|-----------|--------------------------|
+| `reject`  | Bounces with the reason. |
+| `drop`    | Discards silently.       |
+| `forward` | Bounces with the reason. |
+
+## Other Domains
+
+Mail for a domain other than your <Terminology title="domain whose catch-all points at the Worker" to="/docs/reference/terminology#base-domain">base domain</Terminology> is always rejected. This can happen if you route another domain's catch-all at the same <Terminology title="Cloudflare Worker that routes your mail" to="/docs/reference/terminology#worker">Worker</Terminology>.
+
+:::tip
+`drop` keeps spammers guessing, but a person who mistypes an address also gets no bounce. It is recommended to pick `reject` unless spam to random addresses is a real problem for you.
+:::

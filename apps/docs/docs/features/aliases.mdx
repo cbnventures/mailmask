@@ -1,0 +1,96 @@
+---
+id: aliases
+title: Aliases and Expiry
+description: Create memorable, random, or custom aliases, give them a lifetime, and disable or remove them when an address is no longer worth keeping.
+sidebar_position: 1
+keywords:
+  - mailmask
+  - aliases
+  - expiry
+  - disposable address
+  - subaddressing
+tags:
+  - features
+  - aliases
+---
+
+import { Terminology } from '@cbnventures/docusaurus-preset-nova/blocks';
+
+Hand out a fresh address for every sign-up, then let it expire or switch it off when it has done its job.
+
+## Why Use This Feature?
+
+1. Generates unique addresses on demand so no two sites ever share the same way to reach you.
+2. Expires an <Terminology title="address on your domain that forwards mail" to="/docs/reference/terminology#alias">alias</Terminology> automatically so short-lived sign-ups clean up after themselves.
+3. Disables an <Terminology title="address on your domain that forwards mail" to="/docs/reference/terminology#alias">alias</Terminology> without deleting it so the address stays reserved and can be turned back on later.
+4. Labels each <Terminology title="address on your domain that forwards mail" to="/docs/reference/terminology#alias">alias</Terminology> so you always know where an address was used.
+
+## Address Styles
+
+| Style  | Example            | When to use it                                       |
+|--------|--------------------|------------------------------------------------------|
+| Words  | `velvet-harbor-42` | Easy to read aloud or type into a form by hand.      |
+| Random | `k7mq2xv9pa`       | Hard to guess, with no words that hint at the owner. |
+| Custom | `trial.signup`     | You want a specific, meaningful address.             |
+
+Generated addresses never repeat an existing <Terminology title="address on your domain that forwards mail" to="/docs/reference/terminology#alias">alias</Terminology>. Custom addresses use lowercase letters, numbers, dots, hyphens, and underscores.
+
+## Usage
+
+```bash
+# Memorable two-word address (the default style).
+mm alias add -d personal -l "Online shopping"
+
+# Random characters.
+mm alias add -d personal -s random -l "Forum account"
+
+# A custom address that expires in 7 days.
+mm alias add -d personal -a trial.signup -e 7d -l "Free trial"
+```
+
+Every command that changes an <Terminology title="address on your domain that forwards mail" to="/docs/reference/terminology#alias">alias</Terminology> saves the <Terminology title="config.json file with destinations, aliases, and settings" to="/docs/reference/terminology#config">config</Terminology> and reminds you to run `mm deploy` to apply it.
+
+## Expiry
+
+An expiry accepts a duration or a date:
+
+- **Durations** — `30m`, `12h`, `7d`, or `4w` from now.
+- **Dates** — Any ISO date or timestamp, such as `2026-12-31` or `2026-12-31T18:00:00Z`.
+- **`never`** — Removes an existing expiry.
+
+```bash
+# Extend or shorten an existing alias.
+mm alias expire trial.signup 30d
+
+# Keep it forever.
+mm alias expire trial.signup never
+```
+
+The expiry is stored as an exact timestamp in `expires_at`. Mail arriving at or after that moment is a <Terminology title="mail a known alias turns away" to="/docs/reference/terminology#refusal">refusal</Terminology>, and it is never forwarded.
+
+:::info
+Expiry is checked when each message arrives, so an <Terminology title="address on your domain that forwards mail" to="/docs/reference/terminology#alias">alias</Terminology> stops working on time without a redeploy. You only need to deploy when you set or change the expiry.
+:::
+
+## Disabling and Removing
+
+```bash
+# Refuse all mail but keep the address reserved.
+mm alias disable velvet-harbor-42
+
+# Start accepting mail again.
+mm alias enable velvet-harbor-42
+
+# Delete the alias entirely.
+mm alias remove velvet-harbor-42
+```
+
+It is recommended to disable rather than remove an address you no longer want. A removed <Terminology title="address on your domain that forwards mail" to="/docs/reference/terminology#alias">alias</Terminology> becomes an unknown address, and what happens to it then depends on your <Terminology title="what happens to mail for non-alias addresses" to="/docs/reference/terminology#unknown-alias-action">unknown alias action</Terminology>.
+
+## Subaddressing
+
+With <Terminology title="treating alias+tag@ as alias@" to="/docs/reference/terminology#subaddressing">subaddressing</Terminology> on, anything after a `+` is ignored when matching. Mail to `velvet-harbor-42+receipts@mail.example.com` reaches the `velvet-harbor-42` <Terminology title="address on your domain that forwards mail" to="/docs/reference/terminology#alias">alias</Terminology>, and the forwarded `X-Mailmask-Alias` header keeps the full original address so you can see which tag was used.
+
+## Checking Status
+
+`mm alias list` prints each <Terminology title="address on your domain that forwards mail" to="/docs/reference/terminology#alias">alias</Terminology> with its <Terminology title="verified real inbox that aliases forward to" to="/docs/reference/terminology#destination">destination</Terminology>, status, and label. The status is `active`, `disabled`, `expired`, or `expires` followed by the timestamp.

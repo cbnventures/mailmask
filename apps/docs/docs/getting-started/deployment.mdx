@@ -1,0 +1,88 @@
+---
+id: deployment
+title: Deployment
+description: Deploy Mailmask with one command that validates config, registers destination inboxes, publishes the Worker, and points the Email Routing catch-all at it.
+sidebar_position: 3
+keywords:
+  - mailmask
+  - deployment
+  - cloudflare workers
+  - email routing
+  - api token
+  - wrangler
+tags:
+  - deployment
+  - cloudflare
+---
+
+import { Terminology } from '@cbnventures/docusaurus-preset-nova/blocks';
+
+Publish your aliases to Cloudflare with a single `mm deploy` that handles the <Terminology title="Cloudflare Worker that routes your mail" to="/docs/reference/terminology#worker">Worker</Terminology>, your inboxes, and the <Terminology title="Email Routing rule for addresses without their own rule" to="/docs/reference/terminology#catch-all">catch-all</Terminology> for you.
+
+## Cloudflare Requirements
+
+- **Cloudflare account** — Free or paid.
+- **A domain managed by Cloudflare DNS** — The <Terminology title="domain whose catch-all points at the Worker" to="/docs/reference/terminology#base-domain">base domain</Terminology> must be the zone itself or a subdomain of it.
+- **Email Routing enabled** — Enable it once under **Email > Email Routing** so Cloudflare adds the MX and SPF records.
+- **An API token** — With the three permissions listed below.
+
+:::info
+Enabling Email Routing changes your DNS, so Mailmask leaves that step to you. If it isn't enabled, deploy stops with a message pointing to the dashboard.
+:::
+
+## API Token Permissions
+
+Create a custom token at [dash.cloudflare.com/profile/api-tokens](https://dash.cloudflare.com/profile/api-tokens) with these permissions.
+
+| Permission                               | Why it is needed                                              |
+|------------------------------------------|---------------------------------------------------------------|
+| Account > Workers Scripts > Edit         | Publishes the Worker.                                         |
+| Account > Email Routing Addresses > Edit | Registers each destination inbox and checks its verification. |
+| Zone > Email Routing Rules > Edit        | Points the zone's catch-all rule at the Worker.               |
+
+Under **Account Resources**, select your account. Under **Zone Resources**, select the zone that holds your <Terminology title="domain whose catch-all points at the Worker" to="/docs/reference/terminology#base-domain">base domain</Terminology>.
+
+## Providing the Token
+
+- **Interactive deploy** — Choosing **Deploy** in the `mm` menu walks you through creating a token, verifies it, and saves it as `CLOUDFLARE_API_TOKEN` in a `.env` file in your config directory.
+- **Direct command** — `mm deploy` reads `CLOUDFLARE_API_TOKEN` from the environment or that `.env` file. It stops with an error instead of prompting when no valid token is found.
+
+If the token is missing a permission, deploy lists exactly which ones to add. In the interactive menu, it waits while you update the token and then retries.
+
+## What Deploy Does
+
+1. **Authenticates** — Confirms the <Terminology title="Cloudflare credential the CLI deploys with" to="/docs/reference/terminology#api-token">API token</Terminology> is valid.
+2. **Validates** — Checks the <Terminology title="config.json file with destinations, aliases, and settings" to="/docs/reference/terminology#config">config</Terminology> and stops if anything is wrong.
+3. **Finds the zone** — Locates the Cloudflare zone for your <Terminology title="domain whose catch-all points at the Worker" to="/docs/reference/terminology#base-domain">base domain</Terminology> and verifies the token's permissions.
+4. **Checks Email Routing** — Confirms <Terminology title="Cloudflare service that receives mail for your domain" to="/docs/reference/terminology#cloudflare-email-routing">Cloudflare Email Routing</Terminology> is enabled on the zone.
+5. **Registers destinations** — Adds any new <Terminology title="verified real inbox that aliases forward to" to="/docs/reference/terminology#destination">destination</Terminology> to Email Routing, which triggers a verification email, and lists the ones still unverified.
+6. **Generates `wrangler.toml`** — Writes the <Terminology title="Cloudflare Worker that routes your mail" to="/docs/reference/terminology#worker">Worker</Terminology> configuration with your settings, destinations, and aliases.
+7. **Publishes the Worker** — Runs `wrangler deploy`.
+8. **Points the catch-all** — Sets the zone's <Terminology title="Email Routing rule for addresses without their own rule" to="/docs/reference/terminology#catch-all">catch-all</Terminology> rule to send mail to the <Terminology title="Cloudflare Worker that routes your mail" to="/docs/reference/terminology#worker">Worker</Terminology>, unless it already does.
+9. **Prints a summary** — Lists every <Terminology title="address on your domain that forwards mail" to="/docs/reference/terminology#alias">alias</Terminology> with its full address, <Terminology title="verified real inbox that aliases forward to" to="/docs/reference/terminology#destination">destination</Terminology>, and status.
+
+:::warning
+Pointing the <Terminology title="Email Routing rule for addresses without their own rule" to="/docs/reference/terminology#catch-all">catch-all</Terminology> at the <Terminology title="Cloudflare Worker that routes your mail" to="/docs/reference/terminology#worker">Worker</Terminology> replaces whatever the catch-all did before, and deploy prints the previous action. Explicit Email Routing rules for individual addresses still take precedence over the catch-all.
+:::
+
+## Verifying Destinations
+
+Cloudflare only forwards to verified inboxes. Until you click the link in the verification email, mail for any <Terminology title="address on your domain that forwards mail" to="/docs/reference/terminology#alias">alias</Terminology> that uses that <Terminology title="verified real inbox that aliases forward to" to="/docs/reference/terminology#destination">destination</Terminology> can't be delivered.
+
+Run `mm deploy` again after verifying to confirm the warning is gone.
+
+## Updating Aliases
+
+Every change to the <Terminology title="config.json file with destinations, aliases, and settings" to="/docs/reference/terminology#config">config</Terminology> reaches Cloudflare on the next deploy. A typical retire-and-redeploy looks like this:
+
+```bash
+# Stop accepting mail at an address that started getting spam.
+mm alias disable velvet-harbor-42
+
+# Ship the change.
+mm deploy
+```
+
+## Worker Exposure
+
+The generated configuration turns off the `workers.dev` address and preview URLs. The <Terminology title="Cloudflare Worker that routes your mail" to="/docs/reference/terminology#worker">Worker</Terminology> only handles inbound email, and any web request to it returns `404`.

@@ -1,0 +1,81 @@
+---
+id: local-development
+title: Local Development
+description: Run the Mailmask Worker locally with wrangler dev, simulate inbound mail against your aliases, and run the CLI from source while contributing.
+sidebar_position: 3
+keywords:
+  - mailmask
+  - local development
+  - wrangler dev
+  - testing
+  - contributing
+tags:
+  - reference
+  - development
+---
+
+import { Terminology } from '@cbnventures/docusaurus-preset-nova/blocks';
+
+Run the <Terminology title="Cloudflare Worker that routes your mail" to="/docs/reference/terminology#worker">Worker</Terminology> and CLI from a clone of the repository so you can test routing changes before deploying them.
+
+## Why Use This Setup?
+
+1. Runs the <Terminology title="Cloudflare Worker that routes your mail" to="/docs/reference/terminology#worker">Worker</Terminology> from source so routing changes are testable without touching your live domain.
+2. Simulates inbound mail locally so you can check how an <Terminology title="address on your domain that forwards mail" to="/docs/reference/terminology#alias">alias</Terminology>, <Terminology title="allow or block list entry for an alias" to="/docs/reference/terminology#sender-rule">sender rule</Terminology>, or expiry behaves.
+3. Runs the CLI from source so menu and command changes can be tried immediately.
+
+## Getting Started
+
+```bash
+npm install
+npm run dev
+```
+
+`npm run dev` starts the documentation site and runs `wrangler dev` for the <Terminology title="Cloudflare Worker that routes your mail" to="/docs/reference/terminology#worker">Worker</Terminology> in parallel. The <Terminology title="Cloudflare Worker that routes your mail" to="/docs/reference/terminology#worker">Worker</Terminology> listens on `http://localhost:8787` unless that port is taken.
+
+## Config Resolution
+
+The dev script looks for `wrangler.toml` in the project root and then in your platform config directory. If you have both, it asks which one to use.
+
+When neither exists, it generates a `wrangler.toml` in the project root from the first `config.json` it finds there or in the config directory. The generated file points at the TypeScript source, so code changes reload without a build.
+
+:::warning
+A `wrangler.toml` left over from `mm deploy` points at the built package instead of the source. Delete it before running `npm run dev` if you want your source changes picked up.
+:::
+
+## Simulating Inbound Mail
+
+Wrangler accepts test messages for email Workers at a local endpoint:
+
+```bash
+curl --request POST 'http://localhost:8787/cdn-cgi/handler/email' \
+  --url-query 'from=sender@shop.com' \
+  --url-query 'to=velvet-harbor-42@mail.example.com' \
+  --header 'Content-Type: application/json' \
+  --data-raw 'From: sender@shop.com
+To: velvet-harbor-42@mail.example.com
+Subject: Local test
+
+Hello from local development.'
+```
+
+The terminal running `wrangler dev` shows whether the message was forwarded or rejected, along with the reason.
+
+## Running the CLI From Source
+
+```bash
+# Interactive menu
+npm run manage
+
+# Direct commands
+npm run manage -- alias list
+```
+
+## Checks Before a Pull Request
+
+```bash
+npm run check
+npm run build
+```
+
+`npm run check` runs linting, type checks, and tests across every workspace, including the routing tests in `src/tests/worker/`.

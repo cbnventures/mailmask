@@ -1,0 +1,58 @@
+---
+title: "Introducing Mailmask: Disposable Aliases on Your Own Domain"
+description: Mailmask gives every sign-up its own address on your domain, forwarded to your real inbox by a Cloudflare Worker you own, with nothing stored.
+slug: introducing-mailmask
+authors:
+  - mrjackyliang
+keywords:
+  - mailmask
+  - disposable email
+  - email alias
+  - cloudflare email routing
+  - privacy
+tags:
+  - release
+  - privacy
+  - cloudflare-workers
+---
+
+Every sign-up form, store checkout, and free trial asks for an email address. Once you hand one out, it can be sold, leaked in a breach, or buried under marketing that never stops.
+
+Mailmask is our answer: a small, self-hosted Cloudflare Worker that turns a domain you already own into a private alias service.
+
+{/* truncate */}
+
+## Why We Built It
+
+Hosted alias services solve this problem, but they sit in the middle of all your mail, and they can change terms or disappear. If your domain is already on Cloudflare, you have most of what you need to run your own aliases.
+
+Cloudflare Email Routing alone doesn't scale past a handful of hand-made rules, though. It also has no expiry, no sender filtering, and no quick way to switch an address off.
+
+## What It Does
+
+Each alias forwards to a real inbox you control. On top of that, every alias can:
+
+- **Expire on its own** — Give it a lifetime like `7d` or a date, and it stops accepting mail.
+- **Accept only the senders you expect** — Allow `*@shoestore.com` and nobody else.
+- **Block the ones that abuse it** — Refuse one marketer while the rest still gets through.
+- **Be switched off in seconds** — Disable it without losing the address.
+
+Mail is forwarded in memory by a Worker in your own Cloudflare account and is never stored. If a disabled or filtered alias turns mail away, Mailmask can send you an ntfy notification about it.
+
+## One CLI for Everything
+
+Run `npx mailmask` and the interactive menu walks you through adding your inbox, creating aliases, and deploying. Direct commands are there for scripting:
+
+```bash
+mm destination add personal you@example.com
+mm alias add -d personal -e 30d -l "Free trial"
+mm deploy
+```
+
+Deploy registers your inbox with Email Routing, publishes the Worker, and points your domain's catch-all at it. The only manual steps are enabling Email Routing once and clicking the verification link Cloudflare sends to your inbox.
+
+## What Is Next
+
+Version 1 is forward-only, so replies still come from your real address. Replying from an alias depends on Cloudflare's outbound email support, and we're watching that closely.
+
+Head to the [Quick Start](/docs/getting-started/quick-start/) to set up your first alias.

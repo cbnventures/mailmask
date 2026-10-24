@@ -1,0 +1,84 @@
+---
+id: notifications
+title: Refusal Notifications
+description: Get a push notification through ntfy or Reverse Proxy for ntfy whenever a disabled, expired, or filtered alias turns away a message.
+sidebar_position: 4
+keywords:
+  - mailmask
+  - notifications
+  - ntfy
+  - refusal
+  - alerts
+tags:
+  - features
+  - notifications
+---
+
+import { Terminology } from '@cbnventures/docusaurus-preset-nova/blocks';
+
+Find out when one of your aliases turns mail away, so you know when a retired address is still being used.
+
+## Why Use This Feature?
+
+1. Alerts you when a disabled or expired <Terminology title="address on your domain that forwards mail" to="/docs/reference/terminology#alias">alias</Terminology> still receives mail so you can tell whether someone legitimate is trying to reach you.
+2. Shows which sender a <Terminology title="allow or block list entry for an alias" to="/docs/reference/terminology#sender-rule">sender rule</Terminology> refused so you can adjust an allow list that is too strict.
+3. Stays quiet for random addresses on your domain so spam doesn't flood your phone.
+
+## Setup
+
+Add one or more notifiers to the `notifiers` list. Each one is either an ntfy topic or a [Reverse Proxy for ntfy](https://nrp.cbnventures.io/) context, the same two options Branded Short Links offers.
+
+```json title="config.json"
+{
+  "notifiers": [
+    {
+      "type": "ntfy",
+      "name": "phone",
+      "server": "https://ntfy.example.com",
+      "topic": "mailmask",
+      "token": "tk_yourtoken"
+    },
+    {
+      "type": "ntfy-reverse-proxy",
+      "name": "reverse-proxy",
+      "url": "https://mailmask.ntfy.example.com",
+      "token": "optional-context-token"
+    }
+  ]
+}
+```
+
+| Type                 | Fields                                                                                   |
+|----------------------|------------------------------------------------------------------------------------------|
+| `ntfy`               | `server` (`https://` ntfy server), `topic`, and `token` (an ntfy access token, `tk_...`) |
+| `ntfy-reverse-proxy` | `url` (`https://` context URL) and an optional `token` when the context requires one     |
+
+You can also add notifiers from the `mm` **Manage Notifiers** menu or with `mm notifier add-ntfy` and `mm notifier add-reverse-proxy`. Deploy afterwards to apply them.
+
+## What Triggers a Notification
+
+A notification is sent for every <Terminology title="mail a known alias turns away" to="/docs/reference/terminology#refusal">refusal</Terminology> of a known <Terminology title="address on your domain that forwards mail" to="/docs/reference/terminology#alias">alias</Terminology>:
+
+- The <Terminology title="address on your domain that forwards mail" to="/docs/reference/terminology#alias">alias</Terminology> is disabled.
+- The <Terminology title="address on your domain that forwards mail" to="/docs/reference/terminology#alias">alias</Terminology> has expired.
+- The sender matches a block list.
+- The sender isn't on the allow list.
+
+Mail to addresses that are not aliases never triggers a notification, whatever your <Terminology title="what happens to mail for non-alias addresses" to="/docs/reference/terminology#unknown-alias-action">unknown alias action</Terminology> is.
+
+## Notification Format
+
+Every notifier receives the same title, `Mailmask refused a message`, with an `email` tag. An `ntfy` notifier publishes a JSON message to the topic, and an `ntfy-reverse-proxy` notifier posts plain text with `Title`, `Tags`, and `Priority` headers. The message looks like this:
+
+```text
+Alias: velvet-harbor-42@mail.example.com
+From: promo@partner-offers.com
+Action: reject
+Reason: Sender is blocked
+```
+
+Tokens are sent as an `Authorization: Bearer` header. The content of the refused message is never included.
+
+:::info
+Notifications are best effort. If a notifier is unreachable or returns an error, the message is still refused as usual and that notification is skipped.
+:::

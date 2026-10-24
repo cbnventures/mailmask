@@ -1,0 +1,73 @@
+---
+id: sender-rules
+title: Sender Rules
+description: Limit an alias to the senders you expect with allow lists, and refuse senders that abuse it with block lists, using full addresses or domain wildcards.
+sidebar_position: 2
+keywords:
+  - mailmask
+  - sender rules
+  - allow list
+  - block list
+  - spam filtering
+tags:
+  - features
+  - filtering
+---
+
+import { Terminology } from '@cbnventures/docusaurus-preset-nova/blocks';
+
+Accept mail at an <Terminology title="address on your domain that forwards mail" to="/docs/reference/terminology#alias">alias</Terminology> only from the senders you expect, and turn away the ones that abuse it.
+
+## Why Use This Feature?
+
+1. Allow lists lock an <Terminology title="address on your domain that forwards mail" to="/docs/reference/terminology#alias">alias</Terminology> to one store or service so a leaked address stays useless to spammers.
+2. Block lists cut off a single noisy sender while the rest of the <Terminology title="address on your domain that forwards mail" to="/docs/reference/terminology#alias">alias</Terminology> keeps working.
+3. Domain wildcards cover every address a company sends from without listing each one.
+
+## Rule Format
+
+Each <Terminology title="allow or block list entry for an alias" to="/docs/reference/terminology#sender-rule">sender rule</Terminology> is one of:
+
+- **A full address** — `news@shop.com` matches only that sender.
+- **A domain wildcard** — `*@shop.com` matches any sender at exactly `shop.com`.
+
+Matching ignores letter case. A wildcard does not cover subdomains, so `*@shop.com` won't match `deals@mail.shop.com`; add `*@mail.shop.com` as its own rule for that.
+
+## How Rules Combine
+
+The <Terminology title="Cloudflare Worker that routes your mail" to="/docs/reference/terminology#worker">Worker</Terminology> checks the block list first, then the allow list:
+
+1. A sender that matches any `blocked_senders` rule is refused.
+2. If `allowed_senders` is set, a sender that matches none of its rules is refused.
+3. Everyone else is forwarded.
+
+Leaving `allowed_senders` out means any sender is welcome unless blocked. Refused mail is a <Terminology title="mail a known alias turns away" to="/docs/reference/terminology#refusal">refusal</Terminology> and never falls through to a default <Terminology title="verified real inbox that aliases forward to" to="/docs/reference/terminology#destination">destination</Terminology>.
+
+## Usage
+
+```bash
+# Only accept mail from the store you bought from.
+mm alias add -d personal -l "Shoe store" --allow "*@shoestore.com"
+
+# Accept anyone except one persistent marketer.
+mm alias add -d personal --block "promo@partner-offers.com"
+
+# Combine both, with multiple rules separated by commas.
+mm alias add -d personal --allow "*@bank.com,alerts@bank-notify.com" --block "marketing@bank.com"
+```
+
+The interactive menu asks for an allow list when you create an <Terminology title="address on your domain that forwards mail" to="/docs/reference/terminology#alias">alias</Terminology>. To change rules on an existing <Terminology title="address on your domain that forwards mail" to="/docs/reference/terminology#alias">alias</Terminology>, edit its `allowed_senders` or `blocked_senders` in the <Terminology title="config.json file with destinations, aliases, and settings" to="/docs/reference/terminology#config">config</Terminology> and deploy.
+
+```json title="config.json"
+{
+  "address": "trial-signup",
+  "destination": "personal",
+  "enabled": true,
+  "allowed_senders": ["*@example-saas.com"],
+  "blocked_senders": ["marketing@example-saas.com"]
+}
+```
+
+:::tip
+Sender addresses can be forged, so it is recommended to treat sender rules as a filter against unwanted mail rather than as proof of who sent a message.
+:::

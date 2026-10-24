@@ -1,0 +1,125 @@
+---
+id: troubleshooting
+title: Troubleshooting
+description: Resolve common Mailmask issues, from Email Routing and token permission errors during deploy to missing, bounced, or unexpectedly refused mail.
+sidebar_position: 5
+keywords:
+  - mailmask
+  - troubleshooting
+  - email routing
+  - deploy errors
+  - missing mail
+tags:
+  - reference
+  - troubleshooting
+---
+
+import { Terminology } from '@cbnventures/docusaurus-preset-nova/blocks';
+
+Diagnose the most common deploy and delivery problems and get mail flowing to your inbox again.
+
+## Email Routing Is Not Enabled
+
+**Symptom**: Deploy stops with `Email Routing is not enabled for "example.com"`.
+
+**Cause**: <Terminology title="Cloudflare service that receives mail for your domain" to="/docs/reference/terminology#cloudflare-email-routing">Cloudflare Email Routing</Terminology> is off for the zone, so it has no mail records yet.
+
+**Solution**:
+
+- Open **Email > Email Routing** for the domain in the Cloudflare dashboard and enable it.
+- Let Cloudflare add the MX and SPF records it suggests.
+- Run `mm deploy` again.
+
+## API Token Is Missing Permissions
+
+**Symptom**: Deploy prints `API token is missing permissions` followed by a list.
+
+**Cause**: The <Terminology title="Cloudflare credential the CLI deploys with" to="/docs/reference/terminology#api-token">API token</Terminology> lacks one or more of the three permissions deploy needs.
+
+**Solution**:
+
+- Edit the token at [dash.cloudflare.com/profile/api-tokens](https://dash.cloudflare.com/profile/api-tokens) and add each permission listed.
+- Make sure **Zone Resources** includes the zone for your <Terminology title="domain whose catch-all points at the Worker" to="/docs/reference/terminology#base-domain">base domain</Terminology>.
+- See [Deployment](/docs/getting-started/deployment/#api-token-permissions) for the full list.
+
+## No API Token Found
+
+**Symptom**: `mm deploy` fails with `No API token found` or says the token is invalid or expired.
+
+**Cause**: The direct command doesn't prompt for a token; it reads `CLOUDFLARE_API_TOKEN` only.
+
+**Solution**:
+
+- Run `mm` and choose **Deploy** to set up a token interactively.
+- Or set `CLOUDFLARE_API_TOKEN` in your environment or a `.env` file.
+
+## Cloudflare Zone Not Found
+
+**Symptom**: Deploy fails with `Failed to find Cloudflare zone`.
+
+**Cause**: The <Terminology title="domain whose catch-all points at the Worker" to="/docs/reference/terminology#base-domain">base domain</Terminology> isn't part of a zone the token can see.
+
+**Solution**:
+
+- Check that the domain is added to your Cloudflare account and spelled correctly in `base_domain`.
+- Check that the token's **Zone Resources** include that zone.
+
+## Mail Never Arrives
+
+**Symptom**: Messages sent to an <Terminology title="address on your domain that forwards mail" to="/docs/reference/terminology#alias">alias</Terminology> don't show up, and the sender gets no bounce.
+
+**Cause**: Usually an unverified <Terminology title="verified real inbox that aliases forward to" to="/docs/reference/terminology#destination">destination</Terminology>, a drop setting, or a missing deploy.
+
+**Solution**:
+
+- Run `mm deploy` and read the destination warnings; click the verification link Cloudflare emailed to any unverified inbox.
+- Check your spam folder in the real inbox.
+- If `unknown_alias_action` is `drop`, confirm the <Terminology title="address on your domain that forwards mail" to="/docs/reference/terminology#alias">alias</Terminology> exists in the deployed <Terminology title="config.json file with destinations, aliases, and settings" to="/docs/reference/terminology#config">config</Terminology> by running `mm alias list`, then deploy.
+- Confirm the <Terminology title="Email Routing rule for addresses without their own rule" to="/docs/reference/terminology#catch-all">catch-all</Terminology> in **Email > Email Routing > Routing rules** points at your <Terminology title="Cloudflare Worker that routes your mail" to="/docs/reference/terminology#worker">Worker</Terminology>.
+
+## Sender Gets "Address not found"
+
+**Symptom**: Mail bounces with `Address not found`.
+
+**Cause**: The address isn't a deployed <Terminology title="address on your domain that forwards mail" to="/docs/reference/terminology#alias">alias</Terminology>, and your <Terminology title="what happens to mail for non-alias addresses" to="/docs/reference/terminology#unknown-alias-action">unknown alias action</Terminology> is `reject`.
+
+**Solution**:
+
+- Check the spelling with `mm alias list`.
+- If you created the <Terminology title="address on your domain that forwards mail" to="/docs/reference/terminology#alias">alias</Terminology> recently, run `mm deploy`; changes only reach Cloudflare on deploy.
+- With <Terminology title="treating alias+tag@ as alias@" to="/docs/reference/terminology#subaddressing">subaddressing</Terminology> off, `alias+tag@` is treated as a different address.
+
+## Mail Is Refused Unexpectedly
+
+**Symptom**: Mail bounces with `Address is disabled`, `Address has expired`, `Sender is blocked`, or `Sender is not allowed`.
+
+**Cause**: The <Terminology title="address on your domain that forwards mail" to="/docs/reference/terminology#alias">alias</Terminology> is producing a <Terminology title="mail a known alias turns away" to="/docs/reference/terminology#refusal">refusal</Terminology> for that message.
+
+**Solution**:
+
+- Run `mm alias list` to see whether the <Terminology title="address on your domain that forwards mail" to="/docs/reference/terminology#alias">alias</Terminology> is disabled or expired, then use `mm alias enable` or `mm alias expire <address> never`.
+- For sender errors, compare the sender with the alias's rules; `*@shop.com` doesn't match `mail.shop.com`.
+- Deploy after any change.
+
+## Temporary Configuration Error
+
+**Symptom**: Every message bounces with `Temporary configuration error`.
+
+**Cause**: The <Terminology title="Cloudflare Worker that routes your mail" to="/docs/reference/terminology#worker">Worker</Terminology> couldn't parse or validate its configuration, so it refuses mail rather than guess.
+
+**Solution**:
+
+- Run `mm validate` and fix every reported problem.
+- Run `mm deploy` to publish the corrected <Terminology title="config.json file with destinations, aliases, and settings" to="/docs/reference/terminology#config">config</Terminology>.
+
+## Notifications Are Not Arriving
+
+**Symptom**: A <Terminology title="mail a known alias turns away" to="/docs/reference/terminology#refusal">refusal</Terminology> happens but no notification appears.
+
+**Cause**: Notifications only fire for known aliases, and failures are silently skipped.
+
+**Solution**:
+
+- Run `mm notifier list` and check that at least one notifier exists and that you deployed after adding it.
+- For an `ntfy` notifier, check the server URL, topic, and `tk_` token. For an `ntfy-reverse-proxy` notifier, check the context URL and its token.
+- Remember that mail to unknown addresses never notifies.

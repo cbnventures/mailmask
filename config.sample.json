@@ -1,0 +1,47 @@
+{
+  "destinations": [
+    {
+      "name": "personal",
+      "email": "you@example.com"
+    }
+  ],
+  "aliases": [
+    {
+      "address": "velvet-harbor-42",
+      "destination": "personal",
+      "label": "Online shopping",
+      "enabled": true
+    },
+    {
+      "address": "trial-signup",
+      "destination": "personal",
+      "label": "Free trial",
+      "enabled": true,
+      "expires_at": "2026-12-31T00:00:00.000Z",
+      "allowed_senders": [
+        "*@example-saas.com"
+      ]
+    }
+  ],
+  "notifiers": [
+    {
+      "type": "ntfy",
+      "name": "phone",
+      "server": "https://ntfy.example.com",
+      "topic": "mailmask",
+      "token": "tk_replace_with_your_token"
+    },
+    {
+      "type": "ntfy-reverse-proxy",
+      "name": "reverse-proxy",
+      "url": "https://mailmask.ntfy.example.com"
+    }
+  ],
+  "settings": {
+    "worker_name": "mailmask",
+    "base_domain": "mail.example.com",
+    "unknown_alias_action": "reject",
+    "subaddressing": true,
+    "add_alias_headers": true
+  }
+}

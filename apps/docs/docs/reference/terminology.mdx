@@ -1,0 +1,66 @@
+---
+id: terminology
+title: Terminology
+description: Define alias, destination, base domain, catch-all, refusal, sender rule, and the other terms used throughout the Mailmask documentation.
+sidebar_position: 6
+keywords:
+  - mailmask
+  - glossary
+  - alias
+  - destination
+  - catch-all
+  - sender rule
+tags:
+  - reference
+  - glossary
+---
+
+Define the alias, routing, and Cloudflare terms that appear throughout the Mailmask documentation.
+
+## Alias
+
+An address on the base domain, such as `velvet-harbor-42@mail.example.com`, that forwards to one destination. An alias can carry a label, an expiry, and sender rules, and can be disabled without being deleted.
+
+## API Token
+
+The Cloudflare credential the CLI uses to deploy. It needs Workers Scripts Edit and Email Routing Addresses Edit on the account, plus Email Routing Rules Edit on the zone.
+
+## Base Domain
+
+The domain or subdomain whose Email Routing catch-all points at the Worker, such as `mail.example.com`. Every alias lives on it, and mail for any other domain is rejected.
+
+## Catch-All
+
+The Email Routing rule that sends every address without an explicit rule to the Worker. Deploy points it at the Worker so new aliases work without creating a rule for each one.
+
+## Cloudflare Email Routing
+
+The Cloudflare service that receives mail for your domain and hands it to the Worker. You enable it once in the dashboard, which adds the required MX and SPF records.
+
+## Config
+
+The `config.json` file that holds your destinations, aliases, and settings. The CLI reads and writes it, and deploy ships it to the Worker.
+
+## Destination
+
+A real inbox that aliases forward to. Each destination must be verified in Cloudflare Email Routing before mail can reach it.
+
+## Refusal
+
+Mail that a known alias turns away because it is disabled, expired, or the sender does not match its rules. A refusal is rejected or dropped, never forwarded to a default destination.
+
+## Sender Rule
+
+An entry in an alias's allow or block list. It is either a full address (`news@shop.com`) or a domain wildcard (`*@shop.com`).
+
+## Subaddressing
+
+Treating `alias+tag@domain` as `alias@domain`. It lets you tag one alias per purpose without creating new ones.
+
+## Unknown Alias Action
+
+What happens to mail for an address that is not an alias: reject (bounce), drop silently, or forward to a default destination. It is set with the `unknown_alias_action` setting.
+
+## Worker
+
+The Cloudflare Worker deployed to your account that routes every inbound message. It forwards, rejects, or drops mail in memory and never stores it.

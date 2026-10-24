@@ -1,0 +1,56 @@
+---
+id: log-streaming
+title: Log Streaming
+description: Stream real-time logs from your deployed Mailmask Worker with automatic session renewal, color-coded terminal output, and a raw JSON lines export.
+sidebar_position: 4
+keywords:
+  - mailmask
+  - log streaming
+  - wrangler tail
+  - cloudflare logs
+  - debugging
+tags:
+  - reference
+  - development
+---
+
+import { Terminology } from '@cbnventures/docusaurus-preset-nova/blocks';
+
+Watch every message your deployed <Terminology title="Cloudflare Worker that routes your mail" to="/docs/reference/terminology#worker">Worker</Terminology> handles in real time with `npm run tail` from a clone of the repository.
+
+## Why Use This Script?
+
+1. Shows each inbound message as it arrives so you can confirm an <Terminology title="address on your domain that forwards mail" to="/docs/reference/terminology#alias">alias</Terminology> is receiving mail.
+2. Renews the Cloudflare tail session before it expires so a long debugging session isn't interrupted.
+3. Saves every raw event to a file so you can search through it after the fact.
+
+## Requirements
+
+- **A repository clone** — The script lives in the repository, not in the published package.
+- **Wrangler login** — Run `npx wrangler login` once; the live stream uses that sign-in.
+- **`CLOUDFLARE_API_TOKEN`** — Set in a `.env` file in the project root, so the script can read the session expiry from the Cloudflare API.
+- **A `config.json`** — With `worker_name` and `base_domain` set, so the script knows which <Terminology title="Cloudflare Worker that routes your mail" to="/docs/reference/terminology#worker">Worker</Terminology> to follow.
+
+## Usage
+
+```bash
+npm run tail
+```
+
+The script finds `config.json` in the current directory, the project root, or your platform config directory. If it finds more than one, it asks which to use.
+
+## Output
+
+- **Terminal** — A color-coded line for each email event, with its timestamp and recipient.
+- **`tail-logs.jsonl`** — Every raw event as one JSON object per line, including outcome and any exceptions.
+
+The <Terminology title="Cloudflare Worker that routes your mail" to="/docs/reference/terminology#worker">Worker</Terminology> never logs message content, so the stream shows routing activity rather than what the messages say.
+
+## Session Management
+
+Cloudflare tail sessions expire after a set time. The script handles that for you:
+
+- Reads the real expiry from the Cloudflare API.
+- Restarts the session 5 minutes before it expires.
+- Cleans up stale sessions on startup.
+- Shuts down cleanly on Ctrl+C.
