@@ -55,17 +55,12 @@ jobs:
           npm install
         working-directory: "${{ env.ROOT_DIR }}"
 
-      - name: "Check root project"
+      - name: "Check project"
         run: |
-          npm exec nova utility run-scripts --sequential --exclude check:workspaces "check:*"
+          npm run check
         working-directory: "${{ env.ROOT_DIR }}"
 
-      - name: "Check selected workspaces"
-        run: |
-          npm run check:workspaces -- --workspace mailmask --workspace mailmask-docs
-        working-directory: "${{ env.ROOT_DIR }}"
-
-      - name: "Build selected workspaces"
+      - name: "Build project"
         run: |
           npm run build:workspaces -- --workspace mailmask --workspace mailmask-docs
         working-directory: "${{ env.ROOT_DIR }}"
