@@ -1,77 +1,97 @@
 import { configSchema } from '../lib/schema.js';
 import { handleEmail } from './handlers.js';
+import { landingPage } from './landing/page.js';
 
 import type {
-  Worker_Index_Email_Aliases,
-  Worker_Index_Email_AliasesJson,
-  Worker_Index_Email_Destinations,
-  Worker_Index_Email_Env,
-  Worker_Index_Email_Message,
-  Worker_Index_Email_Notifiers,
-  Worker_Index_Email_Result,
-  Worker_Index_Email_Returns,
-  Worker_Index_Email_Settings,
-  Worker_Index_Fetch_Returns,
-  Worker_Index_ModuleExports,
+  Worker_Index_CreateWorker_Email_Context,
+  Worker_Index_CreateWorker_Email_Env,
+  Worker_Index_CreateWorker_Email_Message,
+  Worker_Index_CreateWorker_Email_Returns,
+  Worker_Index_CreateWorker_Fetch_MethodNotAllowedBody,
+  Worker_Index_CreateWorker_Fetch_NotFoundBody,
+  Worker_Index_CreateWorker_Fetch_Request,
+  Worker_Index_CreateWorker_Fetch_RequestUrl,
+  Worker_Index_CreateWorker_Fetch_Returns,
+  Worker_Index_CreateWorker_Fetch_RootResponse,
+  Worker_Index_CreateWorker_RawConfig,
+  Worker_Index_CreateWorker_Result,
+  Worker_Index_CreateWorker_Returns,
 } from '../types/worker/index.d.ts';
 
 /**
- * Worker - Module Exports.
+ * Worker - Create Worker.
  *
- * Cloudflare Workers entry point. The email handler validates the
- * configuration from the environment and routes each message; the fetch
- * handler only answers health checks because the Worker has no routes.
+ * Builds the Worker handlers around the config bundled at deploy time. The config is
+ * validated once when the Worker starts instead of on every message.
  *
- * @since 0.0.1
+ * @param {Worker_Index_CreateWorker_RawConfig} rawConfig - Raw config.
+ *
+ * @returns {Worker_Index_CreateWorker_Returns}
+ *
+ * @since UNRELEASED
  */
-const moduleExports: Worker_Index_ModuleExports = {
-  async fetch(): Worker_Index_Fetch_Returns {
-    return new Response('Mailmask only handles inbound email.\n', {
-      status: 404,
-      headers: { 'Content-Type': 'text/plain; charset=utf-8' },
-    });
-  },
-  async email(message: Worker_Index_Email_Message, env: Worker_Index_Email_Env): Worker_Index_Email_Returns {
-    let settings: Worker_Index_Email_Settings = undefined;
-    let destinations: Worker_Index_Email_Destinations = undefined;
-    let aliases: Worker_Index_Email_Aliases = undefined;
-    let notifiers: Worker_Index_Email_Notifiers = undefined;
-    let aliasesJson: Worker_Index_Email_AliasesJson = '';
+function createWorker(rawConfig: Worker_Index_CreateWorker_RawConfig): Worker_Index_CreateWorker_Returns {
+  const result: Worker_Index_CreateWorker_Result = configSchema.safeParse(rawConfig);
 
-    // Aliases are split across ALIASES_1..ALIASES_n to stay under the per-var size limit.
-    for (let i = 1; i <= Number(env['ALIASES_PARTS'] ?? '0'); i += 1) {
-      aliasesJson += env[`ALIASES_${String(i)}`] ?? '';
-    }
+  return {
+    async fetch(request: Worker_Index_CreateWorker_Fetch_Request): Worker_Index_CreateWorker_Fetch_Returns {
+      const requestUrl: Worker_Index_CreateWorker_Fetch_RequestUrl = new URL(request['url']);
 
-    try {
-      settings = JSON.parse(env['SETTINGS'] ?? '');
-      destinations = JSON.parse(env['DESTINATIONS'] ?? '');
-      aliases = JSON.parse(aliasesJson);
-      notifiers = JSON.parse(env['NOTIFIERS'] ?? '[]');
-    } catch {
-      message.setReject('Temporary configuration error');
+      if (
+        (
+          request['method'] === 'GET'
+          || request['method'] === 'HEAD'
+        )
+      ) {
+        if (requestUrl['pathname'] === '/') {
+          const rootResponse: Worker_Index_CreateWorker_Fetch_RootResponse = landingPage();
+
+          if (request['method'] === 'HEAD') {
+            return new Response(null, rootResponse);
+          }
+
+          return rootResponse;
+        }
+
+        const notFoundBody: Worker_Index_CreateWorker_Fetch_NotFoundBody = JSON.stringify({
+          status: 'error',
+          message: 'Mailmask only handles inbound email.',
+        }, null, 2);
+
+        return new Response((request['method'] === 'HEAD') ? null : notFoundBody, {
+          status: 404,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+
+      const methodNotAllowedBody: Worker_Index_CreateWorker_Fetch_MethodNotAllowedBody = JSON.stringify({
+        status: 'error',
+        message: 'Method not allowed',
+      }, null, 2);
+
+      return new Response(methodNotAllowedBody, {
+        status: 405,
+        headers: {
+          'Content-Type': 'application/json',
+          'Allow': 'GET, HEAD',
+        },
+      });
+    },
+    async email(message: Worker_Index_CreateWorker_Email_Message, env: Worker_Index_CreateWorker_Email_Env, context: Worker_Index_CreateWorker_Email_Context): Worker_Index_CreateWorker_Email_Returns {
+      // Never silently accept mail when the configuration cannot be trusted.
+      if (result['success'] === false) {
+        message.setReject('Temporary configuration error');
+
+        return;
+      }
+
+      await handleEmail(message, result['data'], Date.now(), context, (env === undefined) ? undefined : env['MAILMASK_EMAIL']);
 
       return;
-    }
+    },
+  };
+}
 
-    const result: Worker_Index_Email_Result = configSchema.safeParse({
-      destinations,
-      aliases,
-      notifiers,
-      settings,
-    });
-
-    // Never silently accept mail when the configuration cannot be trusted.
-    if (result['success'] === false) {
-      message.setReject('Temporary configuration error');
-
-      return;
-    }
-
-    await handleEmail(message, result['data'], Date.now());
-
-    return;
-  },
+export {
+  createWorker,
 };
-
-export default moduleExports;

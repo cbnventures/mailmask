@@ -1,3 +1,8 @@
+import {
+  buildNotifierRequest,
+  buildTestNotification,
+  NOTIFICATION_TIMEOUT_MILLISECONDS,
+} from '../../lib/notification.js';
 import { configSchema, notifierSchema } from '../../lib/schema.js';
 import { loadConfig, saveConfig } from './config-io.js';
 
@@ -14,20 +19,29 @@ import type {
   Cli_Commands_Notifier_RemoveNotifier_Filtered,
   Cli_Commands_Notifier_RemoveNotifier_Name,
   Cli_Commands_Notifier_RemoveNotifier_Returns,
+  Cli_Commands_Notifier_TestNotifier_Config,
+  Cli_Commands_Notifier_TestNotifier_ConfigPath,
+  Cli_Commands_Notifier_TestNotifier_Controller,
+  Cli_Commands_Notifier_TestNotifier_Name,
+  Cli_Commands_Notifier_TestNotifier_Notifier,
+  Cli_Commands_Notifier_TestNotifier_Request,
+  Cli_Commands_Notifier_TestNotifier_Response,
+  Cli_Commands_Notifier_TestNotifier_Returns,
+  Cli_Commands_Notifier_TestNotifier_TimeoutId,
 } from '../../types/cli/commands/notifier.d.ts';
 
 /**
  * CLI - Commands - Notifier - Add Notifier.
  *
- * Validates and saves a notifier, either an ntfy topic or a Reverse
- * Proxy for ntfy context, after checking its name is not already used.
+ * Validates and saves one of the supported notifier shapes after checking
+ * that its name is not already used.
  *
  * @param {Cli_Commands_Notifier_AddNotifier_ConfigPath} configPath - Config path.
  * @param {Cli_Commands_Notifier_AddNotifier_Notifier}   notifier   - Notifier.
  *
  * @returns {Cli_Commands_Notifier_AddNotifier_Returns}
  *
- * @since 0.0.1
+ * @since UNRELEASED
  */
 function addNotifier(configPath: Cli_Commands_Notifier_AddNotifier_ConfigPath, notifier: Cli_Commands_Notifier_AddNotifier_Notifier): Cli_Commands_Notifier_AddNotifier_Returns {
   const config: Cli_Commands_Notifier_AddNotifier_Config = configSchema.parse(loadConfig(configPath));
@@ -88,8 +102,65 @@ function removeNotifier(configPath: Cli_Commands_Notifier_RemoveNotifier_ConfigP
   return;
 }
 
+/**
+ * CLI - Commands - Notifier - Test Notifier.
+ *
+ * Sends the standard test payload to one HTTP notifier. Email notifications
+ * require a deployed Worker's send_email binding and cannot be sent by Node.
+ *
+ * @param {Cli_Commands_Notifier_TestNotifier_ConfigPath} configPath - Config path.
+ * @param {Cli_Commands_Notifier_TestNotifier_Name}       name       - Name.
+ *
+ * @returns {Cli_Commands_Notifier_TestNotifier_Returns}
+ *
+ * @since UNRELEASED
+ */
+async function testNotifier(configPath: Cli_Commands_Notifier_TestNotifier_ConfigPath, name: Cli_Commands_Notifier_TestNotifier_Name): Cli_Commands_Notifier_TestNotifier_Returns {
+  const config: Cli_Commands_Notifier_TestNotifier_Config = configSchema.parse(loadConfig(configPath));
+  const notifier: Cli_Commands_Notifier_TestNotifier_Notifier = config['notifiers'].find((configNotifier) => configNotifier['name'] === name);
+
+  if (notifier === undefined) {
+    throw new Error(`Notifier "${name}" does not exist.`);
+  }
+
+  if (notifier['type'] === 'email') {
+    throw new Error('Email notifier tests must run inside the deployed Worker because only a Cloudflare send_email binding can send them.');
+  }
+
+  const request: Cli_Commands_Notifier_TestNotifier_Request = buildNotifierRequest(notifier, buildTestNotification());
+
+  if (request === undefined) {
+    throw new Error(`Notifier "${name}" does not have an HTTP request.`);
+  }
+
+  const controller: Cli_Commands_Notifier_TestNotifier_Controller = new AbortController();
+  const timeoutId: Cli_Commands_Notifier_TestNotifier_TimeoutId = setTimeout(() => {
+    controller.abort();
+
+    return;
+  }, NOTIFICATION_TIMEOUT_MILLISECONDS);
+
+  try {
+    const response: Cli_Commands_Notifier_TestNotifier_Response = await fetch(request['url'], {
+      method: request['method'],
+      headers: request['headers'],
+      body: request['body'],
+      signal: controller.signal,
+    });
+
+    if (response.ok === false) {
+      throw new Error(`Notifier "${name}" returned HTTP ${String(response.status)}.`);
+    }
+  } finally {
+    clearTimeout(timeoutId);
+  }
+
+  return;
+}
+
 export {
   addNotifier,
   listNotifiers,
   removeNotifier,
+  testNotifier,
 };

@@ -1,0 +1,70 @@
+---
+title: "Mailmask 1.0 Sends Refusal Alerts to 11 Services"
+description: Mailmask 1.0 tells Discord, Slack, Telegram, Matrix, email, and six more services when one of your aliases turns mail away.
+slug: mailmask-1-0-eleven-notification-services
+authors:
+  - mrjackyliang
+keywords:
+  - mailmask
+  - email alias
+  - notifications
+  - discord
+  - telegram
+  - apprise
+tags:
+  - release
+  - notifications
+---
+
+Mailmask 1.0 sends refusal alerts to 11 services. When a disabled, expired, or filtered alias turns mail away, you now hear about it in Discord, Slack, Telegram, Matrix, email, or wherever else you already look.
+
+{/* truncate */}
+
+## Why It Matters
+
+A refused message is a signal. It can mean a store you stopped trusting is still mailing you, or that a sender you do want is blocked by an allow list that is too strict. The first release could only tell ntfy. Version 1.0 reaches the tools people already have open.
+
+## What's Included
+
+### 11 Notifier Types
+
+| Type                 | Delivery method                                    |
+|----------------------|----------------------------------------------------|
+| `apprise`            | Apprise API JSON request                           |
+| `discord`            | Discord incoming webhook embed                     |
+| `email`              | Cloudflare `send_email` binding                    |
+| `gotify`             | Gotify message API                                 |
+| `matrix`             | Matrix client-server room message API              |
+| `ntfy`               | ntfy JSON publish API                              |
+| `ntfy-reverse-proxy` | Mailmask's versioned JSON payload with bearer auth |
+| `pushover`           | Pushover message API                               |
+| `slack`              | Slack incoming webhook                             |
+| `telegram`           | Telegram Bot API                                   |
+| `webhook`            | Mailmask's versioned JSON payload with bearer auth |
+
+Add as many as you like. Every refusal fans out to all of them together.
+
+### A Versioned Payload
+
+Webhooks and Reverse Proxy for ntfy receive a versioned Mailmask JSON payload, so your own automation can read the alias, the reason, and the sender without parsing text.
+
+### Alerts That Never Slow Mail
+
+Mailmask makes the routing decision first, then sends notifications in the background. Each notifier has its own 10-second timeout, and a failure is logged once without its secrets. Mail to random addresses that were never aliases stays quiet.
+
+## Set It Up From the CLI
+
+Each service has its own `mm notifier add-*` command, and `mm notifier test` sends a sample before you deploy:
+
+```bash
+mm notifier add-discord discord \
+  --webhook-url https://discord.com/api/webhooks/webhook-id/webhook-token
+mm notifier test discord
+mm deploy
+```
+
+## Get Started
+
+[Notifications](/docs/features/notifications/) covers each service, and the [Quick Start](/docs/getting-started/quick-start/) sets up your first alias.
+
+**About Mailmask** — Mailmask gives every sign-up its own address on your domain, forwarded to your real inbox by a Cloudflare Worker you own, with nothing stored.

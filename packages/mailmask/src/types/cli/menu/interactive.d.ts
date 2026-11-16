@@ -113,7 +113,7 @@ export type Cli_Menu_Interactive_ModifyAliasFlow_ExpiresAt = string | undefined;
 /**
  * CLI - Menu - Interactive - Notifier Menu.
  *
- * @since 0.0.1
+ * @since UNRELEASED
  */
 export type Cli_Menu_Interactive_NotifierMenu_ConfigPath = string;
 
@@ -126,8 +126,6 @@ export type Cli_Menu_Interactive_NotifierMenu_Response = prompts.Answers<string>
 export type Cli_Menu_Interactive_NotifierMenu_Action = string | undefined;
 
 export type Cli_Menu_Interactive_NotifierMenu_Notifiers = Array<Lib_Schema_NotifierConfig>;
-
-export type Cli_Menu_Interactive_NotifierMenu_Target = string;
 
 export type Cli_Menu_Interactive_NotifierMenu_NtfyResponse = prompts.Answers<string>;
 

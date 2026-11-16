@@ -13,7 +13,7 @@ keywords:
 tags:
   - release
   - privacy
-  - cloudflare-workers
+  - cloudflare workers
 ---
 
 Every sign-up form, store checkout, and free trial asks for an email address. Once you hand one out, it can be sold, leaked in a breach, or buried under marketing that never stops.
@@ -41,15 +41,17 @@ Mail is forwarded in memory by a Worker in your own Cloudflare account and is ne
 
 ## One CLI for Everything
 
-Run `npx mailmask` and the interactive menu walks you through adding your inbox, creating aliases, and deploying. Direct commands are there for scripting:
+Run `npx mailmask` and the interactive menu walks you through setting your domain, adding your inbox, creating aliases, and deploying. The first run creates a starter config with sample data, and the [Quick Start](/docs/getting-started/quick-start/#first-time-setup) shows how to replace it with your own inbox and domain.
+
+Once that's done and the package is installed globally (`npm install -g mailmask`), direct commands are there for scripting:
 
 ```bash
-mm destination add personal you@example.com
 mm alias add -d personal -e 30d -l "Free trial"
+export CLOUDFLARE_API_TOKEN=your-token
 mm deploy
 ```
 
-Deploy registers your inbox with Email Routing, publishes the Worker, and points your domain's catch-all at it. The only manual steps are enabling Email Routing once and clicking the verification link Cloudflare sends to your inbox.
+Deploy registers your inbox with Email Routing, publishes the Worker, and points your domain's catch-all at it. The manual steps are enabling Email Routing once, creating a Cloudflare API token, replacing the starter config's sample data, and clicking the verification link Cloudflare sends to your inbox.
 
 ## What Is Next
 

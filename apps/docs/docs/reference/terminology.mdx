@@ -1,13 +1,15 @@
 ---
 id: terminology
 title: Terminology
-description: Define alias, destination, base domain, catch-all, refusal, sender rule, and the other terms used throughout the Mailmask documentation.
+description: Define alias, destination, notifier, notification payload, refusal, sender rule, and the other terms used throughout Mailmask.
 sidebar_position: 6
 keywords:
   - mailmask
   - glossary
   - alias
   - destination
+  - notifier
+  - notification payload
   - catch-all
   - sender rule
 tags:
@@ -15,52 +17,39 @@ tags:
   - glossary
 ---
 
-Define the alias, routing, and Cloudflare terms that appear throughout the Mailmask documentation.
+import { Terminology } from '@cbnventures/docusaurus-preset-nova/blocks';
 
-## Alias
+Short, practical definitions for the alias, routing, and Cloudflare terms used throughout the Mailmask documentation. Tables list the term first, also known as, then the definition.
 
-An address on the base domain, such as `velvet-harbor-42@mail.example.com`, that forwards to one destination. An alias can carry a label, an expiry, and sender rules, and can be disabled without being deleted.
+:::tip[Glossary Terms]
+Throughout the docs, you will see <Terminology title="A quick reminder, right where you read it" to="/docs/reference/terminology">highlighted terms</Terminology> with a dotted underline. Hover over any of them for a quick reminder of what they mean, or click to jump to the full definition.
+:::
 
-## API Token
+## Aliases and Mail Flow
 
-The Cloudflare credential the CLI uses to deploy. It needs Workers Scripts Edit and Email Routing Addresses Edit on the account, plus Email Routing Rules Edit on the zone.
+| Term                     | Also known as          | Definition                                                                                                                                                                                             |
+|--------------------------|------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **alias**                | masked address         | An address on the base domain, such as `velvet-harbor-42@example.com`, that forwards to one destination. It can carry a label, an expiry, and sender rules, and can be disabled without being deleted. |
+| **destination**          | forwarding inbox       | A real inbox that aliases forward to. It must be verified in Cloudflare Email Routing before mail can reach it.                                                                                        |
+| **subaddressing**        | plus addressing        | Treating `alias+tag@domain` as `alias@domain`, so one alias can be tagged per purpose without creating new ones.                                                                                       |
+| **sender rule**          | allow or block entry   | An entry in an alias's allow or block list: a full address (`news@shop.com`) or a domain wildcard (`*@shop.com`), matched against the envelope sender.                                                 |
+| **refusal**              | —                      | Mail a known alias turns away because it is disabled, expired, or the sender does not match its rules. It is rejected or dropped, never forwarded to a default destination.                            |
+| **unknown alias action** | `unknown_alias_action` | What happens to mail for an address that is not an alias: reject (bounce), drop silently, or forward to a default destination.                                                                         |
 
-## Base Domain
+## Cloudflare and Deploy
 
-The domain or subdomain whose Email Routing catch-all points at the Worker, such as `mail.example.com`. Every alias lives on it, and mail for any other domain is rejected.
+| Term                         | Also known as     | Definition                                                                                                                                                                                  |
+|------------------------------|-------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **base domain**              | apex domain       | The root domain of your Cloudflare zone, such as `example.com`, whose catch-all points at the Worker. Every alias lives on it; mail for any other domain, subdomains included, is rejected. |
+| **Cloudflare Email Routing** | Email Routing     | The Cloudflare service that receives mail for your domain and hands it to the Worker. Enabling it once in the dashboard adds the MX and SPF records.                                        |
+| **catch-all**                | catch-all rule    | The Email Routing rule that sends every apex-domain address without its own rule to the Worker, so new aliases work without a rule each.                                                    |
+| **Worker**                   | Cloudflare Worker | The Worker deployed to your account that routes every inbound message. It forwards, rejects, or drops mail in memory and never stores it.                                                   |
+| **API token**                | Cloudflare token  | The Cloudflare credential the CLI deploys with. It needs Workers Scripts Edit and Email Routing Addresses Edit on the account, plus Email Routing Rules Edit on the zone.                   |
+| **config**                   | `config.json`     | The file that holds your destinations, aliases, notifiers, and settings. The CLI reads and writes it, and deploy ships it to the Worker.                                                    |
 
-## Catch-All
+## Notifications
 
-The Email Routing rule that sends every address without an explicit rule to the Worker. Deploy points it at the Worker so new aliases work without creating a rule for each one.
-
-## Cloudflare Email Routing
-
-The Cloudflare service that receives mail for your domain and hands it to the Worker. You enable it once in the dashboard, which adds the required MX and SPF records.
-
-## Config
-
-The `config.json` file that holds your destinations, aliases, and settings. The CLI reads and writes it, and deploy ships it to the Worker.
-
-## Destination
-
-A real inbox that aliases forward to. Each destination must be verified in Cloudflare Email Routing before mail can reach it.
-
-## Refusal
-
-Mail that a known alias turns away because it is disabled, expired, or the sender does not match its rules. A refusal is rejected or dropped, never forwarded to a default destination.
-
-## Sender Rule
-
-An entry in an alias's allow or block list. It is either a full address (`news@shop.com`) or a domain wildcard (`*@shop.com`).
-
-## Subaddressing
-
-Treating `alias+tag@domain` as `alias@domain`. It lets you tag one alias per purpose without creating new ones.
-
-## Unknown Alias Action
-
-What happens to mail for an address that is not an alias: reject (bounce), drop silently, or forward to a default destination. It is set with the `unknown_alias_action` setting.
-
-## Worker
-
-The Cloudflare Worker deployed to your account that routes every inbound message. It forwards, rejects, or drops mail in memory and never stores it.
+| Term                     | Also known as        | Definition                                                                                                                                                                                                                              |
+|--------------------------|----------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **notifier**             | notification service | A configured destination for best-effort alerts about known-alias refusals. It translates the alert to a service's API format or takes Mailmask's notification payload directly.                                                        |
+| **notification payload** | webhook payload      | Mailmask's versioned JSON contract for generic webhooks and Reverse Proxy for ntfy. Version 1 identifies `app: "mailmask"`, describes the event, and carries the alias, envelope sender, recipient, and refusal reason under `details`. |

@@ -18,13 +18,13 @@ import { Terminology } from '@cbnventures/docusaurus-preset-nova/blocks';
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-Manage every <Terminology title="address on your domain that forwards mail" to="/docs/reference/terminology#alias">alias</Terminology>, <Terminology title="verified real inbox that aliases forward to" to="/docs/reference/terminology#destination">destination</Terminology>, and setting from the terminal, either through a guided menu or with direct commands you can script.
+Manage every <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology>, <Terminology title="Your real inbox, where an alias's mail ends up" to="/docs/reference/terminology#aliases-and-mail-flow">destination</Terminology>, and setting from the terminal, either through a guided menu or with direct commands you can script.
 
 ## Why Use This Command?
 
 1. Opens a guided menu with no arguments so you never need to remember flags for everyday changes.
-2. Offers direct commands for every action so you can script <Terminology title="address on your domain that forwards mail" to="/docs/reference/terminology#alias">alias</Terminology> creation and deploys.
-3. Validates the <Terminology title="config.json file with destinations, aliases, and settings" to="/docs/reference/terminology#config">config</Terminology> on every change so broken references are caught before they reach Cloudflare.
+2. Offers direct commands for managing aliases, destinations, and notifiers, plus `validate`, `generate`, and `deploy`, so you can script everyday changes.
+3. Validates the <Terminology title="The one file that holds every alias and setting" to="/docs/reference/terminology#cloudflare-and-deploy">config</Terminology> on every change so broken references are caught before they reach Cloudflare.
 
 ## Requirements
 
@@ -64,18 +64,22 @@ Manage every <Terminology title="address on your domain that forwards mail" to="
 
 Running `mm` with no arguments opens a menu with these sections:
 
-- **Manage Aliases** — Create an <Terminology title="address on your domain that forwards mail" to="/docs/reference/terminology#alias">alias</Terminology>, list them with their status, or modify one (enable, disable, change expiry, or remove).
-- **Manage Destinations** — Add, list, or remove a <Terminology title="verified real inbox that aliases forward to" to="/docs/reference/terminology#destination">destination</Terminology> inbox.
-- **Manage Notifiers** — Add an ntfy topic or a Reverse Proxy for ntfy context, list notifiers, or remove one.
-- **Settings** — Edit the <Terminology title="Cloudflare Worker that routes your mail" to="/docs/reference/terminology#worker">Worker</Terminology> name, <Terminology title="domain whose catch-all points at the Worker" to="/docs/reference/terminology#base-domain">base domain</Terminology>, <Terminology title="what happens to mail for non-alias addresses" to="/docs/reference/terminology#unknown-alias-action">unknown alias action</Terminology>, <Terminology title="treating alias+tag@ as alias@" to="/docs/reference/terminology#subaddressing">subaddressing</Terminology>, and alias headers.
-- **Deploy** — Run the full deploy, with guided <Terminology title="Cloudflare credential the CLI deploys with" to="/docs/reference/terminology#api-token">API token</Terminology> setup.
+- **Manage Aliases** — Create an <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology>, list them with their status, or modify one (enable, disable, change expiry, or remove).
+- **Manage Destinations** — Add, list, or remove a <Terminology title="Your real inbox, where an alias's mail ends up" to="/docs/reference/terminology#aliases-and-mail-flow">destination</Terminology> inbox.
+- **Manage Notifiers** — Add an ntfy topic or a Reverse Proxy for ntfy context, and list or remove any notifier type. Use direct commands to add the other services or send tests.
+- **Settings** — Edit the <Terminology title="Mailmask itself, running on your Cloudflare account" to="/docs/reference/terminology#cloudflare-and-deploy">Worker</Terminology> name, <Terminology title="The domain every alias lives on" to="/docs/reference/terminology#cloudflare-and-deploy">base domain</Terminology>, <Terminology title="What happens to mail for an address you never made" to="/docs/reference/terminology#aliases-and-mail-flow">unknown alias action</Terminology>, <Terminology title="alias+anything@ still reaches alias@" to="/docs/reference/terminology#aliases-and-mail-flow">subaddressing</Terminology>, and alias headers.
+- **Deploy** — Run the full deploy, with guided <Terminology title="The key that lets the CLI deploy to your account" to="/docs/reference/terminology#cloudflare-and-deploy">API token</Terminology> setup.
 - **Exit** — Close the CLI.
+
+Settings have no direct command, so outside the menu they are changed by editing `config.json`. Neither the menu nor the direct commands can change an existing <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology>'s label, <Terminology title="Your real inbox, where an alias's mail ends up" to="/docs/reference/terminology#aliases-and-mail-flow">destination</Terminology>, or sender rules, so those also need a hand edit.
 
 ## Alias Commands
 
+Commands that take `<address>` expect the part before the `@` in lowercase, exactly as it is stored, such as `velvet-harbor-42` rather than the full address.
+
 ### `alias add`
 
-Create an <Terminology title="address on your domain that forwards mail" to="/docs/reference/terminology#alias">alias</Terminology> and save it to the <Terminology title="config.json file with destinations, aliases, and settings" to="/docs/reference/terminology#config">config</Terminology>.
+Create an <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology> and save it to the <Terminology title="The one file that holds every alias and setting" to="/docs/reference/terminology#cloudflare-and-deploy">config</Terminology>.
 
 | Flag                       | Description                                                     |
 |----------------------------|-----------------------------------------------------------------|
@@ -89,35 +93,61 @@ Create an <Terminology title="address on your domain that forwards mail" to="/do
 
 ### `alias list`
 
-Print one line per <Terminology title="address on your domain that forwards mail" to="/docs/reference/terminology#alias">alias</Terminology> with its full address, <Terminology title="verified real inbox that aliases forward to" to="/docs/reference/terminology#destination">destination</Terminology>, status, and label, separated by tabs.
+Print one line per <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology> with its full address, <Terminology title="Your real inbox, where an alias's mail ends up" to="/docs/reference/terminology#aliases-and-mail-flow">destination</Terminology>, status, and label, separated by tabs.
 
 ### `alias enable <address>` and `alias disable <address>`
 
-Turn an <Terminology title="address on your domain that forwards mail" to="/docs/reference/terminology#alias">alias</Terminology> on or off. A disabled <Terminology title="address on your domain that forwards mail" to="/docs/reference/terminology#alias">alias</Terminology> refuses all mail but keeps its address reserved.
+Turn an <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology> on or off. A disabled <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology> refuses all mail but keeps its address reserved.
 
 ### `alias expire <address> <when>`
 
-Set when an <Terminology title="address on your domain that forwards mail" to="/docs/reference/terminology#alias">alias</Terminology> expires. `<when>` accepts `30m`, `12h`, `7d`, `4w`, an ISO date, or `never` to remove the expiry.
+Set when an <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology> expires. `<when>` accepts `30m`, `12h`, `7d`, `4w`, an ISO date, or `never` to remove the expiry.
+
+A bare date such as `2026-12-31` expires at the start of that day in UTC, so it is recommended to use a full timestamp with an offset instead.
 
 ### `alias remove <address>`
 
-Delete an <Terminology title="address on your domain that forwards mail" to="/docs/reference/terminology#alias">alias</Terminology> from the <Terminology title="config.json file with destinations, aliases, and settings" to="/docs/reference/terminology#config">config</Terminology>.
+Delete an <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology> from the <Terminology title="The one file that holds every alias and setting" to="/docs/reference/terminology#cloudflare-and-deploy">config</Terminology>.
 
 ## Destination Commands
 
 ### `destination add <name> <email>`
 
-Add a <Terminology title="verified real inbox that aliases forward to" to="/docs/reference/terminology#destination">destination</Terminology> inbox. Cloudflare emails it a verification link on the next deploy.
+Add a <Terminology title="Your real inbox, where an alias's mail ends up" to="/docs/reference/terminology#aliases-and-mail-flow">destination</Terminology> inbox. Cloudflare emails it a verification link on the next deploy.
+
+The address is saved in lowercase, and the command refuses a name or address that another <Terminology title="Your real inbox, where an alias's mail ends up" to="/docs/reference/terminology#aliases-and-mail-flow">destination</Terminology> already uses.
 
 ### `destination list`
 
-Print each <Terminology title="verified real inbox that aliases forward to" to="/docs/reference/terminology#destination">destination</Terminology> name and address, separated by tabs.
+Print each <Terminology title="Your real inbox, where an alias's mail ends up" to="/docs/reference/terminology#aliases-and-mail-flow">destination</Terminology> name and address, separated by tabs.
 
 ### `destination remove <name>`
 
-Remove a <Terminology title="verified real inbox that aliases forward to" to="/docs/reference/terminology#destination">destination</Terminology>. The command refuses while any <Terminology title="address on your domain that forwards mail" to="/docs/reference/terminology#alias">alias</Terminology> still forwards to it, or while it is the `default_destination`.
+Remove a <Terminology title="Your real inbox, where an alias's mail ends up" to="/docs/reference/terminology#aliases-and-mail-flow">destination</Terminology>. The command refuses while any <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology> still forwards to it, or while it is the `default_destination`.
 
 ## Notifier Commands
+
+Every `add-*` command takes a unique `<name>`. Credentials are saved in `config.json` using the same approach as the existing ntfy token, then copied into the generated Worker bundle on deploy.
+
+### `notifier add-apprise <name>`
+
+Add an Apprise API endpoint. Requires `--url <url>`; add `--urls <urls>` when the API request should specify Apprise notification URLs.
+
+### `notifier add-discord <name>`
+
+Add a Discord incoming webhook. Requires `--webhook-url <url>`.
+
+### `notifier add-email <name>`
+
+Add email delivery through Cloudflare's `send_email` binding. Requires `--from <email>` and `--to <email>`. The sender must use an onboarded Cloudflare Email Sending domain, and the recipient must be verified.
+
+### `notifier add-gotify <name>`
+
+Add a Gotify application. Requires `--url <url>` and `--token <token>`.
+
+### `notifier add-matrix <name>`
+
+Add a Matrix room. Requires `--homeserver-url <url>`, `--room-id <id>`, and `--access-token <token>`.
 
 ### `notifier add-ntfy <name>`
 
@@ -127,6 +157,22 @@ Notify an ntfy topic directly. Requires `--server <url>`, `--topic <topic>`, and
 
 Notify a Reverse Proxy for ntfy context. Requires `--url <url>`; add `--token <token>` when the context requires one.
 
+### `notifier add-pushover <name>`
+
+Add Pushover delivery. Requires `--user-key <key>` and `--app-token <token>`.
+
+### `notifier add-slack <name>`
+
+Add a Slack incoming webhook. Requires `--webhook-url <url>`.
+
+### `notifier add-telegram <name>`
+
+Add a Telegram bot destination. Requires `--bot-token <token>` and `--chat-id <id>`.
+
+### `notifier add-webhook <name>`
+
+Add a generic webhook that receives Mailmask's versioned JSON payload. Requires `--url <url>`; add `--token <token>` to send bearer authentication.
+
 ### `notifier list`
 
 Print each notifier name and type, separated by tabs.
@@ -135,22 +181,32 @@ Print each notifier name and type, separated by tabs.
 
 Remove a notifier.
 
+### `notifier test <name>`
+
+Send Mailmask's standard test notification through the named HTTP notifier. The request has the same service-specific shape and 10-second timeout used by the Worker, and a non-success HTTP status makes the command fail.
+
+An email notifier cannot be sent from this command because the local Node.js process has no access to a deployed Worker's Cloudflare `send_email` binding. The command reports that limit. See [Email notification setup](/docs/features/notifications/#email) for how to verify it after deployment.
+
 ## Project Commands
 
 ### `validate`
 
-Check the <Terminology title="config.json file with destinations, aliases, and settings" to="/docs/reference/terminology#config">config</Terminology> against the schema and its cross-references, and print every problem found.
+Check the <Terminology title="The one file that holds every alias and setting" to="/docs/reference/terminology#cloudflare-and-deploy">config</Terminology> against the schema and its cross-references, and print every problem found. Cross-reference problems only show up once the schema check passes.
 
 ### `generate`
 
-Write `wrangler.toml` from the <Terminology title="config.json file with destinations, aliases, and settings" to="/docs/reference/terminology#config">config</Terminology> without deploying. Useful for inspecting exactly what the <Terminology title="Cloudflare Worker that routes your mail" to="/docs/reference/terminology#worker">Worker</Terminology> receives.
+Write `wrangler.toml` next to your `config.json`, plus the Worker entry and a copy of the config in `.wrangler/mailmask/` beside it, from the <Terminology title="The one file that holds every alias and setting" to="/docs/reference/terminology#cloudflare-and-deploy">config</Terminology> without deploying. Useful for inspecting exactly what the <Terminology title="Mailmask itself, running on your Cloudflare account" to="/docs/reference/terminology#cloudflare-and-deploy">Worker</Terminology> receives.
+
+The generated `wrangler.toml` has no `account_id`, which only `deploy` adds. To run `wrangler deploy` on these files yourself, set the account another way, such as the `CLOUDFLARE_ACCOUNT_ID` environment variable.
 
 ### `deploy`
 
-Validate, register destinations, publish the <Terminology title="Cloudflare Worker that routes your mail" to="/docs/reference/terminology#worker">Worker</Terminology>, and point the <Terminology title="Email Routing rule for addresses without their own rule" to="/docs/reference/terminology#catch-all">catch-all</Terminology> at it. See [Deployment](/docs/getting-started/deployment/#what-deploy-does) for each step.
+Validate, register destinations, publish the <Terminology title="Mailmask itself, running on your Cloudflare account" to="/docs/reference/terminology#cloudflare-and-deploy">Worker</Terminology>, and point the <Terminology title="Sends every address to Mailmask, so new aliases just work" to="/docs/reference/terminology#cloudflare-and-deploy">catch-all</Terminology> at it. See [Deployment](/docs/getting-started/deployment/#what-deploy-does) for each step.
 
-The direct command reads `CLOUDFLARE_API_TOKEN` from the environment or a `.env` file (in the working directory, project root, or config directory). It exits with a non-zero code instead of prompting when the token is missing or invalid.
+The direct command reads `CLOUDFLARE_API_TOKEN` from the environment or a `.env` file. It exits with a non-zero code instead of prompting when the token is missing or invalid.
+
+At startup, the CLI loads only the first `.env` file it finds, checking the working directory, then the project root, then the config directory. A token in a later file is ignored, except that `deploy` still reads the config directory's `.env` when no token was loaded.
 
 :::info
-Every command that changes the <Terminology title="config.json file with destinations, aliases, and settings" to="/docs/reference/terminology#config">config</Terminology> only edits the local file. Run `mm deploy` to apply changes to Cloudflare.
+Every command that changes the <Terminology title="The one file that holds every alias and setting" to="/docs/reference/terminology#cloudflare-and-deploy">config</Terminology> only edits the local file. Run `mm deploy` to apply changes to Cloudflare.
 :::

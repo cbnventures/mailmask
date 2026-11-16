@@ -51,6 +51,81 @@ const aliasSchema = z.object({
 }).strict();
 
 /**
+ * Lib - Schema - Apprise Notifier Schema.
+ *
+ * Validates an Apprise API endpoint and the optional Apprise notification
+ * URLs that the API should target.
+ *
+ * @since UNRELEASED
+ */
+const appriseNotifierSchema = z.object({
+  type: z.literal('apprise'),
+  name: z.string().min(1),
+  url: z.url().refine((url) => url.startsWith('https://'), { message: 'URL must start with https://' }),
+  urls: z.string().min(1).optional(),
+}).strict();
+
+/**
+ * Lib - Schema - Discord Notifier Schema.
+ *
+ * Validates a Discord incoming webhook notifier. Only Discord's documented
+ * webhook URL forms are accepted.
+ *
+ * @since UNRELEASED
+ */
+const discordNotifierSchema = z.object({
+  type: z.literal('discord'),
+  name: z.string().min(1),
+  webhook_url: z.url().refine((url) => url.startsWith('https://discord.com/api/webhooks/') || url.startsWith('https://discordapp.com/api/webhooks/'), { message: 'Discord webhook URL must start with https://discord.com/api/webhooks/' }),
+}).strict();
+
+/**
+ * Lib - Schema - Email Notifier Schema.
+ *
+ * Validates the sender and verified recipient used by a Cloudflare
+ * send_email binding.
+ *
+ * @since UNRELEASED
+ */
+const emailNotifierSchema = z.object({
+  type: z.literal('email'),
+  name: z.string().min(1),
+  from: z.string().min(1).regex(LIB_REGEX_EMAIL_ADDRESS, { message: 'From must be a valid email address' }),
+  to: z.string().min(1).regex(LIB_REGEX_EMAIL_ADDRESS, { message: 'To must be a valid email address' }),
+}).strict();
+
+/**
+ * Lib - Schema - Gotify Notifier Schema.
+ *
+ * Validates a Gotify server and application token. Mailmask appends Gotify's
+ * message endpoint to the configured server URL.
+ *
+ * @since UNRELEASED
+ */
+const gotifyNotifierSchema = z.object({
+  type: z.literal('gotify'),
+  name: z.string().min(1),
+  url: z.url().refine((url) => url.startsWith('https://'), { message: 'URL must start with https://' }),
+  token: z.string().min(1),
+}).strict();
+
+/**
+ * Lib - Schema - Matrix Notifier Schema.
+ *
+ * Validates a Matrix homeserver, room ID, and access token. Room IDs use the
+ * canonical exclamation-mark form expected by the client API.
+ *
+ * @since UNRELEASED
+ */
+const matrixNotifierSchema = z.object({
+  type: z.literal('matrix'),
+  name: z.string().min(1),
+  homeserver_url: z.url().refine((url) => url.startsWith('https://'), { message: 'Homeserver URL must start with https://' }),
+  room_id: z.string().startsWith('!'),
+  access_token: z.string().min(1),
+}).strict();
+
+/**
  * Lib - Schema - Ntfy Notifier Schema.
  *
  * Validates a notifier that publishes straight to an ntfy server topic
@@ -82,16 +157,84 @@ const ntfyReverseProxyNotifierSchema = z.object({
 }).strict();
 
 /**
+ * Lib - Schema - Pushover Notifier Schema.
+ *
+ * Validates a Pushover user key and application API token. Both values are
+ * required by Pushover's message endpoint.
+ *
+ * @since UNRELEASED
+ */
+const pushoverNotifierSchema = z.object({
+  type: z.literal('pushover'),
+  name: z.string().min(1),
+  user_key: z.string().min(1),
+  app_token: z.string().min(1),
+}).strict();
+
+/**
+ * Lib - Schema - Slack Notifier Schema.
+ *
+ * Validates a Slack incoming webhook notifier. Only Slack's documented
+ * incoming-webhook URL prefix is accepted.
+ *
+ * @since UNRELEASED
+ */
+const slackNotifierSchema = z.object({
+  type: z.literal('slack'),
+  name: z.string().min(1),
+  webhook_url: z.url().refine((url) => url.startsWith('https://hooks.slack.com/'), { message: 'Slack webhook URL must start with https://hooks.slack.com/' }),
+}).strict();
+
+/**
+ * Lib - Schema - Telegram Notifier Schema.
+ *
+ * Validates a Telegram bot token and target chat ID. The chat ID remains a
+ * string so both numeric IDs and channel usernames are supported.
+ *
+ * @since UNRELEASED
+ */
+const telegramNotifierSchema = z.object({
+  type: z.literal('telegram'),
+  name: z.string().min(1),
+  bot_token: z.string().min(1),
+  chat_id: z.string().min(1),
+}).strict();
+
+/**
+ * Lib - Schema - Webhook Notifier Schema.
+ *
+ * Validates a generic HTTPS webhook and its optional bearer token. Webhooks
+ * receive Mailmask's versioned JSON payload without service translation.
+ *
+ * @since UNRELEASED
+ */
+const webhookNotifierSchema = z.object({
+  type: z.literal('webhook'),
+  name: z.string().min(1),
+  url: z.url().refine((url) => url.startsWith('https://'), { message: 'URL must start with https://' }),
+  token: z.string().min(1).optional(),
+}).strict();
+
+/**
  * Lib - Schema - Notifier Schema.
  *
  * Discriminated union over the notifier type field, so each notifier
  * is validated against the fields its type needs.
  *
- * @since 0.0.1
+ * @since UNRELEASED
  */
 const notifierSchema = z.discriminatedUnion('type', [
+  appriseNotifierSchema,
+  discordNotifierSchema,
+  emailNotifierSchema,
+  gotifyNotifierSchema,
+  matrixNotifierSchema,
   ntfyNotifierSchema,
   ntfyReverseProxyNotifierSchema,
+  pushoverNotifierSchema,
+  slackNotifierSchema,
+  telegramNotifierSchema,
+  webhookNotifierSchema,
 ]);
 
 /**
@@ -124,7 +267,7 @@ const settingsSchema = z.object({
  * Top-level schema that composes destinations, aliases, notifiers, and
  * settings into a single validated configuration object.
  *
- * @since 0.0.1
+ * @since UNRELEASED
  */
 const configSchema = z.object({
   destinations: z.array(destinationSchema),
@@ -209,6 +352,7 @@ const cloudflareCatchAllSchema = z.object({
 
 export {
   aliasSchema,
+  appriseNotifierSchema,
   cloudflareCatchAllSchema,
   cloudflareDestinationAddressesSchema,
   cloudflareEmailRoutingSettingsSchema,
@@ -216,9 +360,17 @@ export {
   cloudflareZonesSchema,
   configSchema,
   destinationSchema,
+  discordNotifierSchema,
+  emailNotifierSchema,
+  gotifyNotifierSchema,
+  matrixNotifierSchema,
   notifierSchema,
   ntfyNotifierSchema,
   ntfyReverseProxyNotifierSchema,
+  pushoverNotifierSchema,
   senderPatternSchema,
   settingsSchema,
+  slackNotifierSchema,
+  telegramNotifierSchema,
+  webhookNotifierSchema,
 };

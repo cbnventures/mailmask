@@ -1,0 +1,43 @@
+---
+title: "Mailmask 1.0 Raises the Alias Limit to Tens of Thousands"
+description: Mailmask 1.0 bundles your config into the Worker itself, lifting the alias limit from about 2,000 to tens of thousands with no database.
+slug: mailmask-1-0-tens-of-thousands-of-aliases
+authors:
+  - mrjackyliang
+keywords:
+  - mailmask
+  - email alias
+  - cloudflare workers
+  - alias limit
+  - privacy
+tags:
+  - release
+  - privacy
+---
+
+Mailmask 1.0 holds tens of thousands of aliases, up from about 2,000. The config now ships inside the Worker bundle, so a different address for every sign-up stays practical for years of sign-ups.
+
+{/* truncate */}
+
+## Why It Matters
+
+The point of Mailmask is one alias per sign-up, store, and trial. That adds up. The first release kept its config in Worker variables, which capped a domain at about 2,000 aliases. Version 1.0 removes that ceiling without adding a database.
+
+## How It Works
+
+- **One upload** — `mm deploy` writes your config beside a small entry file, and Wrangler packs both into a single Worker upload.
+- **Checked once** — The Worker validates the bundled config with the same schema the CLI uses when it starts, not on every message. A config that fails validation refuses mail instead of guessing.
+- **Still nothing stored** — There is no database or storage binding. Mail is forwarded in memory and never kept.
+
+The alias list is now bounded only by Cloudflare's Worker size and startup limits, which leave room for tens of thousands.
+
+## Also in 1.0
+
+- **Service page** — The root of your Worker shows a branded page with receiving-mail status and links to the docs.
+- **Config-side `wrangler.toml`** — `generate` and `deploy` write `wrangler.toml` next to the `config.json` they use.
+
+## Get Started
+
+Run `npx mailmask` and follow the [Quick Start](/docs/getting-started/quick-start/). [Architecture](/docs/reference/architecture/) shows how deploy builds the bundle.
+
+**About Mailmask** — Mailmask gives every sign-up its own address on your domain, forwarded to your real inbox by a Cloudflare Worker you own, with nothing stored.

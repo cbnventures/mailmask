@@ -69,7 +69,6 @@ import type {
   Cli_Menu_Interactive_NotifierMenu_RemoveResponse,
   Cli_Menu_Interactive_NotifierMenu_Response,
   Cli_Menu_Interactive_NotifierMenu_Returns,
-  Cli_Menu_Interactive_NotifierMenu_Target,
   Cli_Menu_Interactive_PrintAliases_Aliases,
   Cli_Menu_Interactive_PrintAliases_ConfigPath,
   Cli_Menu_Interactive_PrintAliases_LabelSuffix,
@@ -566,7 +565,7 @@ async function destinationMenu(configPath: Cli_Menu_Interactive_DestinationMenu_
         if (removeResponse['name'] !== undefined) {
           removeDestination(configPath, removeResponse['name']);
 
-          Logger.info(`Destination "${removeResponse['name']}" removed.`);
+          Logger.info(`Destination "${removeResponse['name']}" removed. Run "mm deploy" to apply.`);
         }
       }
     } catch (error) {
@@ -582,14 +581,14 @@ async function destinationMenu(configPath: Cli_Menu_Interactive_DestinationMenu_
 /**
  * CLI - Menu - Interactive - Notifier Menu.
  *
- * Presents the notifier sub-menu for adding, listing, and removing the
- * ntfy topics and Reverse Proxy for ntfy contexts that receive notices.
+ * Presents the notifier sub-menu for listing and removing all services and
+ * adding the original ntfy integrations. Other services use direct commands.
  *
  * @param {Cli_Menu_Interactive_NotifierMenu_ConfigPath} configPath - Config path.
  *
  * @returns {Cli_Menu_Interactive_NotifierMenu_Returns}
  *
- * @since 0.0.1
+ * @since UNRELEASED
  */
 async function notifierMenu(configPath: Cli_Menu_Interactive_NotifierMenu_ConfigPath): Cli_Menu_Interactive_NotifierMenu_Returns {
   let inMenu: Cli_Menu_Interactive_NotifierMenu_InMenu = true;
@@ -639,9 +638,7 @@ async function notifierMenu(configPath: Cli_Menu_Interactive_NotifierMenu_Config
         }
 
         for (const notifier of notifiers) {
-          const target: Cli_Menu_Interactive_NotifierMenu_Target = (notifier['type'] === 'ntfy') ? `${notifier['server']} (topic ${notifier['topic']})` : notifier['url'];
-
-          process.stdout.write(`  ${chalk.cyan(notifier['name'])}  ${notifier['type']}  ${target}\n`);
+          process.stdout.write(`  ${chalk.cyan(notifier['name'])}  ${notifier['type']}\n`);
         }
       } else if (action === 'ntfy') {
         const ntfyResponse: Cli_Menu_Interactive_NotifierMenu_NtfyResponse = await prompts([
@@ -823,7 +820,7 @@ async function settingsFlow(configPath: Cli_Menu_Interactive_SettingsFlow_Config
       add_alias_headers: response['add_alias_headers'],
     });
 
-    Logger.info('Settings updated.');
+    Logger.info('Settings updated. Run "mm deploy" to apply.');
   } catch (error) {
     const errorMessage: Cli_Menu_Interactive_SettingsFlow_ErrorMessage = (error instanceof Error) ? error['message'] : String(error);
 
@@ -887,5 +884,7 @@ function splitList(value: Cli_Menu_Interactive_SplitList_Value): Cli_Menu_Intera
 }
 
 export {
+  destinationMenu,
   interactiveMenu,
+  settingsFlow,
 };

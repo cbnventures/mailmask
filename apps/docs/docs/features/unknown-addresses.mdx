@@ -16,7 +16,7 @@ tags:
 
 import { Terminology } from '@cbnventures/docusaurus-preset-nova/blocks';
 
-Decide what happens to mail sent to any address on your <Terminology title="domain whose catch-all points at the Worker" to="/docs/reference/terminology#base-domain">base domain</Terminology> that isn't one of your aliases.
+Decide what happens to mail sent to any address on your <Terminology title="The domain every alias lives on" to="/docs/reference/terminology#cloudflare-and-deploy">base domain</Terminology> that isn't one of your aliases.
 
 ## Why Use This Feature?
 
@@ -26,7 +26,7 @@ Decide what happens to mail sent to any address on your <Terminology title="doma
 
 ## Options
 
-Set `unknown_alias_action` in the <Terminology title="config.json file with destinations, aliases, and settings" to="/docs/reference/terminology#config">config</Terminology>, or choose it under **Settings** in the `mm` menu.
+Set `unknown_alias_action` in the <Terminology title="The one file that holds every alias and setting" to="/docs/reference/terminology#cloudflare-and-deploy">config</Terminology>, or choose it under **Settings** in the `mm` menu.
 
 | Value     | What happens                                               |
 |-----------|------------------------------------------------------------|
@@ -43,11 +43,11 @@ Set `unknown_alias_action` in the <Terminology title="config.json file with dest
 }
 ```
 
-The <Terminology title="what happens to mail for non-alias addresses" to="/docs/reference/terminology#unknown-alias-action">unknown alias action</Terminology> applies because the <Terminology title="Email Routing rule for addresses without their own rule" to="/docs/reference/terminology#catch-all">catch-all</Terminology> sends every address without its own Email Routing rule to the <Terminology title="Cloudflare Worker that routes your mail" to="/docs/reference/terminology#worker">Worker</Terminology>.
+The <Terminology title="What happens to mail for an address you never made" to="/docs/reference/terminology#aliases-and-mail-flow">unknown alias action</Terminology> applies because the <Terminology title="Sends every address to Mailmask, so new aliases just work" to="/docs/reference/terminology#cloudflare-and-deploy">catch-all</Terminology> sends every address without its own Email Routing rule to the <Terminology title="Mailmask itself, running on your Cloudflare account" to="/docs/reference/terminology#cloudflare-and-deploy">Worker</Terminology>.
 
 ## Refusals Never Fall Through
 
-A known <Terminology title="address on your domain that forwards mail" to="/docs/reference/terminology#alias">alias</Terminology> that is disabled, expired, or refuses a sender never forwards to the default <Terminology title="verified real inbox that aliases forward to" to="/docs/reference/terminology#destination">destination</Terminology>. That way, turning off an <Terminology title="address on your domain that forwards mail" to="/docs/reference/terminology#alias">alias</Terminology> really stops its mail, even with `forward` selected.
+A known <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology> that is disabled, expired, or refuses a sender never forwards to the default <Terminology title="Your real inbox, where an alias's mail ends up" to="/docs/reference/terminology#aliases-and-mail-flow">destination</Terminology>. That way, turning off an <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology> really stops its mail, even with `forward` selected.
 
 | Setting   | What a refusal does      |
 |-----------|--------------------------|
@@ -57,7 +57,9 @@ A known <Terminology title="address on your domain that forwards mail" to="/docs
 
 ## Other Domains
 
-Mail for a domain other than your <Terminology title="domain whose catch-all points at the Worker" to="/docs/reference/terminology#base-domain">base domain</Terminology> is always rejected. This can happen if you route another domain's catch-all at the same <Terminology title="Cloudflare Worker that routes your mail" to="/docs/reference/terminology#worker">Worker</Terminology>.
+Mail for any domain other than your <Terminology title="The domain every alias lives on" to="/docs/reference/terminology#cloudflare-and-deploy">base domain</Terminology>, including subdomains of it such as `x@sub.example.com`, is always rejected with `Recipient domain is not handled by this Worker`, whatever your <Terminology title="What happens to mail for an address you never made" to="/docs/reference/terminology#aliases-and-mail-flow">unknown alias action</Terminology> is. It never triggers a notification.
+
+This can happen if you route another domain's catch-all at the same <Terminology title="Mailmask itself, running on your Cloudflare account" to="/docs/reference/terminology#cloudflare-and-deploy">Worker</Terminology>, or if `base_domain` is set to a subdomain while the zone's <Terminology title="Sends every address to Mailmask, so new aliases just work" to="/docs/reference/terminology#cloudflare-and-deploy">catch-all</Terminology> sends apex mail to the <Terminology title="Mailmask itself, running on your Cloudflare account" to="/docs/reference/terminology#cloudflare-and-deploy">Worker</Terminology>.
 
 :::tip
 `drop` keeps spammers guessing, but a person who mistypes an address also gets no bounce. It is recommended to pick `reject` unless spam to random addresses is a real problem for you.

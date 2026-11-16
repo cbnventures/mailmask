@@ -1,11 +1,12 @@
 ---
 id: notifications
 title: Refusal Notifications
-description: Get a push notification through ntfy or Reverse Proxy for ntfy whenever a disabled, expired, or filtered alias turns away a message.
+description: Send refusal alerts through Apprise, Discord, email, Gotify, Matrix, ntfy, Pushover, Slack, Telegram, webhooks, or Reverse Proxy for ntfy.
 sidebar_position: 4
 keywords:
   - mailmask
   - notifications
+  - webhook
   - ntfy
   - refusal
   - alerts
@@ -16,69 +17,259 @@ tags:
 
 import { Terminology } from '@cbnventures/docusaurus-preset-nova/blocks';
 
-Find out when one of your aliases turns mail away, so you know when a retired address is still being used.
+Find out when one of your aliases turns mail away, using the notification service you already rely on.
 
 ## Why Use This Feature?
 
-1. Alerts you when a disabled or expired <Terminology title="address on your domain that forwards mail" to="/docs/reference/terminology#alias">alias</Terminology> still receives mail so you can tell whether someone legitimate is trying to reach you.
-2. Shows which sender a <Terminology title="allow or block list entry for an alias" to="/docs/reference/terminology#sender-rule">sender rule</Terminology> refused so you can adjust an allow list that is too strict.
-3. Stays quiet for random addresses on your domain so spam doesn't flood your phone.
-
-## Setup
-
-Add one or more notifiers to the `notifiers` list. Each one is either an ntfy topic or a [Reverse Proxy for ntfy](https://nrp.cbnventures.io/) context, the same two options Branded Short Links offers.
-
-```json title="config.json"
-{
-  "notifiers": [
-    {
-      "type": "ntfy",
-      "name": "phone",
-      "server": "https://ntfy.example.com",
-      "topic": "mailmask",
-      "token": "tk_yourtoken"
-    },
-    {
-      "type": "ntfy-reverse-proxy",
-      "name": "reverse-proxy",
-      "url": "https://mailmask.ntfy.example.com",
-      "token": "optional-context-token"
-    }
-  ]
-}
-```
-
-| Type                 | Fields                                                                                   |
-|----------------------|------------------------------------------------------------------------------------------|
-| `ntfy`               | `server` (`https://` ntfy server), `topic`, and `token` (an ntfy access token, `tk_...`) |
-| `ntfy-reverse-proxy` | `url` (`https://` context URL) and an optional `token` when the context requires one     |
-
-You can also add notifiers from the `mm` **Manage Notifiers** menu or with `mm notifier add-ntfy` and `mm notifier add-reverse-proxy`. Deploy afterwards to apply them.
+1. Alerts you when a disabled or expired <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology> still receives mail so you can tell whether someone legitimate is trying to reach you.
+2. Shows which envelope sender a <Terminology title="Who an alias will or won't take mail from" to="/docs/reference/terminology#aliases-and-mail-flow">sender rule</Terminology> refused so you can adjust an allow list that is too strict.
+3. Fans out to several independent services while staying quiet for random addresses on your domain.
 
 ## What Triggers a Notification
 
-A notification is sent for every <Terminology title="mail a known alias turns away" to="/docs/reference/terminology#refusal">refusal</Terminology> of a known <Terminology title="address on your domain that forwards mail" to="/docs/reference/terminology#alias">alias</Terminology>:
+A notification is sent for every <Terminology title="Mail an alias turns away instead of forwarding" to="/docs/reference/terminology#aliases-and-mail-flow">refusal</Terminology> of a known <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology>:
 
-- The <Terminology title="address on your domain that forwards mail" to="/docs/reference/terminology#alias">alias</Terminology> is disabled.
-- The <Terminology title="address on your domain that forwards mail" to="/docs/reference/terminology#alias">alias</Terminology> has expired.
+- The alias is disabled.
+- The alias has expired.
 - The sender matches a block list.
 - The sender isn't on the allow list.
+- The alias points to a destination that no longer exists.
 
-Mail to addresses that are not aliases never triggers a notification, whatever your <Terminology title="what happens to mail for non-alias addresses" to="/docs/reference/terminology#unknown-alias-action">unknown alias action</Terminology> is.
+Mail to addresses that are not aliases never triggers a notification, whatever your <Terminology title="What happens to mail for an address you never made" to="/docs/reference/terminology#aliases-and-mail-flow">unknown alias action</Terminology> is.
 
-## Notification Format
+## Supported Services
 
-Every notifier receives the same title, `Mailmask refused a message`, with an `email` tag. An `ntfy` notifier publishes a JSON message to the topic, and an `ntfy-reverse-proxy` notifier posts plain text with `Title`, `Tags`, and `Priority` headers. The message looks like this:
+Add any number of notifiers to `notifiers`. Every entry needs a unique `name` and one of these `type` values:
 
-```text
-Alias: velvet-harbor-42@mail.example.com
-From: promo@partner-offers.com
-Action: reject
-Reason: Sender is blocked
+| Type                 | Delivery method                                    |
+|----------------------|----------------------------------------------------|
+| `apprise`            | Apprise API JSON request                           |
+| `discord`            | Discord incoming webhook embed                     |
+| `email`              | Cloudflare `send_email` binding                    |
+| `gotify`             | Gotify message API                                 |
+| `matrix`             | Matrix client-server room message API              |
+| `ntfy`               | ntfy JSON publish API                              |
+| `ntfy-reverse-proxy` | Mailmask's versioned JSON payload with bearer auth |
+| `pushover`           | Pushover message API                               |
+| `slack`              | Slack incoming webhook                             |
+| `telegram`           | Telegram Bot API                                   |
+| `webhook`            | Mailmask's versioned JSON payload with bearer auth |
+
+Run `mm deploy` after adding, changing, or removing a notifier. The config and generated `.wrangler/mailmask/config.json` contain notifier credentials, so keep both out of version control.
+
+## Apprise
+
+1. Run an [Apprise API](https://github.com/caronc/apprise-api) server and create a persistent configuration key, or prepare one or more Apprise notification URLs.
+2. Add the notifier with its HTTPS notification endpoint. Pass `--urls` only when the endpoint should receive notification URLs in the request.
+3. Run `mm notifier test apprise`, then deploy.
+
+```bash
+mm notifier add-apprise apprise \
+  --url https://apprise.example.com/notify/mailmask \
+  --urls 'discord://webhook-id/webhook-token'
 ```
 
-Tokens are sent as an `Authorization: Bearer` header. The content of the refused message is never included.
+The config fields are `url` and optional `urls`. Mailmask posts Apprise's JSON fields `body`, `title`, `type`, and, when configured, `urls`.
 
-:::info
-Notifications are best effort. If a notifier is unreachable or returns an error, the message is still refused as usual and that notification is skipped.
+## Discord
+
+1. In the Discord channel settings, open **Integrations > Webhooks**, create a webhook, and copy its URL.
+2. Add it, test it, and deploy.
+
+```bash
+mm notifier add-discord discord \
+  --webhook-url https://discord.com/api/webhooks/webhook-id/webhook-token
+mm notifier test discord
+```
+
+The config field is `webhook_url`. Mailmask posts a Discord `embeds` array containing the title, message, color, and occurrence timestamp.
+
+## Email
+
+Email notifications use Cloudflare's `send_email` binding. A Worker cannot open an SMTP connection, so Mailmask does not accept SMTP hosts, usernames, or passwords.
+
+1. Onboard the sender's domain in Cloudflare Email Sending. The `from` address must use that domain.
+2. Add the recipient as a verified Cloudflare Email Routing destination. `mm deploy` registers a new `to` address and reports that its verification is pending; click the link Cloudflare sends before relying on it.
+3. Add the notifier and deploy. Mailmask generates a `MAILMASK_EMAIL` binding whose `allowed_destination_addresses` contains every configured email-notifier recipient.
+
+```bash
+mm notifier add-email email \
+  --from mailmask@example.com \
+  --to owner@example.net
+```
+
+The config fields are `from` and `to`. Mailmask sends a structured plain-text message through the binding.
+
+:::warning
+`mm notifier test email` cannot send a message because the local Node.js CLI has no access to a deployed Worker's Cloudflare binding. The command reports this limitation instead of pretending that delivery succeeded. Verify the sender domain, recipient, generated binding, and a real refusal after deployment.
 :::
+
+## Gotify
+
+1. Create an application in Gotify and copy its application token.
+2. Add the server and token, test the notifier, and deploy.
+
+```bash
+mm notifier add-gotify gotify \
+  --url https://gotify.example.com \
+  --token application-token
+mm notifier test gotify
+```
+
+The config fields are `url` and `token`. Mailmask posts `title`, `message`, and numeric `priority` to the server's `/message` endpoint with the token in `X-Gotify-Key`.
+
+## Matrix
+
+1. Create or choose a Matrix account that can post to the room, and obtain an access token.
+2. Copy the canonical room ID, which starts with `!`, rather than a room alias that starts with `#`.
+3. Add the homeserver, room, and token, then test and deploy.
+
+```bash
+mm notifier add-matrix matrix \
+  --homeserver-url https://matrix.example.com \
+  --room-id '!room-id:example.com' \
+  --access-token access-token
+mm notifier test matrix
+```
+
+The config fields are `homeserver_url`, `room_id`, and `access_token`. Mailmask sends an `m.text` event with a unique transaction ID and bearer authentication.
+
+## ntfy
+
+1. Create an ntfy topic and an access token that can publish to it.
+2. Add the notifier, test it, and deploy.
+
+```bash
+mm notifier add-ntfy phone \
+  --server https://ntfy.example.com \
+  --topic mailmask \
+  --token tk_yourtoken
+mm notifier test phone
+```
+
+The ntfy notifier takes `server`, `topic`, and an ntfy `token` beginning with `tk_`. Mailmask posts ntfy's JSON fields `topic`, `title`, `message`, `priority`, and `tags` with bearer authentication.
+
+## Reverse Proxy for ntfy
+
+1. Create a Mailmask context in [Reverse Proxy for ntfy](https://nrp.cbnventures.io/).
+2. Copy its HTTPS context URL and, when the context requires authentication, its token.
+3. Add the notifier, test it, and deploy.
+
+```bash
+mm notifier add-reverse-proxy reverse-proxy \
+  --url https://mailmask.ntfy.example.com \
+  --token optional-context-token
+mm notifier test reverse-proxy
+```
+
+The notifier takes a `url` and an optional `token`. Mailmask sends the [versioned Mailmask payload](#versioned-mailmask-payload) with `Content-Type: application/json` and optional bearer authentication.
+
+In the Reverse Proxy for ntfy context, set the interpreter to `mailmask`; see [Reverse Proxy for ntfy's Mailmask interpreter docs](https://nrp.cbnventures.io/docs/interpreters/mailmask/).
+
+:::warning
+Upgrading from Mailmask 0.0.1: it sent Reverse Proxy for ntfy plain text with `Title`, `Tags`, and `Priority` headers. Mailmask 1.0.0 sends the versioned payload instead, so set your existing context's interpreter to `mailmask` before you deploy, or refusal alerts arrive as raw JSON.
+:::
+
+## Pushover
+
+1. Register an application in Pushover and copy its API token.
+2. Copy your user key, or a delivery group's group key.
+3. Add the notifier, test it, and deploy.
+
+```bash
+mm notifier add-pushover pushover \
+  --user-key user-or-group-key \
+  --app-token application-api-token
+mm notifier test pushover
+```
+
+The config fields are `user_key` and `app_token`. Mailmask posts Pushover's `user`, `token`, `title`, `message`, and `priority` fields.
+
+## Slack
+
+1. Enable incoming webhooks for a Slack app, add one to the target channel, and copy its webhook URL.
+2. Add it, test it, and deploy.
+
+```bash
+mm notifier add-slack slack \
+  --webhook-url https://hooks.slack.com/services/workspace/channel/secret
+mm notifier test slack
+```
+
+The config field is `webhook_url`. Mailmask posts Slack's `text` field and escapes `&`, `<`, and `>` before Slack formats the message.
+
+## Telegram
+
+1. Create a bot with BotFather and copy its bot token.
+2. Add the bot to the destination chat and obtain the chat ID.
+3. Add the notifier, test it, and deploy.
+
+```bash
+mm notifier add-telegram telegram \
+  --bot-token bot-token \
+  --chat-id -1001234567890
+mm notifier test telegram
+```
+
+The config fields are `bot_token` and `chat_id`. Mailmask calls the Bot API's `sendMessage` method with `chat_id`, `text`, and disabled link previews.
+
+## Webhook
+
+Use a webhook when a service or automation can consume Mailmask's own contract directly.
+
+```bash
+mm notifier add-webhook automation \
+  --url https://notifications.example.com/mailmask \
+  --token optional-bearer-token
+mm notifier test automation
+```
+
+The config fields are `url` and optional `token`. Mailmask posts the [versioned payload](#versioned-mailmask-payload) as JSON and sends the token as `Authorization: Bearer <token>` when present.
+
+## Versioned Mailmask Payload
+
+`webhook` and `ntfy-reverse-proxy` receive this exact version 1 contract. The example is a real refusal shape, with example values:
+
+```json
+{
+  "version": 1,
+  "app": "mailmask",
+  "event": "message-refused",
+  "title": "Mailmask refused a message",
+  "message": "Mail to old@example.com from sender@shop.test was rejected: Address is disabled.",
+  "priority": 3,
+  "tags": [
+    "email"
+  ],
+  "occurredAt": "2026-11-05T12:00:00.000Z",
+  "details": {
+    "alias": "old@example.com",
+    "envelopeSender": "sender@shop.test",
+    "recipient": "old@example.com",
+    "reason": "disabled"
+  }
+}
+```
+
+| Field                    | Version 1 contract                                                                                |
+|--------------------------|---------------------------------------------------------------------------------------------------|
+| `version`                | The number `1`.                                                                                   |
+| `app`                    | The string `mailmask`.                                                                            |
+| `event`                  | `message-refused` for live refusals; `test` for CLI test requests.                                |
+| `title`                  | `Mailmask refused a message` for live refusals.                                                   |
+| `message`                | `Mail to {recipient} from {envelopeSender} was {rejected\|dropped}: {routing reason}.`            |
+| `priority`               | The number `3`.                                                                                   |
+| `tags`                   | `['email']` for live refusals; `['email', 'test']` for tests.                                     |
+| `occurredAt`             | An ISO 8601 UTC timestamp.                                                                        |
+| `details.alias`          | The resolved alias's full address, without a subaddress tag.                                      |
+| `details.envelopeSender` | The SMTP envelope sender checked by sender rules.                                                 |
+| `details.recipient`      | The original SMTP envelope recipient, including a subaddress tag when one was used.               |
+| `details.reason`         | `disabled`, `expired`, `filtered`, `misconfigured`, or the forward-compatible fallback `refused`. |
+
+A CLI test payload uses `event: "test"`, title `Mailmask test notification`, message `Mailmask successfully sent this test notification.`, and `details.reason: "test"`. Consumers should ignore unknown fields and unknown `details.reason` values within version 1, but reject an unsupported top-level `version`.
+
+The content and headers of the refused email are never included.
+
+## Delivery Behavior
+
+Mailmask applies the reject or drop decision first, then schedules all configured notifiers together in the background. Notifications are best effort and never delay or change routing; each notifier has its own 10-second timeout, and every failure produces one `Notifier "…" (…) failed:` warning in the Worker logs.

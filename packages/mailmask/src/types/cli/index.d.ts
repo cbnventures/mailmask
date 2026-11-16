@@ -1,4 +1,4 @@
-import type { Command } from 'commander';
+import type { Command, Option } from 'commander';
 
 import type { Lib_Schema_AliasConfig, Lib_Schema_SettingsConfig } from '../lib/schema.d.ts';
 import type { Cli_Commands_Validate_ValidateConfig_Returns } from './commands/validate.d.ts';
@@ -37,6 +37,8 @@ export type Cli_Index_Main_ConfigDirs = string[];
 export type Cli_Index_Main_ConfigPath = string;
 
 export type Cli_Index_Main_AliasCommand = Command;
+
+export type Cli_Index_Main_AliasStyleOption = Option;
 
 export type Cli_Index_Main_Alias = { [Key in keyof Lib_Schema_AliasConfig]: Lib_Schema_AliasConfig[Key] };
 

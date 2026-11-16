@@ -7,6 +7,7 @@ import chalk from 'chalk';
 import prompts from 'prompts';
 
 import { APP_NAME } from '../../lib/item.js';
+import { getWranglerCliPath } from '../../lib/package-runtime.js';
 import { LIB_REGEX_SURROUNDING_QUOTES } from '../../lib/regex.js';
 import {
   cloudflareCatchAllSchema,
@@ -15,9 +16,10 @@ import {
   cloudflareEnvelopeSchema,
   cloudflareZonesSchema,
 } from '../../lib/schema.js';
-import { listAliases } from './alias.js';
+import { describeAliasStatus, listAliases } from './alias.js';
 import { listDestinations } from './destination.js';
-import { generateWranglerToml } from './generate.js';
+import { generateWranglerToml, getWranglerTomlPath } from './generate.js';
+import { listNotifiers } from './notifier.js';
 import { getSettings } from './settings.js';
 import { validateConfig } from './validate.js';
 
@@ -34,7 +36,6 @@ import type {
   Cli_Commands_Deploy_Deploy_AccountId,
   Cli_Commands_Deploy_Deploy_ConfigPath,
   Cli_Commands_Deploy_Deploy_Interactive,
-  Cli_Commands_Deploy_Deploy_ProjectRoot,
   Cli_Commands_Deploy_Deploy_Result,
   Cli_Commands_Deploy_Deploy_Returns,
   Cli_Commands_Deploy_Deploy_Settings,
@@ -42,14 +43,20 @@ import type {
   Cli_Commands_Deploy_Deploy_WranglerTomlPath,
   Cli_Commands_Deploy_Deploy_ZoneInfo,
   Cli_Commands_Deploy_DeployWorker_DeployResult,
-  Cli_Commands_Deploy_DeployWorker_ProjectRoot,
   Cli_Commands_Deploy_DeployWorker_Returns,
+  Cli_Commands_Deploy_DeployWorker_WranglerCliPath,
   Cli_Commands_Deploy_DeployWorker_WranglerTomlPath,
   Cli_Commands_Deploy_EnsureDestinationAddresses_AccountId,
   Cli_Commands_Deploy_EnsureDestinationAddresses_ConfigPath,
+  Cli_Commands_Deploy_EnsureDestinationAddresses_DestinationEmails,
   Cli_Commands_Deploy_EnsureDestinationAddresses_Destinations,
+  Cli_Commands_Deploy_EnsureDestinationAddresses_EmailNotifierEmails,
+  Cli_Commands_Deploy_EnsureDestinationAddresses_Emails,
   Cli_Commands_Deploy_EnsureDestinationAddresses_Existing,
   Cli_Commands_Deploy_EnsureDestinationAddresses_ExistingAddresses,
+  Cli_Commands_Deploy_EnsureDestinationAddresses_NormalizedEmail,
+  Cli_Commands_Deploy_EnsureDestinationAddresses_Page,
+  Cli_Commands_Deploy_EnsureDestinationAddresses_PageAddresses,
   Cli_Commands_Deploy_EnsureDestinationAddresses_Pending,
   Cli_Commands_Deploy_EnsureDestinationAddresses_Result,
   Cli_Commands_Deploy_EnsureDestinationAddresses_Returns,
@@ -78,9 +85,11 @@ import type {
   Cli_Commands_Deploy_LoadEnvToken_Value,
   Cli_Commands_Deploy_PrintAliasSummary_Aliases,
   Cli_Commands_Deploy_PrintAliasSummary_ConfigPath,
+  Cli_Commands_Deploy_PrintAliasSummary_Now,
   Cli_Commands_Deploy_PrintAliasSummary_Returns,
   Cli_Commands_Deploy_PrintAliasSummary_Settings,
   Cli_Commands_Deploy_PrintAliasSummary_Status,
+  Cli_Commands_Deploy_PrintAliasSummary_StatusDescription,
   Cli_Commands_Deploy_PromptForApiToken_PromptResult,
   Cli_Commands_Deploy_PromptForApiToken_Returns,
   Cli_Commands_Deploy_PromptForApiToken_Token,
@@ -194,6 +203,8 @@ async function deploy(configPath: Cli_Commands_Deploy_Deploy_ConfigPath, interac
       Logger.error(`  - ${error}`);
     }
 
+    process.exitCode = 1;
+
     return;
   }
 
@@ -205,6 +216,11 @@ async function deploy(configPath: Cli_Commands_Deploy_Deploy_ConfigPath, interac
   Logger.info('Verifying API token permissions...');
 
   const zoneInfo: Cli_Commands_Deploy_Deploy_ZoneInfo = await getZoneInfo(token, settings['base_domain']);
+
+  if (settings['base_domain'] !== zoneInfo['zoneName']) {
+    throw new Error(`The base_domain "${settings['base_domain']}" is a subdomain of the Cloudflare zone "${zoneInfo['zoneName']}". Cloudflare Email Routing catch-all rules only work on the apex domain, so set base_domain to "${zoneInfo['zoneName']}" and try again.`);
+  }
+
   const accountId: Cli_Commands_Deploy_Deploy_AccountId = await verifyPermissions(token, zoneInfo['zoneId'], zoneInfo['accountId'], interactive);
 
   Logger.info('Permissions verified.');
@@ -220,17 +236,16 @@ async function deploy(configPath: Cli_Commands_Deploy_Deploy_ConfigPath, interac
   // Step 6: Generate wrangler.toml.
   Logger.info('Generating wrangler.toml...');
 
-  const projectRoot: Cli_Commands_Deploy_Deploy_ProjectRoot = Bootstrap.getProjectRoot() ?? process.cwd();
-  const wranglerTomlPath: Cli_Commands_Deploy_Deploy_WranglerTomlPath = resolve(projectRoot, 'wrangler.toml');
+  const wranglerTomlPath: Cli_Commands_Deploy_Deploy_WranglerTomlPath = getWranglerTomlPath(configPath);
 
   generateWranglerToml(configPath, wranglerTomlPath, accountId);
 
-  Logger.info('wrangler.toml generated.');
+  Logger.info(`Generated "wrangler.toml" at "${wranglerTomlPath}".`);
 
   // Step 7: Deploy worker.
   Logger.info('Deploying worker...');
 
-  deployWorker();
+  deployWorker(wranglerTomlPath);
 
   Logger.info('Worker deployed.');
 
@@ -571,9 +586,9 @@ async function ensureEmailRoutingEnabled(token: Cli_Commands_Deploy_EnsureEmailR
 /**
  * CLI - Commands - Deploy - Ensure Destination Addresses.
  *
- * Registers every configured destination as an Email Routing destination
- * address. Cloudflare emails a verification link for new addresses, and
- * forwarding to an address only works once it has been verified.
+ * Registers every forwarding destination and email-notifier recipient as an
+ * Email Routing destination address. Cloudflare emails a verification link
+ * for new addresses, and delivery only works once they are verified.
  *
  * @param {Cli_Commands_Deploy_EnsureDestinationAddresses_ConfigPath} configPath - Config path.
  * @param {Cli_Commands_Deploy_EnsureDestinationAddresses_Token}      token      - Token.
@@ -581,29 +596,46 @@ async function ensureEmailRoutingEnabled(token: Cli_Commands_Deploy_EnsureEmailR
  *
  * @returns {Cli_Commands_Deploy_EnsureDestinationAddresses_Returns}
  *
- * @since 0.0.1
+ * @since UNRELEASED
  */
 async function ensureDestinationAddresses(configPath: Cli_Commands_Deploy_EnsureDestinationAddresses_ConfigPath, token: Cli_Commands_Deploy_EnsureDestinationAddresses_Token, accountId: Cli_Commands_Deploy_EnsureDestinationAddresses_AccountId): Cli_Commands_Deploy_EnsureDestinationAddresses_Returns {
   const destinations: Cli_Commands_Deploy_EnsureDestinationAddresses_Destinations = listDestinations(configPath);
-  const result: Cli_Commands_Deploy_EnsureDestinationAddresses_Result = await cloudflareRequest(token, 'GET', `/accounts/${accountId}/email/routing/addresses?per_page=50`, undefined);
-  const existingAddresses: Cli_Commands_Deploy_EnsureDestinationAddresses_ExistingAddresses = cloudflareDestinationAddressesSchema.parse(result);
+  const destinationEmails: Cli_Commands_Deploy_EnsureDestinationAddresses_DestinationEmails = destinations.map((destination) => destination['email']);
+  const emailNotifierEmails: Cli_Commands_Deploy_EnsureDestinationAddresses_EmailNotifierEmails = listNotifiers(configPath).filter((notifier) => notifier['type'] === 'email').map((notifier) => notifier['to']);
+  const emails: Cli_Commands_Deploy_EnsureDestinationAddresses_Emails = [...new Set([
+    ...destinationEmails,
+    ...emailNotifierEmails,
+  ])];
+  const existingAddresses: Cli_Commands_Deploy_EnsureDestinationAddresses_ExistingAddresses = [];
+  let page: Cli_Commands_Deploy_EnsureDestinationAddresses_Page = 1;
+  let pageAddresses: Cli_Commands_Deploy_EnsureDestinationAddresses_PageAddresses = [];
+
+  do {
+    const result: Cli_Commands_Deploy_EnsureDestinationAddresses_Result = await cloudflareRequest(token, 'GET', `/accounts/${accountId}/email/routing/addresses?page=${String(page)}&per_page=50`, undefined);
+
+    pageAddresses = cloudflareDestinationAddressesSchema.parse(result);
+    existingAddresses.push(...pageAddresses);
+    page += 1;
+  } while (pageAddresses.length === 50);
+
   const pending: Cli_Commands_Deploy_EnsureDestinationAddresses_Pending = [];
 
-  for (const destination of destinations) {
-    const existing: Cli_Commands_Deploy_EnsureDestinationAddresses_Existing = existingAddresses.find((existingAddress) => existingAddress['email'].toLowerCase() === destination['email'].toLowerCase());
+  for (const email of emails) {
+    const normalizedEmail: Cli_Commands_Deploy_EnsureDestinationAddresses_NormalizedEmail = email.toLowerCase();
+    const existing: Cli_Commands_Deploy_EnsureDestinationAddresses_Existing = existingAddresses.find((existingAddress) => existingAddress['email'].toLowerCase() === normalizedEmail);
 
     if (existing === undefined) {
-      await cloudflareRequest(token, 'POST', `/accounts/${accountId}/email/routing/addresses`, { email: destination['email'] });
+      await cloudflareRequest(token, 'POST', `/accounts/${accountId}/email/routing/addresses`, { email });
 
-      Logger.info(`Registered destination "${destination['email']}". Cloudflare sent a verification email to it.`);
+      Logger.info(`Registered destination "${email}". Cloudflare sent a verification email to it.`);
 
-      pending.push(destination['email']);
+      pending.push(email);
 
       continue;
     }
 
     if (existing['verified'] === undefined || existing['verified'] === null) {
-      pending.push(destination['email']);
+      pending.push(email);
     }
   }
 
@@ -674,16 +706,16 @@ async function setCatchAll(token: Cli_Commands_Deploy_SetCatchAll_Token, zoneId:
  * Spawns the Wrangler deploy process with the generated
  * configuration file and aborts on non-zero exit codes.
  *
+ * @param {Cli_Commands_Deploy_DeployWorker_WranglerTomlPath} wranglerTomlPath - Wrangler toml path.
+ *
  * @returns {Cli_Commands_Deploy_DeployWorker_Returns}
  *
  * @since 0.0.1
  */
-function deployWorker(): Cli_Commands_Deploy_DeployWorker_Returns {
-  const projectRoot: Cli_Commands_Deploy_DeployWorker_ProjectRoot = Bootstrap.getProjectRoot() ?? process.cwd();
-  const wranglerTomlPath: Cli_Commands_Deploy_DeployWorker_WranglerTomlPath = resolve(projectRoot, 'wrangler.toml');
-
-  const deployResult: Cli_Commands_Deploy_DeployWorker_DeployResult = spawnSync('npx', [
-    'wrangler',
+function deployWorker(wranglerTomlPath: Cli_Commands_Deploy_DeployWorker_WranglerTomlPath): Cli_Commands_Deploy_DeployWorker_Returns {
+  const wranglerCliPath: Cli_Commands_Deploy_DeployWorker_WranglerCliPath = getWranglerCliPath();
+  const deployResult: Cli_Commands_Deploy_DeployWorker_DeployResult = spawnSync(process.execPath, [
+    wranglerCliPath,
     'deploy',
     '--config',
     wranglerTomlPath,
@@ -783,6 +815,7 @@ function saveEnvToken(token: Cli_Commands_Deploy_SaveEnvToken_Token): Cli_Comman
 function printAliasSummary(configPath: Cli_Commands_Deploy_PrintAliasSummary_ConfigPath): Cli_Commands_Deploy_PrintAliasSummary_Returns {
   const aliases: Cli_Commands_Deploy_PrintAliasSummary_Aliases = listAliases(configPath);
   const settings: Cli_Commands_Deploy_PrintAliasSummary_Settings = getSettings(configPath);
+  const now: Cli_Commands_Deploy_PrintAliasSummary_Now = Date.now();
 
   if (aliases.length === 0) {
     return;
@@ -793,7 +826,8 @@ function printAliasSummary(configPath: Cli_Commands_Deploy_PrintAliasSummary_Con
   process.stdout.write('\n');
 
   for (const alias of aliases) {
-    const status: Cli_Commands_Deploy_PrintAliasSummary_Status = (alias['enabled'] === true) ? chalk.green('enabled') : chalk.yellow('disabled');
+    const statusDescription: Cli_Commands_Deploy_PrintAliasSummary_StatusDescription = describeAliasStatus(alias, now);
+    const status: Cli_Commands_Deploy_PrintAliasSummary_Status = (statusDescription === 'enabled') ? chalk.green(statusDescription) : chalk.yellow(statusDescription);
 
     process.stdout.write(`  ${chalk.cyan(`${alias['address']}@${settings['base_domain']}`)} -> ${alias['destination']} (${status})\n`);
   }

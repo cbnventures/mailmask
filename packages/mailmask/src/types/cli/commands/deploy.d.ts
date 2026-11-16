@@ -70,8 +70,6 @@ export type Cli_Commands_Deploy_Deploy_ZoneInfo = {
 
 export type Cli_Commands_Deploy_Deploy_AccountId = string;
 
-export type Cli_Commands_Deploy_Deploy_ProjectRoot = string;
-
 export type Cli_Commands_Deploy_Deploy_WranglerTomlPath = string;
 
 /**
@@ -79,18 +77,18 @@ export type Cli_Commands_Deploy_Deploy_WranglerTomlPath = string;
  *
  * @since 0.0.1
  */
+export type Cli_Commands_Deploy_DeployWorker_WranglerTomlPath = string;
+
 export type Cli_Commands_Deploy_DeployWorker_Returns = void;
 
-export type Cli_Commands_Deploy_DeployWorker_ProjectRoot = string;
-
-export type Cli_Commands_Deploy_DeployWorker_WranglerTomlPath = string;
+export type Cli_Commands_Deploy_DeployWorker_WranglerCliPath = string;
 
 export type Cli_Commands_Deploy_DeployWorker_DeployResult = SpawnSyncReturns<string>;
 
 /**
  * CLI - Commands - Deploy - Ensure Destination Addresses.
  *
- * @since 0.0.1
+ * @since UNRELEASED
  */
 export type Cli_Commands_Deploy_EnsureDestinationAddresses_ConfigPath = string;
 
@@ -102,13 +100,31 @@ export type Cli_Commands_Deploy_EnsureDestinationAddresses_Returns = Promise<voi
 
 export type Cli_Commands_Deploy_EnsureDestinationAddresses_Destinations = Array<Lib_Schema_DestinationConfig>;
 
-export type Cli_Commands_Deploy_EnsureDestinationAddresses_Result = unknown;
+export type Cli_Commands_Deploy_EnsureDestinationAddresses_DestinationEmail = string;
+
+export type Cli_Commands_Deploy_EnsureDestinationAddresses_DestinationEmails = Cli_Commands_Deploy_EnsureDestinationAddresses_DestinationEmail[];
+
+export type Cli_Commands_Deploy_EnsureDestinationAddresses_EmailNotifierEmail = string;
+
+export type Cli_Commands_Deploy_EnsureDestinationAddresses_EmailNotifierEmails = Cli_Commands_Deploy_EnsureDestinationAddresses_EmailNotifierEmail[];
+
+export type Cli_Commands_Deploy_EnsureDestinationAddresses_Email = string;
+
+export type Cli_Commands_Deploy_EnsureDestinationAddresses_Emails = Cli_Commands_Deploy_EnsureDestinationAddresses_Email[];
 
 export type Cli_Commands_Deploy_EnsureDestinationAddresses_ExistingAddresses = { [Key in keyof Lib_Schema_CloudflareDestinationAddresses]: Lib_Schema_CloudflareDestinationAddresses[Key] };
+
+export type Cli_Commands_Deploy_EnsureDestinationAddresses_Page = number;
+
+export type Cli_Commands_Deploy_EnsureDestinationAddresses_PageAddresses = { [Key in keyof Lib_Schema_CloudflareDestinationAddresses]: Lib_Schema_CloudflareDestinationAddresses[Key] };
+
+export type Cli_Commands_Deploy_EnsureDestinationAddresses_Result = unknown;
 
 export type Cli_Commands_Deploy_EnsureDestinationAddresses_PendingEmail = string;
 
 export type Cli_Commands_Deploy_EnsureDestinationAddresses_Pending = Cli_Commands_Deploy_EnsureDestinationAddresses_PendingEmail[];
+
+export type Cli_Commands_Deploy_EnsureDestinationAddresses_NormalizedEmail = string;
 
 export type Cli_Commands_Deploy_EnsureDestinationAddresses_Existing = Lib_Schema_CloudflareDestinationAddress | undefined;
 
@@ -202,6 +218,10 @@ export type Cli_Commands_Deploy_PrintAliasSummary_Returns = void;
 export type Cli_Commands_Deploy_PrintAliasSummary_Aliases = Array<Lib_Schema_AliasConfig>;
 
 export type Cli_Commands_Deploy_PrintAliasSummary_Settings = { [Key in keyof Lib_Schema_SettingsConfig]: Lib_Schema_SettingsConfig[Key] };
+
+export type Cli_Commands_Deploy_PrintAliasSummary_Now = number;
+
+export type Cli_Commands_Deploy_PrintAliasSummary_StatusDescription = string;
 
 export type Cli_Commands_Deploy_PrintAliasSummary_Status = string;
 

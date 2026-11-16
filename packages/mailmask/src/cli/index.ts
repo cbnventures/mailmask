@@ -3,7 +3,7 @@ import { copyFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { Bootstrap, Logger } from '@cbnventures/nova/toolkit';
-import { Command } from 'commander';
+import { Command, Option } from 'commander';
 
 import { APP_NAME } from '../lib/item.js';
 import { getConfigSamplePath, getPackageVersion } from '../lib/package-runtime.js';
@@ -17,8 +17,10 @@ import {
 } from './commands/alias.js';
 import { deploy } from './commands/deploy.js';
 import { addDestination, listDestinations, removeDestination } from './commands/destination.js';
-import { generateWranglerToml } from './commands/generate.js';
-import { addNotifier, listNotifiers, removeNotifier } from './commands/notifier.js';
+import { generateWranglerToml, getWranglerTomlPath } from './commands/generate.js';
+import {
+  addNotifier, listNotifiers, removeNotifier, testNotifier,
+} from './commands/notifier.js';
 import { getSettings } from './commands/settings.js';
 import { validateConfig } from './commands/validate.js';
 import { interactiveMenu } from './menu/interactive.js';
@@ -31,6 +33,7 @@ import type {
   Cli_Index_GetConfigFilePath_Returns,
   Cli_Index_Main_Alias,
   Cli_Index_Main_AliasCommand,
+  Cli_Index_Main_AliasStyleOption,
   Cli_Index_Main_ConfigDirs,
   Cli_Index_Main_ConfigPath,
   Cli_Index_Main_DestinationCommand,
@@ -158,13 +161,17 @@ async function main(): Cli_Index_Main_Returns {
   const configPath: Cli_Index_Main_ConfigPath = getConfigFilePath();
 
   const aliasCommand: Cli_Index_Main_AliasCommand = new Command('alias').description('Manage aliases');
+  const aliasStyleOption: Cli_Index_Main_AliasStyleOption = new Option('-s, --style <style>', 'Generated address style: words or random').choices([
+    'words',
+    'random',
+  ]).default('words');
 
   aliasCommand
     .command('add')
     .description('Create an alias')
     .requiredOption('-d, --destination <name>', 'Destination to forward to')
     .option('-a, --address <address>', 'Custom address (otherwise one is generated)')
-    .option('-s, --style <style>', 'Generated address style: words or random', 'words')
+    .addOption(aliasStyleOption)
     .option('-l, --label <label>', 'Where you used this alias')
     .option('-e, --expires <when>', 'Expiry: 30m, 12h, 7d, 4w, an ISO date, or never')
     .option('--allow <senders>', 'Comma-separated senders allowed to write (e.g. *@shop.com)')
@@ -172,7 +179,7 @@ async function main(): Cli_Index_Main_Returns {
     .action((options) => {
       const alias: Cli_Index_Main_Alias = addAlias(configPath, {
         address: options['address'],
-        style: (options['style'] === 'random') ? 'random' : 'words',
+        style: options['style'],
         destination: options['destination'],
         label: options['label'],
         expires: options['expires'],
@@ -277,12 +284,102 @@ async function main(): Cli_Index_Main_Returns {
     .action((name) => {
       removeDestination(configPath, name);
 
-      Logger.info(`Destination "${name}" removed.`);
+      Logger.info(`Destination "${name}" removed. Run "mm deploy" to apply.`);
 
       return;
     });
 
   const notifierCommand: Cli_Index_Main_NotifierCommand = new Command('notifier').description('Manage notifiers for refused mail');
+
+  notifierCommand
+    .command('add-apprise <name>')
+    .description('Notify through an Apprise API endpoint')
+    .requiredOption('--url <url>', 'Apprise endpoint URL (https://...)')
+    .option('--urls <urls>', 'Optional Apprise notification URLs')
+    .action((name, options) => {
+      addNotifier(configPath, {
+        type: 'apprise',
+        name,
+        url: options['url'],
+        ...((options['urls'] === undefined) ? {} : { urls: options['urls'] }),
+      });
+
+      Logger.info(`Notifier "${name}" added. Run "mm deploy" to apply.`);
+
+      return;
+    });
+
+  notifierCommand
+    .command('add-discord <name>')
+    .description('Notify a Discord channel through an incoming webhook')
+    .requiredOption('--webhook-url <url>', 'Discord webhook URL')
+    .action((name, options) => {
+      addNotifier(configPath, {
+        type: 'discord',
+        name,
+        webhook_url: options['webhookUrl'],
+      });
+
+      Logger.info(`Notifier "${name}" added. Run "mm deploy" to apply.`);
+
+      return;
+    });
+
+  notifierCommand
+    .command('add-email <name>')
+    .description('Notify by email through a Cloudflare send_email binding')
+    .requiredOption('--from <email>', 'Sender on a Cloudflare Email Sending domain')
+    .requiredOption('--to <email>', 'Verified destination address')
+    .action((name, options) => {
+      addNotifier(configPath, {
+        type: 'email',
+        name,
+        from: options['from'],
+        to: options['to'],
+      });
+
+      Logger.info(`Notifier "${name}" added. Run "mm deploy" to apply.`);
+
+      return;
+    });
+
+  notifierCommand
+    .command('add-gotify <name>')
+    .description('Notify a Gotify application')
+    .requiredOption('--url <url>', 'Gotify server URL (https://...)')
+    .requiredOption('--token <token>', 'Gotify application token')
+    .action((name, options) => {
+      addNotifier(configPath, {
+        type: 'gotify',
+        name,
+        url: options['url'],
+        token: options['token'],
+      });
+
+      Logger.info(`Notifier "${name}" added. Run "mm deploy" to apply.`);
+
+      return;
+    });
+
+  notifierCommand
+    .command('add-matrix <name>')
+    .description('Notify a Matrix room')
+    .requiredOption('--homeserver-url <url>', 'Matrix homeserver URL (https://...)')
+    .requiredOption('--room-id <id>', 'Matrix room ID (!room:server)')
+    .requiredOption('--access-token <token>', 'Matrix access token')
+    .action((name, options) => {
+      addNotifier(configPath, {
+        type: 'matrix',
+        name,
+        homeserver_url: options['homeserverUrl'],
+        room_id: options['roomId'],
+        access_token: options['accessToken'],
+      });
+
+      Logger.info(`Notifier "${name}" added. Run "mm deploy" to apply.`);
+
+      return;
+    });
 
   notifierCommand
     .command('add-ntfy <name>')
@@ -323,6 +420,76 @@ async function main(): Cli_Index_Main_Returns {
     });
 
   notifierCommand
+    .command('add-pushover <name>')
+    .description('Notify through Pushover')
+    .requiredOption('--user-key <key>', 'Pushover user or group key')
+    .requiredOption('--app-token <token>', 'Pushover application API token')
+    .action((name, options) => {
+      addNotifier(configPath, {
+        type: 'pushover',
+        name,
+        user_key: options['userKey'],
+        app_token: options['appToken'],
+      });
+
+      Logger.info(`Notifier "${name}" added. Run "mm deploy" to apply.`);
+
+      return;
+    });
+
+  notifierCommand
+    .command('add-slack <name>')
+    .description('Notify a Slack channel through an incoming webhook')
+    .requiredOption('--webhook-url <url>', 'Slack webhook URL')
+    .action((name, options) => {
+      addNotifier(configPath, {
+        type: 'slack',
+        name,
+        webhook_url: options['webhookUrl'],
+      });
+
+      Logger.info(`Notifier "${name}" added. Run "mm deploy" to apply.`);
+
+      return;
+    });
+
+  notifierCommand
+    .command('add-telegram <name>')
+    .description('Notify a Telegram chat through a bot')
+    .requiredOption('--bot-token <token>', 'Telegram bot token')
+    .requiredOption('--chat-id <id>', 'Telegram chat ID')
+    .action((name, options) => {
+      addNotifier(configPath, {
+        type: 'telegram',
+        name,
+        bot_token: options['botToken'],
+        chat_id: options['chatId'],
+      });
+
+      Logger.info(`Notifier "${name}" added. Run "mm deploy" to apply.`);
+
+      return;
+    });
+
+  notifierCommand
+    .command('add-webhook <name>')
+    .description('Post the Mailmask JSON payload to a webhook')
+    .requiredOption('--url <url>', 'Webhook URL (https://...)')
+    .option('--token <token>', 'Optional bearer token')
+    .action((name, options) => {
+      addNotifier(configPath, {
+        type: 'webhook',
+        name,
+        url: options['url'],
+        ...((options['token'] === undefined) ? {} : { token: options['token'] }),
+      });
+
+      Logger.info(`Notifier "${name}" added. Run "mm deploy" to apply.`);
+
+      return;
+    });
+
+  notifierCommand
     .command('list')
     .description('List notifiers')
     .action(() => {
@@ -340,6 +507,17 @@ async function main(): Cli_Index_Main_Returns {
       removeNotifier(configPath, name);
 
       Logger.info(`Notifier "${name}" removed. Run "mm deploy" to apply.`);
+
+      return;
+    });
+
+  notifierCommand
+    .command('test <name>')
+    .description('Send a test notification')
+    .action(async (name) => {
+      await testNotifier(configPath, name);
+
+      Logger.info(`Notifier "${name}" accepted the test notification.`);
 
       return;
     });
@@ -364,6 +542,8 @@ async function main(): Cli_Index_Main_Returns {
 
           Logger.error(`  - ${message}`);
         }
+
+        process.exitCode = 1;
       }
 
       return;
@@ -375,7 +555,7 @@ async function main(): Cli_Index_Main_Returns {
     .action(() => {
       generateWranglerToml(configPath);
 
-      Logger.info('wrangler.toml generated successfully.');
+      Logger.info(`Generated "wrangler.toml" at "${getWranglerTomlPath(configPath)}".`);
 
       return;
     });

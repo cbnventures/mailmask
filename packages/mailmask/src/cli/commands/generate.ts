@@ -1,127 +1,67 @@
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, realpathSync, writeFileSync } from 'node:fs';
 import {
   dirname, relative, resolve, sep,
 } from 'node:path';
-
-import { Bootstrap } from '@cbnventures/nova/toolkit';
 
 import { getWorkerEntryPath } from '../../lib/package-runtime.js';
 import { configSchema } from '../../lib/schema.js';
 import { loadConfig } from './config-io.js';
 
 import type {
-  Cli_Commands_Generate_DefaultWranglerTomlPath,
   Cli_Commands_Generate_GenerateWranglerToml_AccountId,
-  Cli_Commands_Generate_GenerateWranglerToml_AliasesJson,
-  Cli_Commands_Generate_GenerateWranglerToml_AliasParts,
+  Cli_Commands_Generate_GenerateWranglerToml_BundleConfigPath,
+  Cli_Commands_Generate_GenerateWranglerToml_BundleDir,
+  Cli_Commands_Generate_GenerateWranglerToml_BundleEntryPath,
   Cli_Commands_Generate_GenerateWranglerToml_CompatibilityDate,
   Cli_Commands_Generate_GenerateWranglerToml_Config,
   Cli_Commands_Generate_GenerateWranglerToml_ConfigPath,
-  Cli_Commands_Generate_GenerateWranglerToml_DestinationsJson,
+  Cli_Commands_Generate_GenerateWranglerToml_EmailDestinations,
+  Cli_Commands_Generate_GenerateWranglerToml_EntryLines,
   Cli_Commands_Generate_GenerateWranglerToml_Lines,
-  Cli_Commands_Generate_GenerateWranglerToml_NotifiersJson,
   Cli_Commands_Generate_GenerateWranglerToml_OutputDir,
   Cli_Commands_Generate_GenerateWranglerToml_OutputPath,
+  Cli_Commands_Generate_GenerateWranglerToml_RealBundleDir,
   Cli_Commands_Generate_GenerateWranglerToml_Returns,
   Cli_Commands_Generate_GenerateWranglerToml_Settings,
-  Cli_Commands_Generate_GenerateWranglerToml_SettingsJson,
-  Cli_Commands_Generate_GenerateWranglerToml_WorkerEntryConfigPath,
+  Cli_Commands_Generate_GenerateWranglerToml_WorkerEntryImport,
+  Cli_Commands_Generate_GenerateWranglerToml_WorkerEntryImportPath,
   Cli_Commands_Generate_GenerateWranglerToml_WorkerEntryPath,
   Cli_Commands_Generate_GenerateWranglerToml_WorkerEntryRelativePath,
-  Cli_Commands_Generate_GenerateWranglerToml_WorkerEntryToml,
-  Cli_Commands_Generate_ProjectRoot,
-  Cli_Commands_Generate_SplitByBytes_CharacterBytes,
-  Cli_Commands_Generate_SplitByBytes_Current,
-  Cli_Commands_Generate_SplitByBytes_CurrentBytes,
-  Cli_Commands_Generate_SplitByBytes_MaxBytes,
-  Cli_Commands_Generate_SplitByBytes_Parts,
-  Cli_Commands_Generate_SplitByBytes_Returns,
-  Cli_Commands_Generate_SplitByBytes_Text,
+  Cli_Commands_Generate_GetWranglerTomlPath_ConfigPath,
+  Cli_Commands_Generate_GetWranglerTomlPath_Returns,
 } from '../../types/cli/commands/generate.d.ts';
 
 /**
- * CLI - Commands - Generate - Project Root.
+ * CLI - Commands - Generate - Bundle Directory.
  *
- * Absolute path to the resolved project root, falling back to
- * the current working directory when no root can be detected.
+ * Folder beside wrangler.toml that holds the generated Worker entry and config. It sits
+ * inside .wrangler, which projects already ignore, so tokens in the config stay out of Git.
  *
- * @since 0.0.1
+ * @since 1.0.0
  */
-const projectRoot: Cli_Commands_Generate_ProjectRoot = Bootstrap.getProjectRoot() ?? process.cwd();
+const BUNDLE_DIRECTORY = '.wrangler/mailmask';
 
 /**
- * CLI - Commands - Generate - Default Wrangler Toml Path.
+ * CLI - Commands - Generate - Get Wrangler Toml Path.
  *
- * Absolute path to the wrangler.toml written at the project
- * root when no explicit output path is passed to the command.
+ * Places wrangler.toml beside the config file it is built from, so a config in the
+ * repository and one in the user config directory each keep their own Worker files.
  *
- * @since 0.0.1
+ * @param {Cli_Commands_Generate_GetWranglerTomlPath_ConfigPath} configPath - Config path.
+ *
+ * @returns {Cli_Commands_Generate_GetWranglerTomlPath_Returns}
+ *
+ * @since 1.0.0
  */
-const defaultWranglerTomlPath: Cli_Commands_Generate_DefaultWranglerTomlPath = resolve(projectRoot, 'wrangler.toml');
-
-/**
- * CLI - Commands - Generate - Alias Part Bytes.
- *
- * Maximum UTF-8 size of one ALIASES_n var, kept under Cloudflare's
- * 5 KB per-variable limit with room to spare.
- *
- * @since 0.0.1
- */
-const ALIAS_PART_BYTES = 4000;
-
-/**
- * CLI - Commands - Generate - Alias Part Limit.
- *
- * Maximum number of ALIASES_n vars, leaving room under Cloudflare's
- * 64-variable limit for the other vars.
- *
- * @since 0.0.1
- */
-const ALIAS_PART_LIMIT = 60;
-
-/**
- * CLI - Commands - Generate - Split By Bytes.
- *
- * Splits text into pieces of at most the given UTF-8 size without
- * cutting a multi-byte character in half.
- *
- * @param {Cli_Commands_Generate_SplitByBytes_Text}     text     - Text.
- * @param {Cli_Commands_Generate_SplitByBytes_MaxBytes} maxBytes - Max bytes.
- *
- * @returns {Cli_Commands_Generate_SplitByBytes_Returns}
- *
- * @since 0.0.1
- */
-function splitByBytes(text: Cli_Commands_Generate_SplitByBytes_Text, maxBytes: Cli_Commands_Generate_SplitByBytes_MaxBytes): Cli_Commands_Generate_SplitByBytes_Returns {
-  const parts: Cli_Commands_Generate_SplitByBytes_Parts = [];
-  let current: Cli_Commands_Generate_SplitByBytes_Current = '';
-  let currentBytes: Cli_Commands_Generate_SplitByBytes_CurrentBytes = 0;
-
-  for (const character of text) {
-    const characterBytes: Cli_Commands_Generate_SplitByBytes_CharacterBytes = Buffer.byteLength(character);
-
-    if (currentBytes + characterBytes > maxBytes) {
-      parts.push(current);
-
-      current = '';
-      currentBytes = 0;
-    }
-
-    current += character;
-    currentBytes += characterBytes;
-  }
-
-  parts.push(current);
-
-  return parts;
+function getWranglerTomlPath(configPath: Cli_Commands_Generate_GetWranglerTomlPath_ConfigPath): Cli_Commands_Generate_GetWranglerTomlPath_Returns {
+  return resolve(dirname(configPath), 'wrangler.toml');
 }
 
 /**
  * CLI - Commands - Generate - Wrangler Toml.
  *
- * Builds a wrangler.toml from the current config. Settings, destinations,
- * notifiers, and aliases are passed as JSON vars; aliases are split across numbered
- * vars because Cloudflare limits each var to 5 KB.
+ * Builds a wrangler.toml plus a Worker entry and config file for Wrangler to bundle
+ * together. The config ships inside the Worker instead of vars, which are capped at 5 KB.
  *
  * @param {Cli_Commands_Generate_GenerateWranglerToml_ConfigPath} configPath   - Config path.
  * @param {Cli_Commands_Generate_GenerateWranglerToml_OutputPath} [outputPath] - Output path.
@@ -129,30 +69,39 @@ function splitByBytes(text: Cli_Commands_Generate_SplitByBytes_Text, maxBytes: C
  *
  * @returns {Cli_Commands_Generate_GenerateWranglerToml_Returns}
  *
- * @since 0.0.1
+ * @since UNRELEASED
  */
-function generateWranglerToml(configPath: Cli_Commands_Generate_GenerateWranglerToml_ConfigPath, outputPath: Cli_Commands_Generate_GenerateWranglerToml_OutputPath = defaultWranglerTomlPath, accountId?: Cli_Commands_Generate_GenerateWranglerToml_AccountId): Cli_Commands_Generate_GenerateWranglerToml_Returns {
+function generateWranglerToml(configPath: Cli_Commands_Generate_GenerateWranglerToml_ConfigPath, outputPath: Cli_Commands_Generate_GenerateWranglerToml_OutputPath = getWranglerTomlPath(configPath), accountId?: Cli_Commands_Generate_GenerateWranglerToml_AccountId): Cli_Commands_Generate_GenerateWranglerToml_Returns {
   const config: Cli_Commands_Generate_GenerateWranglerToml_Config = configSchema.parse(loadConfig(configPath));
   const settings: Cli_Commands_Generate_GenerateWranglerToml_Settings = config['settings'];
   const compatibilityDate: Cli_Commands_Generate_GenerateWranglerToml_CompatibilityDate = new Date().toISOString().slice(0, 10);
   const outputDir: Cli_Commands_Generate_GenerateWranglerToml_OutputDir = dirname(outputPath);
-  const workerEntryPath: Cli_Commands_Generate_GenerateWranglerToml_WorkerEntryPath = getWorkerEntryPath();
-  const workerEntryRelativePath: Cli_Commands_Generate_GenerateWranglerToml_WorkerEntryRelativePath = relative(outputDir, workerEntryPath);
-  const workerEntryConfigPath: Cli_Commands_Generate_GenerateWranglerToml_WorkerEntryConfigPath = workerEntryRelativePath.split(sep).join('/');
-  const workerEntryToml: Cli_Commands_Generate_GenerateWranglerToml_WorkerEntryToml = JSON.stringify(workerEntryConfigPath);
-  const settingsJson: Cli_Commands_Generate_GenerateWranglerToml_SettingsJson = JSON.stringify(settings);
-  const destinationsJson: Cli_Commands_Generate_GenerateWranglerToml_DestinationsJson = JSON.stringify(config['destinations']);
-  const notifiersJson: Cli_Commands_Generate_GenerateWranglerToml_NotifiersJson = JSON.stringify(config['notifiers']);
-  const aliasesJson: Cli_Commands_Generate_GenerateWranglerToml_AliasesJson = JSON.stringify(config['aliases']);
-  const aliasParts: Cli_Commands_Generate_GenerateWranglerToml_AliasParts = splitByBytes(aliasesJson, ALIAS_PART_BYTES);
+  const bundleDir: Cli_Commands_Generate_GenerateWranglerToml_BundleDir = resolve(outputDir, BUNDLE_DIRECTORY);
+  const bundleConfigPath: Cli_Commands_Generate_GenerateWranglerToml_BundleConfigPath = resolve(bundleDir, 'config.json');
+  const bundleEntryPath: Cli_Commands_Generate_GenerateWranglerToml_BundleEntryPath = resolve(bundleDir, 'worker.js');
+  const emailDestinations: Cli_Commands_Generate_GenerateWranglerToml_EmailDestinations = [...new Set(config['notifiers'].filter((notifier) => notifier['type'] === 'email').map((notifier) => notifier['to']))];
 
-  if (aliasParts.length > ALIAS_PART_LIMIT) {
-    throw new Error(`Too many aliases: they need ${String(aliasParts.length)} Worker vars, but at most ${String(ALIAS_PART_LIMIT)} are allowed. Remove unused aliases and try again.`);
-  }
+  mkdirSync(bundleDir, { recursive: true });
+
+  // Wrangler bundles from real paths, so measure the import from the real folder in case of symlinks.
+  const realBundleDir: Cli_Commands_Generate_GenerateWranglerToml_RealBundleDir = realpathSync(bundleDir);
+  const workerEntryPath: Cli_Commands_Generate_GenerateWranglerToml_WorkerEntryPath = realpathSync(getWorkerEntryPath());
+  const workerEntryRelativePath: Cli_Commands_Generate_GenerateWranglerToml_WorkerEntryRelativePath = relative(realBundleDir, workerEntryPath);
+  const workerEntryImportPath: Cli_Commands_Generate_GenerateWranglerToml_WorkerEntryImportPath = workerEntryRelativePath.split(sep).join('/');
+  const workerEntryImport: Cli_Commands_Generate_GenerateWranglerToml_WorkerEntryImport = JSON.stringify((workerEntryImportPath.startsWith('.') === true) ? workerEntryImportPath : `./${workerEntryImportPath}`);
+
+  const entryLines: Cli_Commands_Generate_GenerateWranglerToml_EntryLines = [
+    '// Generated by Mailmask. "mm generate" and "mm deploy" rewrite this file.',
+    `import { createWorker } from ${workerEntryImport};`,
+    '',
+    'import config from "./config.json";',
+    '',
+    'export default createWorker(config);',
+  ];
 
   const lines: Cli_Commands_Generate_GenerateWranglerToml_Lines = [
     `name = "${settings['worker_name']}"`,
-    `main = ${workerEntryToml}`,
+    `main = "${BUNDLE_DIRECTORY}/worker.js"`,
     `compatibility_date = "${compatibilityDate}"`,
     ...((accountId !== undefined) ? [`account_id = "${accountId}"`] : []),
     'workers_dev = false',
@@ -162,19 +111,22 @@ function generateWranglerToml(configPath: Cli_Commands_Generate_GenerateWrangler
     '#### Email Routing ####',
     '#######################',
     `# The deploy command points the catch-all for "${settings['base_domain']}" at this Worker.`,
+    ...((emailDestinations.length === 0) ? [] : [
+      '',
+      '[[send_email]]',
+      'name = "MAILMASK_EMAIL"',
+      `allowed_destination_addresses = ${JSON.stringify(emailDestinations)}`,
+    ]),
     '',
-    '##############',
-    '#### Vars ####',
-    '##############',
-    '[vars]',
-    `SETTINGS = ${JSON.stringify(settingsJson)}`,
-    `DESTINATIONS = ${JSON.stringify(destinationsJson)}`,
-    `NOTIFIERS = ${JSON.stringify(notifiersJson)}`,
-    `ALIASES_PARTS = "${String(aliasParts.length)}"`,
-    ...aliasParts.map((aliasPart, index) => `ALIASES_${String(index + 1)} = ${JSON.stringify(aliasPart)}`),
+    '################',
+    '#### Config ####',
+    '################',
+    `# The config ships inside the Worker from ${BUNDLE_DIRECTORY}/config.json, not as vars.`,
   ];
 
-  mkdirSync(outputDir, { recursive: true });
+  writeFileSync(bundleConfigPath, `${JSON.stringify(config, null, 2)}\n`);
+
+  writeFileSync(bundleEntryPath, `${entryLines.join('\n')}\n`);
 
   writeFileSync(outputPath, `${lines.join('\n')}\n`);
 
@@ -183,4 +135,5 @@ function generateWranglerToml(configPath: Cli_Commands_Generate_GenerateWrangler
 
 export {
   generateWranglerToml,
+  getWranglerTomlPath,
 };

@@ -177,7 +177,7 @@
         "issue-comment",
         "issues"
       ],
-      "runsOn": "ubuntu-latest",
+      "runsOn": "ubuntu-24.04",
       "timeoutMinutes": 5
     },
     {
@@ -186,7 +186,7 @@
       "triggers": [
         "schedule-weekly"
       ],
-      "runsOn": "ubuntu-latest",
+      "runsOn": "ubuntu-24.04",
       "timeoutMinutes": 5
     },
     {
@@ -195,7 +195,7 @@
       "triggers": [
         "tag-push"
       ],
-      "runsOn": "ubuntu-latest",
+      "runsOn": "ubuntu-24.04",
       "timeoutMinutes": 15,
       "build": [
         "./packages/mailmask",
@@ -204,15 +204,18 @@
       "deploy": [
         {
           "to": "npm",
-          "path": "./packages/mailmask"
+          "path": "./packages/mailmask",
+          "artifact": "mailmask"
         },
         {
           "to": "github-packages",
-          "path": "./packages/mailmask"
+          "path": "./packages/mailmask",
+          "artifact": "mailmask"
         },
         {
-          "to": "cloudflare-pages-docusaurus",
-          "path": "./apps/docs"
+          "to": "cloudflare-pages",
+          "path": "./apps/docs",
+          "artifact": "documentation"
         }
       ]
     }
@@ -244,19 +247,55 @@
   },
   "workspaces": {
     "./": {
+      "name": "mailmask-project",
       "role": "project",
-      "policy": "freezable",
-      "name": "mailmask-project"
+      "policy": "freezable"
     },
     "./apps/docs": {
+      "name": "mailmask-docs",
       "role": "docs",
-      "policy": "freezable",
-      "name": "mailmask-docs"
+      "policy": "freezable"
     },
     "./packages/mailmask": {
+      "name": "mailmask",
       "role": "package",
-      "policy": "distributable",
-      "name": "mailmask"
+      "policy": "distributable"
+    }
+  },
+  "artifacts": {
+    "mailmask": {
+      "build": [
+        "./packages/mailmask"
+      ],
+      "sources": [
+        {
+          "from": "./packages/mailmask/build",
+          "to": "./build"
+        },
+        {
+          "from": "./packages/mailmask/package.json",
+          "to": "./package.json"
+        },
+        {
+          "from": "./packages/mailmask/README.md",
+          "to": "./README.md"
+        },
+        {
+          "from": "./packages/mailmask/LICENSE",
+          "to": "./LICENSE"
+        }
+      ]
+    },
+    "documentation": {
+      "build": [
+        "./apps/docs"
+      ],
+      "sources": [
+        {
+          "from": "./apps/docs/build",
+          "to": "./"
+        }
+      ]
     }
   },
   "ignoreFiles": {

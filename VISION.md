@@ -37,7 +37,7 @@ Aliases, destinations, and settings live in one `config.json` managed by the CLI
 | Runs on your own Cloudflare account and domain   | Hosted alias services sit in the middle of all your mail          |
 | Mail is forwarded in memory and never stored     | Hosted services and self-hosted mail servers keep message copies  |
 | Per-alias expiry, allow lists, and block lists   | Plain Email Routing rules only map one address to one destination |
-| Unlimited aliases with one catch-all rule        | Hand-made routing rules for every address do not scale            |
+| Aliases on demand with one catch-all rule        | Hand-made routing rules for every address do not scale            |
 | Interactive CLI generates and deploys everything | Manual dashboard clicks for every alias change                    |
 
 ## Risks and Future
@@ -58,7 +58,7 @@ Mailmask gives every site you sign up for its own address on your domain. Mail t
 
 ### Key Features
 
-- **Unlimited aliases** — Generate memorable (`velvet-harbor-42`) or random (`k7mq2xv9pa`) addresses, or pick your own.
+- **Aliases on demand** — Generate memorable (`velvet-harbor-42`) or random (`k7mq2xv9pa`) addresses, or pick your own.
 - **Expiring aliases** — Give an alias a lifetime like `30m`, `7d`, or a date, and it stops accepting mail on its own.
 - **Sender rules** — Allow only specific senders or domains per alias, and block the ones that abuse it.
 - **One-switch shutdown** — Disable an alias without deleting it, so the address stays reserved.
@@ -70,9 +70,9 @@ Mailmask gives every site you sign up for its own address on your domain. Mail t
 
 | Term                 | Definition                                                                                                                     |
 |----------------------|--------------------------------------------------------------------------------------------------------------------------------|
-| Alias                | An address on the base domain (e.g. `velvet-harbor-42@mail.example.com`) that forwards to one destination.                     |
+| Alias                | An address on the base domain (e.g. `velvet-harbor-42@example.com`) that forwards to one destination.                          |
 | Destination          | A real inbox that aliases forward to. Each destination must be verified in Cloudflare Email Routing before mail can reach it.  |
-| Base domain          | The domain (or subdomain) whose Email Routing catch-all points at the Worker.                                                  |
+| Base domain          | The zone's apex domain (not a subdomain), whose Email Routing catch-all points at the Worker.                                  |
 | Catch-all            | The Email Routing rule that sends every address without an explicit rule to the Worker.                                        |
 | Unknown alias action | What happens to mail for an address that is not an alias: reject (bounce), drop silently, or forward to a default destination. |
 | Refusal              | Mail that a known alias turns away because it is disabled, expired, or the sender does not match its rules.                    |

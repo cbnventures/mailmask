@@ -17,13 +17,13 @@ const identity = new NovaIdentity().forDocs();
 const config: DocusaurusNovaConfig = {
   // Site Metadata.
   title: identity['title'] ?? '',
-  titleDelimiter: ' - ',
+  titleDelimiter: '-',
   tagline: identity['tagline'],
   favicon: './favicon.ico',
 
   // Deployment.
   url: identity['url'] ?? '',
-  baseUrl: '/',
+  baseUrl: identity['baseUrl'] ?? '/',
   organizationName: identity['organizationName'],
   projectName: identity['projectName'],
   deploymentBranch: undefined,
@@ -131,13 +131,19 @@ const config: DocusaurusNovaConfig = {
     '@cbnventures/docusaurus-preset-nova',
     {
       // Preset Identity.
-      preset: 'lantern',
+      preset: 'envoy',
 
       // Preset Overrides (undefined = use preset default).
       overrides: {
         colors: {
-          primary: undefined,
-          secondary: undefined,
+          primary: {
+            light: '#4F46E5',
+            dark: '#4F46E5',
+          },
+          secondary: {
+            light: '#D97706',
+            dark: '#D97706',
+          },
           text: undefined,
           border: undefined,
           warning: undefined,
@@ -157,9 +163,17 @@ const config: DocusaurusNovaConfig = {
         docs: {
           routeBasePath: 'docs',
           sidebarPath: './sidebars.ts',
-          editUrl: undefined,
+          editUrl: 'https://github.com/cbnventures/mailmask/tree/main/apps/docs/',
           showLastUpdateTime: true,
           showLastUpdateAuthor: true,
+          lastVersion: 'current',
+          versions: {
+            current: {
+              label: 'Current',
+              badge: false,
+              banner: 'none',
+            },
+          },
         },
         blog: {
           showReadingTime: true,
@@ -179,7 +193,11 @@ const config: DocusaurusNovaConfig = {
             description: 'Release notes, setup guides, and notes on keeping your real inbox private.',
           },
         },
-        pages: undefined,
+        pages: {
+          editUrl: 'https://github.com/cbnventures/mailmask/tree/main/apps/docs/',
+          showLastUpdateTime: true,
+          showLastUpdateAuthor: true,
+        },
         sitemap: {
           lastmod: 'date',
           changefreq: 'weekly',
@@ -192,7 +210,7 @@ const config: DocusaurusNovaConfig = {
       // Analytics.
       analytics: {
         gtm: {
-          containerId: 'GTM-KGQ8Z23R',
+          containerId: 'GTM-TCZJL6TW',
         },
       },
 
@@ -226,7 +244,7 @@ const config: DocusaurusNovaConfig = {
       logo: {
         alt: 'Mailmask',
         src: {
-          light: '/images/logo.svg',
+          light: '/images/navbar.svg',
           dark: undefined,
         },
         href: '/',
@@ -264,18 +282,35 @@ const config: DocusaurusNovaConfig = {
         {
           label: 'Docs',
           position: 'left',
-          type: undefined,
-          to: '/docs/overview/',
+          type: 'dropdown',
           icon: 'lucide:book-open',
-          activeBaseRegex: '^/docs/(?!features)',
+          items: [
+            {
+              label: 'Overview',
+              to: '/docs/overview/',
+              icon: 'lucide:rocket',
+              activeBaseRegex: '^/docs/(overview/|getting-started/|category/getting-started/|tags/)',
+            },
+            {
+              label: 'Features',
+              to: '/docs/features/aliases/',
+              icon: 'lucide:mail',
+              activeBaseRegex: '^/docs/(features/|category/features/)',
+            },
+            {
+              label: 'Reference',
+              to: '/docs/reference/cli/',
+              icon: 'lucide:library',
+              activeBaseRegex: '^/docs/(reference/|category/reference/)',
+            },
+          ],
         },
         {
-          label: 'Features',
+          label: 'Quick Start',
           position: 'left',
           type: undefined,
-          to: '/docs/features/aliases/',
-          icon: 'lucide:mail',
-          activeBasePath: '/docs/features',
+          to: '/docs/getting-started/quick-start/',
+          icon: 'lucide:play',
         },
         {
           label: 'Blog',
@@ -285,11 +320,27 @@ const config: DocusaurusNovaConfig = {
           icon: 'lucide:pen-line',
         },
         {
-          label: 'GitHub',
-          position: 'right',
-          type: undefined,
-          href: 'https://github.com/cbnventures/mailmask',
-          icon: 'lucide:github',
+          label: 'Resources',
+          position: 'left',
+          type: 'dropdown',
+          icon: 'lucide:life-buoy',
+          items: [
+            {
+              label: 'Troubleshooting',
+              to: '/docs/reference/troubleshooting/',
+              icon: 'lucide:wrench',
+            },
+            {
+              label: 'Changelog',
+              href: 'https://github.com/cbnventures/mailmask/releases',
+              icon: 'lucide:history',
+            },
+            {
+              label: 'Report an Issue',
+              href: 'https://github.com/cbnventures/mailmask/issues',
+              icon: 'lucide:bug',
+            },
+          ],
         },
       ],
     },
@@ -342,7 +393,7 @@ const config: DocusaurusNovaConfig = {
         title: 'No alias at this address.',
         description: 'This page bounced. Head back to the docs index to find what you were looking for.',
         backHomeLabel: 'Back to the docs',
-        backHomeHref: undefined,
+        backHomeHref: '/docs/overview/',
       },
       errorPageContent: {
         title: 'This page bounced.',
@@ -358,15 +409,15 @@ const config: DocusaurusNovaConfig = {
       sections: {
         docs: [
           {
-            label: 'Getting Started',
-            href: '/docs/getting-started/quick-start/',
+            label: 'Overview',
+            href: '/docs/overview/',
           },
           {
-            label: 'Configuration',
-            href: '/docs/getting-started/configuration/',
+            label: 'Features',
+            href: '/docs/features/aliases/',
           },
           {
-            label: 'CLI Reference',
+            label: 'Reference',
             href: '/docs/reference/cli/',
           },
         ],
@@ -376,7 +427,19 @@ const config: DocusaurusNovaConfig = {
             href: '/blog/',
           },
           {
-            label: 'GitHub',
+            label: 'Troubleshooting',
+            href: '/docs/reference/troubleshooting/',
+          },
+          {
+            label: 'Changelog',
+            href: 'https://github.com/cbnventures/mailmask/releases',
+          },
+          {
+            label: 'Report an Issue',
+            href: 'https://github.com/cbnventures/mailmask/issues',
+          },
+          {
+            label: 'Source Code',
             href: 'https://github.com/cbnventures/mailmask',
           },
         ],
@@ -386,7 +449,19 @@ const config: DocusaurusNovaConfig = {
             href: 'https://www.cbnventures.io/',
           },
           {
-            label: 'Get In Touch',
+            label: 'Other Apps',
+            href: 'https://www.cbnventures.io/apps/',
+          },
+          {
+            label: 'Open Source',
+            href: 'https://www.cbnventures.io/open-source/',
+          },
+          {
+            label: 'Sponsor',
+            href: 'https://github.com/sponsors/cbnventures',
+          },
+          {
+            label: 'Get in Touch',
             href: 'https://www.cbnventures.io/get-in-touch/',
           },
         ],
@@ -458,7 +533,10 @@ const config: DocusaurusNovaConfig = {
       ],
       copyright: identity['copyright'],
       credit: true,
-      cta: undefined,
+      cta: {
+        label: 'Ready for an alias per sign-up?',
+        href: '/docs/getting-started/quick-start/',
+      },
     },
   },
 };

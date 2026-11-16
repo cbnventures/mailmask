@@ -33,70 +33,159 @@ env:
 
 jobs:
   build:
-    runs-on: "ubuntu-latest"
+    runs-on: "ubuntu-24.04"
     timeout-minutes: 15
     permissions:
       contents: "read"
     steps:
       - name: "Checkout repository"
         uses: "actions/checkout@v7"
+        timeout-minutes: 5
         with:
           fetch-depth: 0
 
       - name: "Setup Node.js"
-        uses: "actions/setup-node@v6"
+        uses: "actions/setup-node@v7"
+        timeout-minutes: 10
         with:
           node-version-file: "${{ env.ROOT_DIR }}/package.json"
           package-manager-cache: false
 
       - name: "Install packages"
-        run: |
-          corepack enable npm
-          npm install
+        timeout-minutes: 15
+        run: "npm install"
         working-directory: "${{ env.ROOT_DIR }}"
 
-      - name: "Check root project"
+      - name: "Check project"
+        timeout-minutes: 15
         run: |
-          npm exec nova utility run-scripts --sequential --exclude check:workspaces "check:*"
+          npm run check -- --workspace mailmask --workspace mailmask-docs --exclude-workspace ./
         working-directory: "${{ env.ROOT_DIR }}"
 
-      - name: "Check selected workspaces"
+      - name: "Build project"
+        timeout-minutes: 15
         run: |
-          npm run check:workspaces -- --workspace mailmask --workspace mailmask-docs
+          npm run build -- --workspace mailmask --workspace mailmask-docs --artifact mailmask --artifact documentation
         working-directory: "${{ env.ROOT_DIR }}"
 
-      - name: "Build selected workspaces"
+      - name: "Validate build artifacts"
+        timeout-minutes: 15
         run: |
-          npm run build:workspaces -- --workspace mailmask --workspace mailmask-docs
-        working-directory: "${{ env.ROOT_DIR }}"
+          set -euo pipefail
 
-      - name: "Upload build artifacts (npm/packages-mailmask)"
+          ALLOWED_ROOT="${{ github.workspace }}"
+          ALLOWED_ROOT="$(realpath "$ALLOWED_ROOT")"
+          cd "$ALLOWED_ROOT"
+
+          validate_artifact_root() {
+            local artifact_root="$1"
+            local candidate
+            local candidate_parent
+            local first_file
+            local relative_candidate
+            local resolved_candidate
+            local resolved_root
+
+            if [ ! -e "$artifact_root" ] && [ ! -L "$artifact_root" ]; then
+              echo "Artifact root does not exist: $artifact_root" >&2
+              exit 1
+            fi
+
+            if ! resolved_root="$(realpath "$artifact_root")"; then
+              echo "Artifact root cannot be resolved: $artifact_root" >&2
+              exit 1
+            fi
+
+            case "$resolved_root" in
+              "$ALLOWED_ROOT"|"$ALLOWED_ROOT"/*) ;;
+              *)
+                echo "Artifact root escapes its allowed boundary: $artifact_root -> $resolved_root" >&2
+                exit 1
+                ;;
+            esac
+
+            while IFS= read -r -d '' candidate; do
+              if ! resolved_candidate="$(realpath "$candidate")"; then
+                echo "Artifact contains a broken symlink: $candidate" >&2
+                exit 1
+              fi
+
+              case "$resolved_candidate" in
+                "$resolved_root"|"$resolved_root"/*) ;;
+                *)
+                  echo "Artifact symlink escapes its root: $candidate -> $resolved_candidate" >&2
+                  exit 1
+                  ;;
+              esac
+
+              candidate_parent="$(realpath "$(dirname "$candidate")")"
+
+              case "$candidate_parent/" in
+                "$resolved_candidate"/*)
+                  echo "Artifact contains a recursive symlink: $candidate -> $resolved_candidate" >&2
+                  exit 1
+                  ;;
+              esac
+            done < <(find -H "$artifact_root" -type l -print0)
+
+            while IFS= read -r -d '' candidate; do
+              if [ "$candidate" = "$artifact_root" ]; then
+                relative_candidate="$(basename "$candidate")"
+              else
+                relative_candidate="${candidate#"$artifact_root"/}"
+              fi
+
+              case "/$relative_candidate" in
+                */.env|*/.env.*|*/.npmrc|*/.netrc|*/.ssh|*/.ssh/*|*/.aws|*/.aws/*|*/.git|*/.git/*)
+                  echo "Artifact contains a sensitive hidden path: $candidate" >&2
+                  exit 1
+                  ;;
+              esac
+            done < <(find -H "$artifact_root" -print0)
+
+            if [ -d "$artifact_root" ]; then
+              if ! first_file="$(find -L "$artifact_root" -type f -print -quit)"; then
+                echo "Artifact root could not be traversed safely: $artifact_root" >&2
+                exit 1
+              fi
+            else
+              first_file="$resolved_root"
+            fi
+
+            if [ -z "$first_file" ]; then
+              echo "Artifact root contains no files: $artifact_root" >&2
+              exit 1
+            fi
+          }
+
+          validate_artifact_root "build/mailmask"
+          validate_artifact_root "build/documentation"
+
+      - name: "Upload assembled artifact (mailmask)"
         uses: "actions/upload-artifact@v7"
+        timeout-minutes: 15
         with:
-          name: "build-npm-packages-mailmask"
+          name: "artifact-mailmask"
           retention-days: 1
+          include-hidden-files: true
+          if-no-files-found: "error"
           path: |
-            packages/mailmask/build
+            build/mailmask
 
-      - name: "Upload build artifacts (github-packages/packages-mailmask)"
+      - name: "Upload assembled artifact (documentation)"
         uses: "actions/upload-artifact@v7"
+        timeout-minutes: 15
         with:
-          name: "build-github-packages-packages-mailmask"
+          name: "artifact-documentation"
           retention-days: 1
+          include-hidden-files: true
+          if-no-files-found: "error"
           path: |
-            packages/mailmask/build
-
-      - name: "Upload build artifacts (cloudflare-pages-docusaurus/apps-docs)"
-        uses: "actions/upload-artifact@v7"
-        with:
-          name: "build-cloudflare-pages-docusaurus-apps-docs"
-          retention-days: 1
-          path: |
-            apps/docs/build
+            build/documentation
 
   publish-npm-packages-mailmask:
     needs: "build"
-    runs-on: "ubuntu-latest"
+    runs-on: "ubuntu-24.04"
     timeout-minutes: 15
     permissions:
       contents: "read"
@@ -104,15 +193,18 @@ jobs:
     steps:
       - name: "Checkout repository"
         uses: "actions/checkout@v7"
+        timeout-minutes: 5
 
       - name: "Setup Node.js"
-        uses: "actions/setup-node@v6"
+        uses: "actions/setup-node@v7"
+        timeout-minutes: 10
         with:
           node-version-file: "${{ env.ROOT_DIR }}/package.json"
           package-manager-cache: false
           registry-url: "https://registry.npmjs.org"
 
       - name: "Remove deprecated .npmrc entries"
+        timeout-minutes: 10
         run: |
           npmrc="${NPM_CONFIG_USERCONFIG:-$HOME/.npmrc}"
 
@@ -122,11 +214,13 @@ jobs:
 
       - name: "Download build artifacts"
         uses: "actions/download-artifact@v8"
+        timeout-minutes: 15
         with:
-          name: "build-npm-packages-mailmask"
-          path: "./packages/mailmask/build"
+          name: "artifact-mailmask"
+          path: "build/mailmask"
 
       - name: "Configure authentication"
+        timeout-minutes: 5
         env:
           NPM_TOKEN: "${{ secrets.PROJECT_NPM_TOKEN }}"
         run: |
@@ -145,6 +239,7 @@ jobs:
           fi
 
       - name: "Publish package to npm"
+        timeout-minutes: 15
         run: |
           if [ "${PUBLISH}" = "true" ]; then
             echo "[Publish] Production."
@@ -153,11 +248,11 @@ jobs:
             echo "[Publish] Dry run."
             npm publish --dry-run
           fi
-        working-directory: "./packages/mailmask"
+        working-directory: "build/mailmask"
 
   publish-github-packages-packages-mailmask:
     needs: "build"
-    runs-on: "ubuntu-latest"
+    runs-on: "ubuntu-24.04"
     timeout-minutes: 15
     permissions:
       contents: "read"
@@ -166,15 +261,18 @@ jobs:
     steps:
       - name: "Checkout repository"
         uses: "actions/checkout@v7"
+        timeout-minutes: 5
 
       - name: "Setup Node.js"
-        uses: "actions/setup-node@v6"
+        uses: "actions/setup-node@v7"
+        timeout-minutes: 10
         with:
           node-version-file: "${{ env.ROOT_DIR }}/package.json"
           package-manager-cache: false
 
       - name: "Configure registry for GitHub Packages"
-        uses: "actions/setup-node@v6"
+        uses: "actions/setup-node@v7"
+        timeout-minutes: 5
         with:
           node-version-file: "${{ env.ROOT_DIR }}/package.json"
           package-manager-cache: false
@@ -182,6 +280,7 @@ jobs:
           scope: "@${{ github.repository_owner }}"
 
       - name: "Remove deprecated .npmrc entries"
+        timeout-minutes: 10
         run: |
           npmrc="${NPM_CONFIG_USERCONFIG:-$HOME/.npmrc}"
 
@@ -191,11 +290,13 @@ jobs:
 
       - name: "Download build artifacts"
         uses: "actions/download-artifact@v8"
+        timeout-minutes: 15
         with:
-          name: "build-github-packages-packages-mailmask"
-          path: "./packages/mailmask/build"
+          name: "artifact-mailmask"
+          path: "build/mailmask"
 
       - name: "Change to scoped package name"
+        timeout-minutes: 10
         run: |
           REPOSITORY_OWNER="@$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')"
           PACKAGE_NAME=$(npm pkg get name --workspaces=false | jq -r '.')
@@ -214,9 +315,10 @@ jobs:
           else
             echo "[Scope] Already scoped. No changes needed."
           fi
-        working-directory: "./packages/mailmask"
+        working-directory: "build/mailmask"
 
       - name: "Configure authentication"
+        timeout-minutes: 5
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
         run: |
@@ -224,6 +326,7 @@ jobs:
           echo "NODE_AUTH_TOKEN=${GITHUB_TOKEN}" >> "$GITHUB_ENV"
 
       - name: "Publish package to GitHub Packages"
+        timeout-minutes: 15
         run: |
           if [ "${PUBLISH}" = "true" ]; then
             echo "[Publish] Production."
@@ -232,44 +335,46 @@ jobs:
             echo "[Publish] Dry run."
             npm publish --dry-run
           fi
-        working-directory: "./packages/mailmask"
+        working-directory: "build/mailmask"
 
       - name: "Restore package name"
         if: "${{ always() && env.PACKAGE_NAME }}"
+        timeout-minutes: 10
         run: |
           npm pkg set name="$PACKAGE_NAME"
-        working-directory: "./packages/mailmask"
+        working-directory: "build/mailmask"
 
-  publish-cloudflare-pages-docusaurus-apps-docs:
+  publish-cloudflare-pages-apps-docs:
     needs: "build"
-    runs-on: "ubuntu-latest"
+    runs-on: "ubuntu-24.04"
     timeout-minutes: 15
     permissions:
       contents: "read"
     steps:
       - name: "Checkout repository"
         uses: "actions/checkout@v7"
+        timeout-minutes: 5
 
       - name: "Setup Node.js"
-        uses: "actions/setup-node@v6"
+        uses: "actions/setup-node@v7"
+        timeout-minutes: 10
         with:
           node-version-file: "${{ env.ROOT_DIR }}/package.json"
           package-manager-cache: false
 
-      - name: "Enable Corepack"
-        run: "corepack enable npm"
-
       - name: "Download build artifacts"
         uses: "actions/download-artifact@v8"
+        timeout-minutes: 15
         with:
-          name: "build-cloudflare-pages-docusaurus-apps-docs"
-          path: "./apps/docs/build"
+          name: "artifact-documentation"
+          path: "build/documentation"
 
       - name: "Deploy to Cloudflare Pages"
         if: "${{ env.PUBLISH == 'true' }}"
+        timeout-minutes: 15
         env:
           CLOUDFLARE_API_TOKEN: "${{ secrets.PROJECT_CLOUDFLARE_API_TOKEN }}"
           CLOUDFLARE_ACCOUNT_ID: "${{ vars.PROJECT_CLOUDFLARE_ACCOUNT_ID }}"
           CLOUDFLARE_PROJECT_NAME: "${{ vars.DOCS_CLOUDFLARE_PROJECT_NAME }}"
           DEFAULT_BRANCH: "${{ github.event.repository.default_branch }}"
-        run: "npx -y wrangler@3 pages deploy ./apps/docs/build --project-name=\"$CLOUDFLARE_PROJECT_NAME\" --branch=\"$DEFAULT_BRANCH\""
+        run: "npx -y wrangler@3 pages deploy build/documentation --project-name=\"$CLOUDFLARE_PROJECT_NAME\" --branch=\"$DEFAULT_BRANCH\""

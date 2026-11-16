@@ -61,6 +61,81 @@ export type Lib_Schema_SettingsConfig = {
   add_alias_headers: Lib_Schema_SettingsConfigAddAliasHeaders;
 };
 
+export type Lib_Schema_AppriseNotifierConfigType = 'apprise';
+
+export type Lib_Schema_AppriseNotifierConfigName = string;
+
+export type Lib_Schema_AppriseNotifierConfigUrl = string;
+
+export type Lib_Schema_AppriseNotifierConfigUrls = string | undefined;
+
+export type Lib_Schema_AppriseNotifierConfig = {
+  type: Lib_Schema_AppriseNotifierConfigType;
+  name: Lib_Schema_AppriseNotifierConfigName;
+  url: Lib_Schema_AppriseNotifierConfigUrl;
+  urls?: Lib_Schema_AppriseNotifierConfigUrls;
+};
+
+export type Lib_Schema_DiscordNotifierConfigType = 'discord';
+
+export type Lib_Schema_DiscordNotifierConfigName = string;
+
+export type Lib_Schema_DiscordNotifierConfigWebhookUrl = string;
+
+export type Lib_Schema_DiscordNotifierConfig = {
+  type: Lib_Schema_DiscordNotifierConfigType;
+  name: Lib_Schema_DiscordNotifierConfigName;
+  webhook_url: Lib_Schema_DiscordNotifierConfigWebhookUrl;
+};
+
+export type Lib_Schema_EmailNotifierConfigType = 'email';
+
+export type Lib_Schema_EmailNotifierConfigName = string;
+
+export type Lib_Schema_EmailNotifierConfigFrom = string;
+
+export type Lib_Schema_EmailNotifierConfigTo = string;
+
+export type Lib_Schema_EmailNotifierConfig = {
+  type: Lib_Schema_EmailNotifierConfigType;
+  name: Lib_Schema_EmailNotifierConfigName;
+  from: Lib_Schema_EmailNotifierConfigFrom;
+  to: Lib_Schema_EmailNotifierConfigTo;
+};
+
+export type Lib_Schema_GotifyNotifierConfigType = 'gotify';
+
+export type Lib_Schema_GotifyNotifierConfigName = string;
+
+export type Lib_Schema_GotifyNotifierConfigUrl = string;
+
+export type Lib_Schema_GotifyNotifierConfigToken = string;
+
+export type Lib_Schema_GotifyNotifierConfig = {
+  type: Lib_Schema_GotifyNotifierConfigType;
+  name: Lib_Schema_GotifyNotifierConfigName;
+  url: Lib_Schema_GotifyNotifierConfigUrl;
+  token: Lib_Schema_GotifyNotifierConfigToken;
+};
+
+export type Lib_Schema_MatrixNotifierConfigType = 'matrix';
+
+export type Lib_Schema_MatrixNotifierConfigName = string;
+
+export type Lib_Schema_MatrixNotifierConfigHomeserverUrl = string;
+
+export type Lib_Schema_MatrixNotifierConfigRoomId = string;
+
+export type Lib_Schema_MatrixNotifierConfigAccessToken = string;
+
+export type Lib_Schema_MatrixNotifierConfig = {
+  type: Lib_Schema_MatrixNotifierConfigType;
+  name: Lib_Schema_MatrixNotifierConfigName;
+  homeserver_url: Lib_Schema_MatrixNotifierConfigHomeserverUrl;
+  room_id: Lib_Schema_MatrixNotifierConfigRoomId;
+  access_token: Lib_Schema_MatrixNotifierConfigAccessToken;
+};
+
 export type Lib_Schema_NtfyNotifierConfigType = 'ntfy';
 
 export type Lib_Schema_NtfyNotifierConfigName = string;
@@ -94,7 +169,64 @@ export type Lib_Schema_NtfyReverseProxyNotifierConfig = {
   token?: Lib_Schema_NtfyReverseProxyNotifierConfigToken;
 };
 
-export type Lib_Schema_NotifierConfig = Lib_Schema_NtfyNotifierConfig | Lib_Schema_NtfyReverseProxyNotifierConfig;
+export type Lib_Schema_PushoverNotifierConfigType = 'pushover';
+
+export type Lib_Schema_PushoverNotifierConfigName = string;
+
+export type Lib_Schema_PushoverNotifierConfigUserKey = string;
+
+export type Lib_Schema_PushoverNotifierConfigAppToken = string;
+
+export type Lib_Schema_PushoverNotifierConfig = {
+  type: Lib_Schema_PushoverNotifierConfigType;
+  name: Lib_Schema_PushoverNotifierConfigName;
+  user_key: Lib_Schema_PushoverNotifierConfigUserKey;
+  app_token: Lib_Schema_PushoverNotifierConfigAppToken;
+};
+
+export type Lib_Schema_SlackNotifierConfigType = 'slack';
+
+export type Lib_Schema_SlackNotifierConfigName = string;
+
+export type Lib_Schema_SlackNotifierConfigWebhookUrl = string;
+
+export type Lib_Schema_SlackNotifierConfig = {
+  type: Lib_Schema_SlackNotifierConfigType;
+  name: Lib_Schema_SlackNotifierConfigName;
+  webhook_url: Lib_Schema_SlackNotifierConfigWebhookUrl;
+};
+
+export type Lib_Schema_TelegramNotifierConfigType = 'telegram';
+
+export type Lib_Schema_TelegramNotifierConfigName = string;
+
+export type Lib_Schema_TelegramNotifierConfigBotToken = string;
+
+export type Lib_Schema_TelegramNotifierConfigChatId = string;
+
+export type Lib_Schema_TelegramNotifierConfig = {
+  type: Lib_Schema_TelegramNotifierConfigType;
+  name: Lib_Schema_TelegramNotifierConfigName;
+  bot_token: Lib_Schema_TelegramNotifierConfigBotToken;
+  chat_id: Lib_Schema_TelegramNotifierConfigChatId;
+};
+
+export type Lib_Schema_WebhookNotifierConfigType = 'webhook';
+
+export type Lib_Schema_WebhookNotifierConfigName = string;
+
+export type Lib_Schema_WebhookNotifierConfigUrl = string;
+
+export type Lib_Schema_WebhookNotifierConfigToken = string | undefined;
+
+export type Lib_Schema_WebhookNotifierConfig = {
+  type: Lib_Schema_WebhookNotifierConfigType;
+  name: Lib_Schema_WebhookNotifierConfigName;
+  url: Lib_Schema_WebhookNotifierConfigUrl;
+  token?: Lib_Schema_WebhookNotifierConfigToken;
+};
+
+export type Lib_Schema_NotifierConfig = Lib_Schema_AppriseNotifierConfig | Lib_Schema_DiscordNotifierConfig | Lib_Schema_EmailNotifierConfig | Lib_Schema_GotifyNotifierConfig | Lib_Schema_MatrixNotifierConfig | Lib_Schema_NtfyNotifierConfig | Lib_Schema_NtfyReverseProxyNotifierConfig | Lib_Schema_PushoverNotifierConfig | Lib_Schema_SlackNotifierConfig | Lib_Schema_TelegramNotifierConfig | Lib_Schema_WebhookNotifierConfig;
 
 export type Lib_Schema_ConfigSchemaDestinations = Lib_Schema_DestinationConfig[];
 

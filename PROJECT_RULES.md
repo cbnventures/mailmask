@@ -156,7 +156,7 @@ Interactive Menu / Direct Commands -> Config Read/Write -> Validate -> Generate 
 ### Data Flow and Ownership
 
 1. **Receive** — Email Routing hands every unmatched address on the base domain to the Worker.
-2. **Validate** — The Worker parses `SETTINGS`, `DESTINATIONS`, and `ALIASES` vars and rejects mail if they are invalid.
+2. **Validate** — The Worker checks the config bundled into it once when it starts and rejects mail if it is invalid.
 3. **Resolve** — `resolveRoute` checks the domain, strips `+tags`, finds the alias, and applies enabled, expiry, block, and allow rules.
 4. **Act** — The handler forwards to the destination, rejects with a reason, or drops, and notifies on refusals of known aliases.
 

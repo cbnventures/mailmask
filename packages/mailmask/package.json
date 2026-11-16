@@ -1,6 +1,6 @@
 {
   "name": "mailmask",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Self-hosted disposable email aliases on Cloudflare Workers that forward to your real inbox",
   "keywords": [
     "email",
@@ -9,8 +9,7 @@
     "temporary-email",
     "privacy",
     "cloudflare-workers",
-    "email-routing",
-    "anonymous-email"
+    "email-routing"
   ],
   "license": "MIT",
   "homepage": "https://mailmask.cbnventures.io/",
@@ -74,10 +73,10 @@
     "manage": "tsx src/cli/index.ts"
   },
   "engines": {
-    "node": "^22 || ^24"
+    "node": "^22 || ^24 || ^26"
   },
   "dependencies": {
-    "@cbnventures/nova": "0.33.0",
+    "@cbnventures/nova": "0.43.0",
     "@scure/bip39": "2.4.0",
     "chalk": "6.0.0",
     "commander": "15.0.0",

@@ -16,11 +16,11 @@ tags:
 
 import { Terminology } from '@cbnventures/docusaurus-preset-nova/blocks';
 
-Watch every message your deployed <Terminology title="Cloudflare Worker that routes your mail" to="/docs/reference/terminology#worker">Worker</Terminology> handles in real time with `npm run tail` from a clone of the repository.
+Watch every message your deployed <Terminology title="Mailmask itself, running on your Cloudflare account" to="/docs/reference/terminology#cloudflare-and-deploy">Worker</Terminology> handles in real time with `npm run tail` from a clone of the repository.
 
 ## Why Use This Script?
 
-1. Shows each inbound message as it arrives so you can confirm an <Terminology title="address on your domain that forwards mail" to="/docs/reference/terminology#alias">alias</Terminology> is receiving mail.
+1. Shows each inbound message as it arrives so you can confirm an <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology> is receiving mail.
 2. Renews the Cloudflare tail session before it expires so a long debugging session isn't interrupted.
 3. Saves every raw event to a file so you can search through it after the fact.
 
@@ -28,8 +28,8 @@ Watch every message your deployed <Terminology title="Cloudflare Worker that rou
 
 - **A repository clone** — The script lives in the repository, not in the published package.
 - **Wrangler login** — Run `npx wrangler login` once; the live stream uses that sign-in.
-- **`CLOUDFLARE_API_TOKEN`** — Set in a `.env` file in the project root, so the script can read the session expiry from the Cloudflare API.
-- **A `config.json`** — With `worker_name` and `base_domain` set, so the script knows which <Terminology title="Cloudflare Worker that routes your mail" to="/docs/reference/terminology#worker">Worker</Terminology> to follow.
+- **`CLOUDFLARE_API_TOKEN`** — Set in a `.env` file in the project root, so the script can read the session expiry from the Cloudflare API. The script doesn't read the `.env` in your config directory, so a token the interactive deploy saved there has to be copied over.
+- **A `config.json`** — With `worker_name` and `base_domain` set, so the script knows which <Terminology title="Mailmask itself, running on your Cloudflare account" to="/docs/reference/terminology#cloudflare-and-deploy">Worker</Terminology> to follow.
 
 ## Usage
 
@@ -41,10 +41,10 @@ The script finds `config.json` in the current directory, the project root, or yo
 
 ## Output
 
-- **Terminal** — A color-coded line for each email event, with its timestamp and recipient.
+- **Terminal** — A color-coded summary for each email event, with its timestamp, recipient, sender, and outcome.
 - **`tail-logs.jsonl`** — Every raw event as one JSON object per line, including outcome and any exceptions.
 
-The <Terminology title="Cloudflare Worker that routes your mail" to="/docs/reference/terminology#worker">Worker</Terminology> never logs message content, so the stream shows routing activity rather than what the messages say.
+The <Terminology title="Mailmask itself, running on your Cloudflare account" to="/docs/reference/terminology#cloudflare-and-deploy">Worker</Terminology> never logs message content, so the stream shows routing activity rather than what the messages say.
 
 ## Session Management
 

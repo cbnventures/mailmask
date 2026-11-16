@@ -25,6 +25,36 @@
   ],
   "notifiers": [
     {
+      "type": "apprise",
+      "name": "apprise",
+      "url": "https://apprise.example.com/notify/mailmask",
+      "urls": "discord://webhook-id/webhook-token"
+    },
+    {
+      "type": "discord",
+      "name": "discord",
+      "webhook_url": "https://discord.com/api/webhooks/replace/id"
+    },
+    {
+      "type": "email",
+      "name": "email",
+      "from": "mailmask@example.com",
+      "to": "you@example.com"
+    },
+    {
+      "type": "gotify",
+      "name": "gotify",
+      "url": "https://gotify.example.com",
+      "token": "replace_with_your_application_token"
+    },
+    {
+      "type": "matrix",
+      "name": "matrix",
+      "homeserver_url": "https://matrix.example.com",
+      "room_id": "!replace:example.com",
+      "access_token": "replace_with_your_access_token"
+    },
+    {
       "type": "ntfy",
       "name": "phone",
       "server": "https://ntfy.example.com",
@@ -35,11 +65,34 @@
       "type": "ntfy-reverse-proxy",
       "name": "reverse-proxy",
       "url": "https://mailmask.ntfy.example.com"
+    },
+    {
+      "type": "pushover",
+      "name": "pushover",
+      "user_key": "replace_with_your_user_key",
+      "app_token": "replace_with_your_application_token"
+    },
+    {
+      "type": "slack",
+      "name": "slack",
+      "webhook_url": "https://hooks.slack.com/services/replace/with/your-webhook"
+    },
+    {
+      "type": "telegram",
+      "name": "telegram",
+      "bot_token": "replace_with_your_bot_token",
+      "chat_id": "replace_with_your_chat_id"
+    },
+    {
+      "type": "webhook",
+      "name": "webhook",
+      "url": "https://notifications.example.com/mailmask",
+      "token": "optional-bearer-token"
     }
   ],
   "settings": {
     "worker_name": "mailmask",
-    "base_domain": "mail.example.com",
+    "base_domain": "example.com",
     "unknown_alias_action": "reject",
     "subaddressing": true,
     "add_alias_headers": true

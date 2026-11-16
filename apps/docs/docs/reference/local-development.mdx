@@ -16,12 +16,12 @@ tags:
 
 import { Terminology } from '@cbnventures/docusaurus-preset-nova/blocks';
 
-Run the <Terminology title="Cloudflare Worker that routes your mail" to="/docs/reference/terminology#worker">Worker</Terminology> and CLI from a clone of the repository so you can test routing changes before deploying them.
+Run the <Terminology title="Mailmask itself, running on your Cloudflare account" to="/docs/reference/terminology#cloudflare-and-deploy">Worker</Terminology> and CLI from a clone of the repository so you can test routing changes before deploying them.
 
 ## Why Use This Setup?
 
-1. Runs the <Terminology title="Cloudflare Worker that routes your mail" to="/docs/reference/terminology#worker">Worker</Terminology> from source so routing changes are testable without touching your live domain.
-2. Simulates inbound mail locally so you can check how an <Terminology title="address on your domain that forwards mail" to="/docs/reference/terminology#alias">alias</Terminology>, <Terminology title="allow or block list entry for an alias" to="/docs/reference/terminology#sender-rule">sender rule</Terminology>, or expiry behaves.
+1. Runs the <Terminology title="Mailmask itself, running on your Cloudflare account" to="/docs/reference/terminology#cloudflare-and-deploy">Worker</Terminology> from source so routing changes are testable without touching your live domain.
+2. Simulates inbound mail locally so you can check how an <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology>, <Terminology title="Who an alias will or won't take mail from" to="/docs/reference/terminology#aliases-and-mail-flow">sender rule</Terminology>, or expiry behaves.
 3. Runs the CLI from source so menu and command changes can be tried immediately.
 
 ## Getting Started
@@ -31,33 +31,30 @@ npm install
 npm run dev
 ```
 
-`npm run dev` starts the documentation site and runs `wrangler dev` for the <Terminology title="Cloudflare Worker that routes your mail" to="/docs/reference/terminology#worker">Worker</Terminology> in parallel. The <Terminology title="Cloudflare Worker that routes your mail" to="/docs/reference/terminology#worker">Worker</Terminology> listens on `http://localhost:8787` unless that port is taken.
+`npm run dev` starts the documentation site and runs `wrangler dev` for the <Terminology title="Mailmask itself, running on your Cloudflare account" to="/docs/reference/terminology#cloudflare-and-deploy">Worker</Terminology> in parallel. The <Terminology title="Mailmask itself, running on your Cloudflare account" to="/docs/reference/terminology#cloudflare-and-deploy">Worker</Terminology> listens on `http://localhost:8787` unless that port is taken.
 
 ## Config Resolution
 
-The dev script looks for `wrangler.toml` in the project root and then in your platform config directory. If you have both, it asks which one to use.
-
-When neither exists, it generates a `wrangler.toml` in the project root from the first `config.json` it finds there or in the config directory. The generated file points at the TypeScript source, so code changes reload without a build.
-
-:::warning
-A `wrangler.toml` left over from `mm deploy` points at the built package instead of the source. Delete it before running `npm run dev` if you want your source changes picked up.
-:::
+The dev script finds the first `config.json` in the project root or your platform config directory. On every run, it regenerates `wrangler.toml` beside that file and refreshes the Worker entry and bundled config in `.wrangler/mailmask/`. The generated entry imports the TypeScript source, so both code and config changes are picked up without a build or manual cleanup.
 
 ## Simulating Inbound Mail
 
 Wrangler accepts test messages for email Workers at a local endpoint:
 
 ```bash
-curl --request POST 'http://localhost:8787/cdn-cgi/handler/email' \
+curl --request POST 'http://localhost:8787/cdn-cgi/local/email' \
   --url-query 'from=sender@shop.com' \
-  --url-query 'to=velvet-harbor-42@mail.example.com' \
+  --url-query 'to=velvet-harbor-42@example.com' \
   --header 'Content-Type: application/json' \
   --data-raw 'From: sender@shop.com
-To: velvet-harbor-42@mail.example.com
+To: velvet-harbor-42@example.com
 Subject: Local test
+Message-ID: <local-test@shop.com>
 
 Hello from local development.'
 ```
+
+Wrangler rejects a test message that has no `Message-ID` header. The `from` value is the envelope sender that sender rules check, and `to` needs to be an <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology> on the <Terminology title="The domain every alias lives on" to="/docs/reference/terminology#cloudflare-and-deploy">base domain</Terminology> in your own `config.json`.
 
 The terminal running `wrangler dev` shows whether the message was forwarded or rejected, along with the reason.
 
