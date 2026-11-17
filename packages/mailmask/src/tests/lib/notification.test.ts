@@ -35,7 +35,7 @@ afterEach(() => {
 /**
  * Tests - Lib - Notification - Build Refusal Notification.
  *
- * @since UNRELEASED
+ * @since 1.0.0
  */
 describe('buildRefusalNotification', () => {
   it('builds the exact versioned Mailmask payload', () => {
@@ -74,7 +74,7 @@ describe('buildRefusalNotification', () => {
 /**
  * Tests - Lib - Notification - Build Notifier Request.
  *
- * @since UNRELEASED
+ * @since 1.0.0
  */
 describe('buildNotifierRequest', () => {
   it('builds every service request in its official API shape', () => {

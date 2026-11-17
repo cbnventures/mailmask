@@ -19,7 +19,7 @@ export type Tests_Lib_Schema_NotifierSchema_RequiresHttpsAndNtfyTokens_Result = 
 /**
  * Tests - Lib - Schema - Notifier Schema - Validates Every Supported Type.
  *
- * @since UNRELEASED
+ * @since 1.0.0
  */
 export type Tests_Lib_Schema_NotifierSchema_ValidatesEverySupportedType_Notifier = Lib_Schema_NotifierConfig & {};
 

@@ -26,22 +26,44 @@ Diagnose the most common deploy and delivery problems and get mail flowing to yo
 
 **Solution**:
 
-- Open **Email > Email Routing** for the domain in the Cloudflare dashboard and enable it.
-- Let Cloudflare add the MX and SPF records it suggests.
+- Open **Email Routing** for the domain in the Cloudflare dashboard and go to **Settings**.
+- Under **DNS records**, select **Add missing records** so Cloudflare adds the MX and SPF records.
 - Run `mm deploy` again.
 
-## API Token Is Missing Permissions
+## Email Routing Is Not Set Up for the Subdomain
 
-**Symptom**: Deploy prints `API token is missing permissions` followed by a list.
+**Symptom**: Deploy stops with `Email Routing is not set up for the subdomain "mail.example.com"`.
 
-**Cause**: The <Terminology title="The key that lets the CLI deploy to your account" to="/docs/reference/terminology#cloudflare-and-deploy">API token</Terminology> lacks one or more of the three permissions deploy needs.
+**Cause**: The <Terminology title="The domain every alias lives on" to="/docs/reference/terminology#cloudflare-and-deploy">base domain</Terminology> is a subdomain whose MX records don't point to Cloudflare yet.
 
 **Solution**:
 
-- Edit the token at [dash.cloudflare.com/profile/api-tokens](https://dash.cloudflare.com/profile/api-tokens) and add each permission listed.
-- Set each permission to **Edit**. The check can't tell **Read** from **Edit**, so a read-only token passes it and fails later with a `Cloudflare API ... failed` error or `Worker deployment failed.`
-- Make sure **Zone Resources** includes the zone for your <Terminology title="The domain every alias lives on" to="/docs/reference/terminology#cloudflare-and-deploy">base domain</Terminology>.
+- Open **Email Routing** for the apex domain, go to **Settings > Subdomains**, and add the subdomain so Cloudflare adds its records.
+- Wait for the records to propagate, which usually takes a few minutes, then run `mm deploy` again.
+
+## API Token Is Missing Permissions
+
+**Symptom**: Deploy prints `API token is missing permissions` followed by a list such as `Zone > Zone Settings > Edit`.
+
+**Cause**: The <Terminology title="The key that lets the CLI deploy to your account" to="/docs/reference/terminology#cloudflare-and-deploy">API token</Terminology> can't reach one or more of the Cloudflare endpoints deploy calls, such as `Cloudflare API GET /zones/…/email/routing failed: 10000: Authentication error`.
+
+**Solution**:
+
+- Edit the token at [dash.cloudflare.com/profile/api-tokens](https://dash.cloudflare.com/profile/api-tokens). Each listed entry names the policy (**Account** or **Zone**), the permission group to search for, and the box to tick.
+- Tick **Edit** for each permission group. The check can't tell **Read** from **Edit**, so a read-only token passes it and fails later with a `Cloudflare API ... failed` error or `Worker deployment failed.`
+- Make sure the **Zone policy** includes the zone for your <Terminology title="The domain every alias lives on" to="/docs/reference/terminology#cloudflare-and-deploy">base domain</Terminology>.
 - See [Deployment](/docs/getting-started/deployment/#api-token-permissions) for the full list.
+
+## Custom Domain Belongs to Another Worker
+
+**Symptom**: Deploy stops with `Custom domains that "mailmask" needs are attached to another Worker`.
+
+**Cause**: The <Terminology title="The domain every alias lives on" to="/docs/reference/terminology#cloudflare-and-deploy">base domain</Terminology> or its `www` host is already a <Terminology title="Your Worker's own web addresses" to="/docs/reference/terminology#cloudflare-and-deploy">custom domain</Terminology> of a different Worker, and deploy never moves one away.
+
+**Solution**:
+
+- Remove the host from the other Worker's custom domains in the Cloudflare dashboard, then run `mm deploy` again.
+- Or pick a different `base_domain` for this <Terminology title="Mailmask itself, running on your Cloudflare account" to="/docs/reference/terminology#cloudflare-and-deploy">Worker</Terminology>.
 
 ## No API Token Found
 
@@ -64,53 +86,75 @@ Diagnose the most common deploy and delivery problems and get mail flowing to yo
 **Solution**:
 
 - Check that the domain is added to your Cloudflare account and spelled correctly in `base_domain`.
-- Check that the token's **Zone Resources** include that zone.
+- Check that the token's **Zone policy** includes that zone.
 
 ## Mail Never Arrives
 
 **Symptom**: Messages sent to an <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology> don't show up, and the sender gets no bounce.
 
-**Cause**: Usually an unverified <Terminology title="Your real inbox, where an alias's mail ends up" to="/docs/reference/terminology#aliases-and-mail-flow">destination</Terminology>, a drop setting, or a missing deploy.
+**Cause**: Usually an unverified <Terminology title="Your real inbox, where an alias's mail ends up" to="/docs/reference/terminology#aliases-and-mail-flow">destination</Terminology> or a missing deploy.
 
 **Solution**:
 
 - Run `mm deploy` and read the destination warnings; click the verification link Cloudflare emailed to any unverified inbox.
 - Check your spam folder in the real inbox.
-- If `unknown_alias_action` is `drop`, run `mm alias list` to check that the <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology> is in your local <Terminology title="The one file that holds every alias and setting" to="/docs/reference/terminology#cloudflare-and-deploy">config</Terminology>, then run `mm deploy` so the <Terminology title="Mailmask itself, running on your Cloudflare account" to="/docs/reference/terminology#cloudflare-and-deploy">Worker</Terminology> matches it; no command shows the deployed config.
-- Confirm the <Terminology title="Sends every address to Mailmask, so new aliases just work" to="/docs/reference/terminology#cloudflare-and-deploy">catch-all</Terminology> in **Email > Email Routing > Routing rules** points at your <Terminology title="Mailmask itself, running on your Cloudflare account" to="/docs/reference/terminology#cloudflare-and-deploy">Worker</Terminology>.
+- Read the deploy output for a `Left "…" alone because another Email Routing rule already handles it` warning, which means a rule you created by hand still owns that address.
+- Confirm the alias has a <Terminology title="Sends one alias's mail to Mailmask" to="/docs/reference/terminology#cloudflare-and-deploy">routing rule</Terminology> named `mailmask:` plus your Worker name under **Email Routing > Routing rules** that points at your <Terminology title="Mailmask itself, running on your Cloudflare account" to="/docs/reference/terminology#cloudflare-and-deploy">Worker</Terminology>.
+
+## Sender Gets "Address does not exist"
+
+**Symptom**: Mail bounces with `Address does not exist`.
+
+**Cause**: The address has no <Terminology title="Sends one alias's mail to Mailmask" to="/docs/reference/terminology#cloudflare-and-deploy">routing rule</Terminology>, so Cloudflare rejects it before it reaches the <Terminology title="Mailmask itself, running on your Cloudflare account" to="/docs/reference/terminology#cloudflare-and-deploy">Worker</Terminology>. That happens for an address you never made, a disabled <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology>, or a new alias that isn't deployed yet.
+
+**Solution**:
+
+- Check the spelling with `mm alias list`.
+- If you created or enabled the <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology> recently, run `mm deploy`; changes only reach Cloudflare on deploy.
+- For `alias+tag@`, check that <Terminology title="alias+anything@ still reaches alias@" to="/docs/reference/terminology#aliases-and-mail-flow">subaddressing</Terminology> is on, since deploy then turns on Email Routing subaddressing so the tag matches the alias's rule.
 
 ## Sender Gets "Address not found"
 
 **Symptom**: Mail bounces with `Address not found`.
 
-**Cause**: The address isn't a deployed <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology>, and your <Terminology title="What happens to mail for an address you never made" to="/docs/reference/terminology#aliases-and-mail-flow">unknown alias action</Terminology> is `reject`.
+**Cause**: The message reached the <Terminology title="Mailmask itself, running on your Cloudflare account" to="/docs/reference/terminology#cloudflare-and-deploy">Worker</Terminology> for an address it doesn't know, usually `alias+tag@` after you turned <Terminology title="alias+anything@ still reaches alias@" to="/docs/reference/terminology#aliases-and-mail-flow">subaddressing</Terminology> off while Email Routing subaddressing is still on.
 
 **Solution**:
 
-- Check the spelling with `mm alias list`.
-- If you created the <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology> recently, run `mm deploy`; changes only reach Cloudflare on deploy.
-- With <Terminology title="alias+anything@ still reaches alias@" to="/docs/reference/terminology#aliases-and-mail-flow">subaddressing</Terminology> off, `alias+tag@` is treated as a different address.
+- Turn `subaddressing` back on and run `mm deploy`.
+- Or turn off subaddressing under **Email Routing > Settings** in the Cloudflare dashboard, since deploy never turns it off for you.
 
 ## Sender Gets "Recipient domain is not handled by this Worker"
 
 **Symptom**: Mail bounces with `Recipient domain is not handled by this Worker`.
 
-**Cause**: The message reached the <Terminology title="Mailmask itself, running on your Cloudflare account" to="/docs/reference/terminology#cloudflare-and-deploy">Worker</Terminology> for a domain other than your <Terminology title="The domain every alias lives on" to="/docs/reference/terminology#cloudflare-and-deploy">base domain</Terminology>, such as one of its subdomains. This usually means `base_domain` is set to a subdomain, so the zone's <Terminology title="Sends every address to Mailmask, so new aliases just work" to="/docs/reference/terminology#cloudflare-and-deploy">catch-all</Terminology> sends apex mail to a <Terminology title="Mailmask itself, running on your Cloudflare account" to="/docs/reference/terminology#cloudflare-and-deploy">Worker</Terminology> that only accepts the subdomain, or another domain routes its mail to the same <Terminology title="Mailmask itself, running on your Cloudflare account" to="/docs/reference/terminology#cloudflare-and-deploy">Worker</Terminology>.
+**Cause**: The message reached the <Terminology title="Mailmask itself, running on your Cloudflare account" to="/docs/reference/terminology#cloudflare-and-deploy">Worker</Terminology> for a domain other than your <Terminology title="The domain every alias lives on" to="/docs/reference/terminology#cloudflare-and-deploy">base domain</Terminology>. This usually means a rule or catch-all you created by hand sends another domain's mail to the same <Terminology title="Mailmask itself, running on your Cloudflare account" to="/docs/reference/terminology#cloudflare-and-deploy">Worker</Terminology>.
 
 **Solution**:
 
-- Set `base_domain` to your zone's apex domain in **Settings** or `config.json`, then run `mm deploy`. [Deployment](/docs/getting-started/deployment/#cloudflare-requirements) explains why a subdomain doesn't work.
-- Send to aliases on the <Terminology title="The domain every alias lives on" to="/docs/reference/terminology#cloudflare-and-deploy">base domain</Terminology> itself; every other domain is rejected, whatever your <Terminology title="What happens to mail for an address you never made" to="/docs/reference/terminology#aliases-and-mail-flow">unknown alias action</Terminology> is.
+- Point that rule at the Worker that handles its domain, or remove it under **Email Routing > Routing rules**.
+- Send to aliases on the <Terminology title="The domain every alias lives on" to="/docs/reference/terminology#cloudflare-and-deploy">base domain</Terminology> itself; every other domain is rejected.
+
+## Deploy Would Pass the Routing Rule Limit
+
+**Symptom**: Deploy stops with `Deploy would leave … Email Routing rules on "example.com"`.
+
+**Cause**: Cloudflare allows 200 routing rules per domain, and the enabled aliases plus the rules you or other Workers created on the <Terminology title="The domain every alias lives on" to="/docs/reference/terminology#cloudflare-and-deploy">base domain</Terminology> would pass it.
+
+**Solution**:
+
+- Disable or remove aliases you no longer use, then run `mm deploy` again.
+- Remove routing rules you no longer need under **Email Routing > Routing rules**.
 
 ## Mail Is Refused Unexpectedly
 
-**Symptom**: Mail bounces with `Address is disabled`, `Address has expired`, `Sender is blocked`, or `Sender is not allowed`.
+**Symptom**: Mail bounces with `Address has expired`, `Sender is blocked`, or `Sender is not allowed`.
 
 **Cause**: The <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology> is producing a <Terminology title="Mail an alias turns away instead of forwarding" to="/docs/reference/terminology#aliases-and-mail-flow">refusal</Terminology> for that message.
 
 **Solution**:
 
-- Run `mm alias list` to see whether the <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology> is disabled or expired, then use `mm alias enable` or `mm alias expire <address> never`.
+- Run `mm alias list` to see whether the <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology> is expired, then use `mm alias expire <address> never`.
 - For sender errors, compare the envelope sender shown in the refusal notification with the alias's rules. Rules don't look at the visible `From` header, and `*@shop.com` doesn't match `mail.shop.com`.
 - Deploy after any change.
 

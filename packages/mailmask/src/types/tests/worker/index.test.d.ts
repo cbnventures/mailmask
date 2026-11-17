@@ -11,6 +11,15 @@ import type { Worker_Index_CreateWorker_Returns } from '../../worker/index.d.ts'
 export type Tests_Worker_Index_BaseConfig = { [Key in keyof Lib_Schema_ConfigSchema]: Lib_Schema_ConfigSchema[Key] };
 
 /**
+ * Tests - Worker - Index - Create Worker - Does Not Redirect Other Hosts.
+ *
+ * @since 1.1.0
+ */
+export type Tests_Worker_Index_CreateWorker_DoesNotRedirectOtherHosts_Worker = { [Key in keyof Worker_Index_CreateWorker_Returns]: Worker_Index_CreateWorker_Returns[Key] };
+
+export type Tests_Worker_Index_CreateWorker_DoesNotRedirectOtherHosts_Response = Response;
+
+/**
  * Tests - Worker - Index - Create Worker - Forwards Mail For A Known Alias.
  *
  * @since 1.0.0
@@ -31,6 +40,28 @@ export type Tests_Worker_Index_CreateWorker_ForwardsMailForAKnownAlias_Message =
   forward: Tests_Worker_Index_CreateWorker_ForwardsMailForAKnownAlias_Message_Forward;
   setReject: Tests_Worker_Index_CreateWorker_ForwardsMailForAKnownAlias_Message_SetReject;
 };
+
+/**
+ * Tests - Worker - Index - Create Worker - Redirects Www Root And Other Methods To The Base Domain.
+ *
+ * @since 1.1.0
+ */
+export type Tests_Worker_Index_CreateWorker_RedirectsWwwRootAndOtherMethodsToTheBaseDomain_Worker = { [Key in keyof Worker_Index_CreateWorker_Returns]: Worker_Index_CreateWorker_Returns[Key] };
+
+export type Tests_Worker_Index_CreateWorker_RedirectsWwwRootAndOtherMethodsToTheBaseDomain_RootResponse = Response;
+
+export type Tests_Worker_Index_CreateWorker_RedirectsWwwRootAndOtherMethodsToTheBaseDomain_PostResponse = Response;
+
+/**
+ * Tests - Worker - Index - Create Worker - Redirects Www To The Base Domain With Path And Query.
+ *
+ * @since 1.1.0
+ */
+export type Tests_Worker_Index_CreateWorker_RedirectsWwwToTheBaseDomainWithPathAndQuery_Worker = { [Key in keyof Worker_Index_CreateWorker_Returns]: Worker_Index_CreateWorker_Returns[Key] };
+
+export type Tests_Worker_Index_CreateWorker_RedirectsWwwToTheBaseDomainWithPathAndQuery_Request = Request;
+
+export type Tests_Worker_Index_CreateWorker_RedirectsWwwToTheBaseDomainWithPathAndQuery_Response = Response;
 
 /**
  * Tests - Worker - Index - Create Worker - Rejects Mail When The Config Is Invalid.
@@ -57,7 +88,7 @@ export type Tests_Worker_Index_CreateWorker_RejectsMailWhenTheConfigIsInvalid_Me
 /**
  * Tests - Worker - Index - Create Worker - Returns JSON 404 For GET Outside Root.
  *
- * @since UNRELEASED
+ * @since 1.0.0
  */
 export type Tests_Worker_Index_CreateWorker_ReturnsJSON404ForGETOutsideRoot_Worker = { [Key in keyof Worker_Index_CreateWorker_Returns]: Worker_Index_CreateWorker_Returns[Key] };
 
@@ -70,7 +101,7 @@ export type Tests_Worker_Index_CreateWorker_ReturnsJSON404ForGETOutsideRoot_Body
 /**
  * Tests - Worker - Index - Create Worker - Returns JSON 404 For HEAD Outside Root.
  *
- * @since UNRELEASED
+ * @since 1.0.0
  */
 export type Tests_Worker_Index_CreateWorker_ReturnsJSON404ForHEADOutsideRoot_Worker = { [Key in keyof Worker_Index_CreateWorker_Returns]: Worker_Index_CreateWorker_Returns[Key] };
 
@@ -83,7 +114,7 @@ export type Tests_Worker_Index_CreateWorker_ReturnsJSON404ForHEADOutsideRoot_Bod
 /**
  * Tests - Worker - Index - Create Worker - Returns JSON 405 For POST At Root.
  *
- * @since UNRELEASED
+ * @since 1.0.0
  */
 export type Tests_Worker_Index_CreateWorker_ReturnsJSON405ForPOSTAtRoot_Worker = { [Key in keyof Worker_Index_CreateWorker_Returns]: Worker_Index_CreateWorker_Returns[Key] };
 
@@ -96,7 +127,7 @@ export type Tests_Worker_Index_CreateWorker_ReturnsJSON405ForPOSTAtRoot_Body = s
 /**
  * Tests - Worker - Index - Create Worker - Returns JSON 405 For PUT Outside Root.
  *
- * @since UNRELEASED
+ * @since 1.0.0
  */
 export type Tests_Worker_Index_CreateWorker_ReturnsJSON405ForPUTOutsideRoot_Worker = { [Key in keyof Worker_Index_CreateWorker_Returns]: Worker_Index_CreateWorker_Returns[Key] };
 
@@ -109,7 +140,7 @@ export type Tests_Worker_Index_CreateWorker_ReturnsJSON405ForPUTOutsideRoot_Body
 /**
  * Tests - Worker - Index - Create Worker - Returns Service Page For HEAD Root.
  *
- * @since UNRELEASED
+ * @since 1.0.0
  */
 export type Tests_Worker_Index_CreateWorker_ReturnsServicePageForHEADRoot_Worker = { [Key in keyof Worker_Index_CreateWorker_Returns]: Worker_Index_CreateWorker_Returns[Key] };
 
@@ -122,7 +153,7 @@ export type Tests_Worker_Index_CreateWorker_ReturnsServicePageForHEADRoot_Body =
 /**
  * Tests - Worker - Index - Create Worker - Returns Service Page For Root.
  *
- * @since UNRELEASED
+ * @since 1.0.0
  */
 export type Tests_Worker_Index_CreateWorker_ReturnsServicePageForRoot_Worker = { [Key in keyof Worker_Index_CreateWorker_Returns]: Worker_Index_CreateWorker_Returns[Key] };
 

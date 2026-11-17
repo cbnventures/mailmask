@@ -18,7 +18,7 @@ import {
  * Models the minimal valid configuration shared by the command and settings
  * tests so checkJs can validate fixture mutations without broad any types.
  *
- * @typedef {{ destinations: Array<{ name: string, email: string }>, aliases: unknown[], notifiers: unknown[], settings: { worker_name: string, base_domain: string, unknown_alias_action: 'reject' | 'drop' | 'forward', default_destination?: string, subaddressing: boolean, add_alias_headers: boolean } }} MailmaskTestConfig
+ * @typedef {{ destinations: Array<{ name: string, email: string }>, aliases: unknown[], notifiers: unknown[], settings: { worker_name: string, base_domain: string, subaddressing: boolean, add_alias_headers: boolean } }} MailmaskTestConfig
  *
  * @since 0.0.0
  */
@@ -180,7 +180,6 @@ function createConfig() {
     settings: {
       worker_name: 'mailmask',
       base_domain: 'example.com',
-      unknown_alias_action: 'reject',
       subaddressing: true,
       add_alias_headers: true,
     },
@@ -322,11 +321,6 @@ describe('Mailmask CLI behavior', () => {
 
     expect(() => updateSettings(configPath, { base_domain: 'INVALID DOMAIN' })).toThrow('base_domain');
 
-    expect(() => updateSettings(configPath, {
-      unknown_alias_action: 'forward',
-      default_destination: undefined,
-    })).toThrow('default_destination');
-
     expect(readFileSync(configPath, 'utf-8')).toBe(originalConfig);
 
     return;
@@ -346,7 +340,6 @@ describe('Mailmask CLI behavior', () => {
     prompts.inject([
       'mailmask',
       'example.com',
-      'reject',
       true,
       true,
     ]);

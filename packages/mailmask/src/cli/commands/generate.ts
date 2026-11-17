@@ -69,7 +69,7 @@ function getWranglerTomlPath(configPath: Cli_Commands_Generate_GetWranglerTomlPa
  *
  * @returns {Cli_Commands_Generate_GenerateWranglerToml_Returns}
  *
- * @since UNRELEASED
+ * @since 1.0.0
  */
 function generateWranglerToml(configPath: Cli_Commands_Generate_GenerateWranglerToml_ConfigPath, outputPath: Cli_Commands_Generate_GenerateWranglerToml_OutputPath = getWranglerTomlPath(configPath), accountId?: Cli_Commands_Generate_GenerateWranglerToml_AccountId): Cli_Commands_Generate_GenerateWranglerToml_Returns {
   const config: Cli_Commands_Generate_GenerateWranglerToml_Config = configSchema.parse(loadConfig(configPath));
@@ -110,7 +110,7 @@ function generateWranglerToml(configPath: Cli_Commands_Generate_GenerateWrangler
     '#######################',
     '#### Email Routing ####',
     '#######################',
-    `# The deploy command points the catch-all for "${settings['base_domain']}" at this Worker.`,
+    `# The deploy command adds one routing rule per enabled alias on "${settings['base_domain']}" that sends it to this Worker.`,
     ...((emailDestinations.length === 0) ? [] : [
       '',
       '[[send_email]]',

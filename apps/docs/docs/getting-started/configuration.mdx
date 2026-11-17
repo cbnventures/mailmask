@@ -35,13 +35,15 @@ The CLI looks for `config.json` in these locations, in order:
 
 If none exists, the CLI copies the bundled starter template into the platform config directory. When several files are found, the interactive menu asks which one to use, while direct commands always use the first one in this order.
 
-The starter template is sample data: a `personal` <Terminology title="Your real inbox, where an alias's mail ends up" to="/docs/reference/terminology#aliases-and-mail-flow">destination</Terminology> for `you@example.com`, two aliases that forward to it, one placeholder for every supported notifier type, and a sample `base_domain`. Replace or remove all sample entries, and set `base_domain` to your own apex domain, before the first deploy, as the [Quick Start](/docs/getting-started/quick-start/#first-time-setup) shows.
+The starter template is sample data: a `personal` <Terminology title="Your real inbox, where an alias's mail ends up" to="/docs/reference/terminology#aliases-and-mail-flow">destination</Terminology> for `you@example.com`, two aliases that forward to it, one placeholder for every supported notifier type, and a sample `base_domain`. Replace or remove all sample entries, and set `base_domain` to your own apex domain or Email Routing subdomain, before the first deploy, as the [Quick Start](/docs/getting-started/quick-start/#first-time-setup) shows.
 
 :::warning
 The <Terminology title="The one file that holds every alias and setting" to="/docs/reference/terminology#cloudflare-and-deploy">config</Terminology> lists your real inboxes and every <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology> you own. It is recommended to keep it out of version control; the repository's ignore rules already exclude it.
 :::
 
 ## Example
+
+All four top-level keys (`destinations`, `aliases`, `notifiers`, and `settings`) are required, though the three lists can be empty. Every field in `settings` is required too, and none has a default.
 
 ```json title="config.json"
 {
@@ -73,7 +75,6 @@ The <Terminology title="The one file that holds every alias and setting" to="/do
   "settings": {
     "worker_name": "mailmask",
     "base_domain": "example.com",
-    "unknown_alias_action": "reject",
     "subaddressing": true,
     "add_alias_headers": true
   }
@@ -84,39 +85,41 @@ The <Terminology title="The one file that holds every alias and setting" to="/do
 
 Each <Terminology title="Your real inbox, where an alias's mail ends up" to="/docs/reference/terminology#aliases-and-mail-flow">destination</Terminology> is a real inbox that aliases forward to.
 
-| Field   | Description                                                                      |
-|---------|----------------------------------------------------------------------------------|
-| `name`  | Short identifier used by aliases. Lowercase letters, numbers, and hyphens only.  |
-| `email` | The inbox address. Cloudflare sends it a verification email on the first deploy. |
+| Field   | Description                                                                                      |
+|---------|--------------------------------------------------------------------------------------------------|
+| `name`  | Short identifier used by aliases. Lowercase letters and numbers, with hyphens only between them. |
+| `email` | The inbox address. Cloudflare sends it a verification email on the first deploy.                 |
 
 ## Aliases
 
 Each <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology> is an address on your <Terminology title="The domain every alias lives on" to="/docs/reference/terminology#cloudflare-and-deploy">base domain</Terminology>.
 
-| Field             | Description                                                                                        |
-|-------------------|----------------------------------------------------------------------------------------------------|
-| `address`         | The part before the `@`. Lowercase letters, numbers, dots, hyphens, and underscores, up to 64.     |
-| `destination`     | The `name` of the destination to forward to.                                                       |
-| `label`           | Optional note about where you used the alias. Added to forwarded mail as `X-Mailmask-Label`.       |
-| `enabled`         | `false` refuses all mail while keeping the address reserved.                                       |
-| `expires_at`      | Optional ISO 8601 timestamp. Mail arriving at or after this time is refused.                       |
-| `allowed_senders` | Optional list of sender rules. When present, only matching senders get through.                    |
-| `blocked_senders` | Optional list of sender rules. Matching senders are always refused, even if they are also allowed. |
+| Field             | Description                                                                                                                                                                                                                                                                                   |
+|-------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `address`         | The part before the `@`. Lowercase letters, numbers, dots, hyphens, and underscores, up to 64, starting and ending with a letter or number. Deploy also stops if the full address, including `@` and the base domain, is longer than 90 characters, the most an Email Routing rule can match. |
+| `destination`     | The `name` of the destination to forward to.                                                                                                                                                                                                                                                  |
+| `label`           | Optional note about where you used the alias. Added to forwarded mail as `X-Mailmask-Label` when `add_alias_headers` is `true`.                                                                                                                                                               |
+| `enabled`         | `false` refuses all mail while keeping the address reserved.                                                                                                                                                                                                                                  |
+| `expires_at`      | Optional ISO 8601 timestamp with a time zone, such as `Z` or `+02:00`. Mail arriving at or after this time is refused.                                                                                                                                                                        |
+| `allowed_senders` | Optional list of sender rules. When present, only matching senders get through.                                                                                                                                                                                                               |
+| `blocked_senders` | Optional list of sender rules. Matching senders are always refused, even if they are also allowed.                                                                                                                                                                                            |
 
 A <Terminology title="Who an alias will or won't take mail from" to="/docs/reference/terminology#aliases-and-mail-flow">sender rule</Terminology> is either a full address (`news@shop.com`) or a domain wildcard (`*@shop.com`), matched against the envelope sender (`Return-Path`) rather than the visible `From` header. See [Sender Rules](/docs/features/sender-rules/) for how the two lists combine.
 
 ## Settings
 
-| Field                  | Description                                                                                        |
-|------------------------|----------------------------------------------------------------------------------------------------|
-| `worker_name`          | Name of the Cloudflare Worker. Lowercase letters, numbers, and hyphens.                            |
-| `base_domain`          | The apex (root) domain of your Cloudflare zone, such as `example.com`. Every alias lives on it.    |
-| `unknown_alias_action` | What happens to mail for addresses that are not aliases: `reject`, `drop`, or `forward`.           |
-| `default_destination`  | Destination that receives unknown-address mail. Required when `unknown_alias_action` is `forward`. |
-| `subaddressing`        | When `true`, `alias+tag@` is treated as `alias@`.                                                  |
-| `add_alias_headers`    | When `true`, forwarded mail carries `X-Mailmask-Alias` and `X-Mailmask-Label` headers.             |
+| Field               | Description                                                                                                                                   |
+|---------------------|-----------------------------------------------------------------------------------------------------------------------------------------------|
+| `worker_name`       | Name of the Cloudflare Worker. Lowercase letters and numbers, with hyphens only between them.                                                 |
+| `base_domain`       | The domain every alias lives on: your zone's apex, such as `example.com`, or a subdomain set up in Email Routing, such as `mail.example.com`. |
+| `subaddressing`     | When `true`, `alias+tag@` is treated as `alias@`, and deploy turns on Email Routing subaddressing so the tag matches the alias's rule.        |
+| `add_alias_headers` | When `true`, forwarded mail carries `X-Mailmask-Alias` and `X-Mailmask-Label` headers.                                                        |
 
-The interactive **Settings** menu edits every field.
+The interactive **Settings** menu edits every field. Mail to addresses that are not aliases is rejected by Cloudflare, as [Unknown Addresses](/docs/features/unknown-addresses/) explains, so there is no setting for it.
+
+:::info
+A config from Mailmask 1.0.0 may still hold `unknown_alias_action` or `default_destination`. The CLI prints a one-line notice, ignores both, and leaves them out on its next save.
+:::
 
 ## Notifiers
 
@@ -153,7 +156,6 @@ Notifier tokens, webhook URLs, and other credentials are stored in `config.json`
 - Every <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology> points to a <Terminology title="Your real inbox, where an alias's mail ends up" to="/docs/reference/terminology#aliases-and-mail-flow">destination</Terminology> that exists.
 - No two destinations share a name, and no two aliases share an address.
 - No two notifiers share a name.
-- `default_destination` exists whenever it is set.
 
 The cross-reference checks only run once the schema check passes, so fixing schema errors can reveal more problems on the next run.
 

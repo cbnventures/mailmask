@@ -93,7 +93,6 @@
   "settings": {
     "worker_name": "mailmask",
     "base_domain": "example.com",
-    "unknown_alias_action": "reject",
     "subaddressing": true,
     "add_alias_headers": true
   }

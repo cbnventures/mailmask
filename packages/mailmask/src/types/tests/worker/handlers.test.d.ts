@@ -12,59 +12,6 @@ export type Tests_Worker_Handlers_Now = number;
 export type Tests_Worker_Handlers_BaseConfig = { [Key in keyof Lib_Schema_ConfigSchema]: Lib_Schema_ConfigSchema[Key] };
 
 /**
- * Tests - Worker - Handlers - Handle Email - Applies Reject And Drop Decisions Without Waiting For Notifications.
- *
- * @since UNRELEASED
- */
-export type Tests_Worker_Handlers_HandleEmail_AppliesRejectAndDropDecisionsWithoutWaitingForNotifications_RejectMessage_To = string;
-
-export type Tests_Worker_Handlers_HandleEmail_AppliesRejectAndDropDecisionsWithoutWaitingForNotifications_RejectMessage_From = string;
-
-export type Tests_Worker_Handlers_HandleEmail_AppliesRejectAndDropDecisionsWithoutWaitingForNotifications_RejectMessage_Forward = Mock<ForwardableEmailMessage['forward']>;
-
-export type Tests_Worker_Handlers_HandleEmail_AppliesRejectAndDropDecisionsWithoutWaitingForNotifications_RejectMessage_SetReject = Mock<ForwardableEmailMessage['setReject']>;
-
-export type Tests_Worker_Handlers_HandleEmail_AppliesRejectAndDropDecisionsWithoutWaitingForNotifications_RejectMessage = {
-  to: Tests_Worker_Handlers_HandleEmail_AppliesRejectAndDropDecisionsWithoutWaitingForNotifications_RejectMessage_To;
-  from: Tests_Worker_Handlers_HandleEmail_AppliesRejectAndDropDecisionsWithoutWaitingForNotifications_RejectMessage_From;
-  forward: Tests_Worker_Handlers_HandleEmail_AppliesRejectAndDropDecisionsWithoutWaitingForNotifications_RejectMessage_Forward;
-  setReject: Tests_Worker_Handlers_HandleEmail_AppliesRejectAndDropDecisionsWithoutWaitingForNotifications_RejectMessage_SetReject;
-};
-
-export type Tests_Worker_Handlers_HandleEmail_AppliesRejectAndDropDecisionsWithoutWaitingForNotifications_DropMessage_To = string;
-
-export type Tests_Worker_Handlers_HandleEmail_AppliesRejectAndDropDecisionsWithoutWaitingForNotifications_DropMessage_From = string;
-
-export type Tests_Worker_Handlers_HandleEmail_AppliesRejectAndDropDecisionsWithoutWaitingForNotifications_DropMessage_Forward = Mock<ForwardableEmailMessage['forward']>;
-
-export type Tests_Worker_Handlers_HandleEmail_AppliesRejectAndDropDecisionsWithoutWaitingForNotifications_DropMessage_SetReject = Mock<ForwardableEmailMessage['setReject']>;
-
-export type Tests_Worker_Handlers_HandleEmail_AppliesRejectAndDropDecisionsWithoutWaitingForNotifications_DropMessage = {
-  to: Tests_Worker_Handlers_HandleEmail_AppliesRejectAndDropDecisionsWithoutWaitingForNotifications_DropMessage_To;
-  from: Tests_Worker_Handlers_HandleEmail_AppliesRejectAndDropDecisionsWithoutWaitingForNotifications_DropMessage_From;
-  forward: Tests_Worker_Handlers_HandleEmail_AppliesRejectAndDropDecisionsWithoutWaitingForNotifications_DropMessage_Forward;
-  setReject: Tests_Worker_Handlers_HandleEmail_AppliesRejectAndDropDecisionsWithoutWaitingForNotifications_DropMessage_SetReject;
-};
-
-export type Tests_Worker_Handlers_HandleEmail_AppliesRejectAndDropDecisionsWithoutWaitingForNotifications_Config = { [Key in keyof Lib_Schema_ConfigSchema]: Lib_Schema_ConfigSchema[Key] };
-
-export type Tests_Worker_Handlers_HandleEmail_AppliesRejectAndDropDecisionsWithoutWaitingForNotifications_RejectContext_WaitUntil = Mock<ExecutionContext['waitUntil']>;
-
-export type Tests_Worker_Handlers_HandleEmail_AppliesRejectAndDropDecisionsWithoutWaitingForNotifications_RejectContext = {
-  waitUntil: Tests_Worker_Handlers_HandleEmail_AppliesRejectAndDropDecisionsWithoutWaitingForNotifications_RejectContext_WaitUntil;
-};
-
-export type Tests_Worker_Handlers_HandleEmail_AppliesRejectAndDropDecisionsWithoutWaitingForNotifications_DropContext_WaitUntil = Mock<ExecutionContext['waitUntil']>;
-
-export type Tests_Worker_Handlers_HandleEmail_AppliesRejectAndDropDecisionsWithoutWaitingForNotifications_DropContext = {
-  waitUntil: Tests_Worker_Handlers_HandleEmail_AppliesRejectAndDropDecisionsWithoutWaitingForNotifications_DropContext_WaitUntil;
-};
-
-export type Tests_Worker_Handlers_HandleEmail_AppliesRejectAndDropDecisionsWithoutWaitingForNotifications_FetchSpy = MockInstance<typeof fetch>;
-
-export type Tests_Worker_Handlers_HandleEmail_AppliesRejectAndDropDecisionsWithoutWaitingForNotifications_ConsoleWarnSpy = MockInstance<typeof console.warn>;
-
-/**
  * Tests - Worker - Handlers - Handle Email - Forwards With Identifying Headers.
  *
  * @since 0.0.1
@@ -89,7 +36,7 @@ export type Tests_Worker_Handlers_HandleEmail_ForwardsWithIdentifyingHeaders_For
 /**
  * Tests - Worker - Handlers - Handle Email - Notifies By Email Through The Cloudflare Binding.
  *
- * @since UNRELEASED
+ * @since 1.0.0
  */
 export type Tests_Worker_Handlers_HandleEmail_NotifiesByEmailThroughTheCloudflareBinding_Message_To = string;
 
@@ -115,7 +62,7 @@ export type Tests_Worker_Handlers_HandleEmail_NotifiesByEmailThroughTheCloudflar
 /**
  * Tests - Worker - Handlers - Handle Email - Notifies By Email Through The Cloudflare Binding - Send.
  *
- * @since UNRELEASED
+ * @since 1.0.0
  */
 export type Tests_Worker_Handlers_HandleEmail_NotifiesByEmailThroughTheCloudflareBinding_Send_OutboundMessage = EmailMessage | EmailMessageBuilder;
 
@@ -142,6 +89,59 @@ export type Tests_Worker_Handlers_HandleEmail_NotifiesWhenAKnownAliasRefusesMail
 export type Tests_Worker_Handlers_HandleEmail_NotifiesWhenAKnownAliasRefusesMail_Config = { [Key in keyof Lib_Schema_ConfigSchema]: Lib_Schema_ConfigSchema[Key] };
 
 export type Tests_Worker_Handlers_HandleEmail_NotifiesWhenAKnownAliasRefusesMail_FetchSpy = MockInstance<typeof fetch>;
+
+/**
+ * Tests - Worker - Handlers - Handle Email - Rejects Refusals Without Waiting For Notifications.
+ *
+ * @since 1.1.0
+ */
+export type Tests_Worker_Handlers_HandleEmail_RejectsRefusalsWithoutWaitingForNotifications_RejectMessage_To = string;
+
+export type Tests_Worker_Handlers_HandleEmail_RejectsRefusalsWithoutWaitingForNotifications_RejectMessage_From = string;
+
+export type Tests_Worker_Handlers_HandleEmail_RejectsRefusalsWithoutWaitingForNotifications_RejectMessage_Forward = Mock<ForwardableEmailMessage['forward']>;
+
+export type Tests_Worker_Handlers_HandleEmail_RejectsRefusalsWithoutWaitingForNotifications_RejectMessage_SetReject = Mock<ForwardableEmailMessage['setReject']>;
+
+export type Tests_Worker_Handlers_HandleEmail_RejectsRefusalsWithoutWaitingForNotifications_RejectMessage = {
+  to: Tests_Worker_Handlers_HandleEmail_RejectsRefusalsWithoutWaitingForNotifications_RejectMessage_To;
+  from: Tests_Worker_Handlers_HandleEmail_RejectsRefusalsWithoutWaitingForNotifications_RejectMessage_From;
+  forward: Tests_Worker_Handlers_HandleEmail_RejectsRefusalsWithoutWaitingForNotifications_RejectMessage_Forward;
+  setReject: Tests_Worker_Handlers_HandleEmail_RejectsRefusalsWithoutWaitingForNotifications_RejectMessage_SetReject;
+};
+
+export type Tests_Worker_Handlers_HandleEmail_RejectsRefusalsWithoutWaitingForNotifications_ExpiredMessage_To = string;
+
+export type Tests_Worker_Handlers_HandleEmail_RejectsRefusalsWithoutWaitingForNotifications_ExpiredMessage_From = string;
+
+export type Tests_Worker_Handlers_HandleEmail_RejectsRefusalsWithoutWaitingForNotifications_ExpiredMessage_Forward = Mock<ForwardableEmailMessage['forward']>;
+
+export type Tests_Worker_Handlers_HandleEmail_RejectsRefusalsWithoutWaitingForNotifications_ExpiredMessage_SetReject = Mock<ForwardableEmailMessage['setReject']>;
+
+export type Tests_Worker_Handlers_HandleEmail_RejectsRefusalsWithoutWaitingForNotifications_ExpiredMessage = {
+  to: Tests_Worker_Handlers_HandleEmail_RejectsRefusalsWithoutWaitingForNotifications_ExpiredMessage_To;
+  from: Tests_Worker_Handlers_HandleEmail_RejectsRefusalsWithoutWaitingForNotifications_ExpiredMessage_From;
+  forward: Tests_Worker_Handlers_HandleEmail_RejectsRefusalsWithoutWaitingForNotifications_ExpiredMessage_Forward;
+  setReject: Tests_Worker_Handlers_HandleEmail_RejectsRefusalsWithoutWaitingForNotifications_ExpiredMessage_SetReject;
+};
+
+export type Tests_Worker_Handlers_HandleEmail_RejectsRefusalsWithoutWaitingForNotifications_Config = { [Key in keyof Lib_Schema_ConfigSchema]: Lib_Schema_ConfigSchema[Key] };
+
+export type Tests_Worker_Handlers_HandleEmail_RejectsRefusalsWithoutWaitingForNotifications_RejectContext_WaitUntil = Mock<ExecutionContext['waitUntil']>;
+
+export type Tests_Worker_Handlers_HandleEmail_RejectsRefusalsWithoutWaitingForNotifications_RejectContext = {
+  waitUntil: Tests_Worker_Handlers_HandleEmail_RejectsRefusalsWithoutWaitingForNotifications_RejectContext_WaitUntil;
+};
+
+export type Tests_Worker_Handlers_HandleEmail_RejectsRefusalsWithoutWaitingForNotifications_ExpiredContext_WaitUntil = Mock<ExecutionContext['waitUntil']>;
+
+export type Tests_Worker_Handlers_HandleEmail_RejectsRefusalsWithoutWaitingForNotifications_ExpiredContext = {
+  waitUntil: Tests_Worker_Handlers_HandleEmail_RejectsRefusalsWithoutWaitingForNotifications_ExpiredContext_WaitUntil;
+};
+
+export type Tests_Worker_Handlers_HandleEmail_RejectsRefusalsWithoutWaitingForNotifications_FetchSpy = MockInstance<typeof fetch>;
+
+export type Tests_Worker_Handlers_HandleEmail_RejectsRefusalsWithoutWaitingForNotifications_ConsoleWarnSpy = MockInstance<typeof console.warn>;
 
 /**
  * Tests - Worker - Handlers - Handle Email - Rejects Unknown Recipients Without Notifying.

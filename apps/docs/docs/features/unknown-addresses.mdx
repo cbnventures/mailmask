@@ -1,14 +1,14 @@
 ---
 id: unknown-addresses
 title: Unknown Addresses
-description: Choose whether mail for addresses that are not aliases bounces, disappears silently, or forwards to a default destination inbox of your choice.
+description: Learn what senders get when they write to an address on your domain that isn't an enabled alias, and how that differs from an alias refusing a message.
 sidebar_position: 3
 keywords:
   - mailmask
-  - unknown alias action
-  - catch-all
+  - unknown address
+  - address does not exist
+  - routing rules
   - reject
-  - default destination
 tags:
   - features
   - routing
@@ -16,51 +16,37 @@ tags:
 
 import { Terminology } from '@cbnventures/docusaurus-preset-nova/blocks';
 
-Decide what happens to mail sent to any address on your <Terminology title="The domain every alias lives on" to="/docs/reference/terminology#cloudflare-and-deploy">base domain</Terminology> that isn't one of your aliases.
+Bounce mail sent to any address on your <Terminology title="The domain every alias lives on" to="/docs/reference/terminology#cloudflare-and-deploy">base domain</Terminology> that isn't one of your enabled aliases, before it ever reaches your <Terminology title="Mailmask itself, running on your Cloudflare account" to="/docs/reference/terminology#cloudflare-and-deploy">Worker</Terminology>.
 
 ## Why Use This Feature?
 
-1. Rejecting unknown addresses tells senders the address doesn't exist so guessed addresses get a clear bounce.
-2. Dropping unknown addresses gives spammers no signal about which addresses are real.
-3. Forwarding unknown addresses lets you make up an address on the spot and still receive the mail.
+1. Guessed and mistyped addresses get a clear bounce, so a real person knows to check the address.
+2. Random spam to made-up addresses never runs your <Terminology title="Mailmask itself, running on your Cloudflare account" to="/docs/reference/terminology#cloudflare-and-deploy">Worker</Terminology> or triggers a notification.
+3. There is nothing to configure, so an address only works once you create it as an <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology>.
 
-## Options
+## How It Works
 
-Set `unknown_alias_action` in the <Terminology title="The one file that holds every alias and setting" to="/docs/reference/terminology#cloudflare-and-deploy">config</Terminology>, or choose it under **Settings** in the `mm` menu.
+Deploy keeps one <Terminology title="Sends one alias's mail to Mailmask" to="/docs/reference/terminology#cloudflare-and-deploy">routing rule</Terminology> per enabled <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology>, and only those addresses reach the <Terminology title="Mailmask itself, running on your Cloudflare account" to="/docs/reference/terminology#cloudflare-and-deploy">Worker</Terminology>. <Terminology title="Cloudflare's mail intake that hands messages to Mailmask" to="/docs/reference/terminology#cloudflare-and-deploy">Cloudflare Email Routing</Terminology> rejects every other address on the domain itself.
 
-| Value     | What happens                                               |
-|-----------|------------------------------------------------------------|
-| `reject`  | The sender gets a bounce saying the address was not found. |
-| `drop`    | The message is accepted and silently discarded.            |
-| `forward` | The message is forwarded to `default_destination`.         |
+| Address                              | What the sender gets                                                   |
+|--------------------------------------|------------------------------------------------------------------------|
+| An enabled alias                     | Nothing; the message is forwarded, unless the alias refuses it.        |
+| An address you never made            | A bounce from Cloudflare with `Address does not exist`.                |
+| A disabled or removed alias          | A bounce from Cloudflare with `Address does not exist`.                |
+| `alias+tag@` with `subaddressing` on | The same as the alias, since Email Routing subaddressing is turned on. |
 
-```json title="config.json"
-{
-  "settings": {
-    "unknown_alias_action": "forward",
-    "default_destination": "personal"
-  }
-}
-```
+Cloudflare's servers return that rejection during delivery, so the sender's mail server doesn't retry ([Cloudflare docs](https://developers.cloudflare.com/email-service/configuration/domains/)). No notification is sent for these addresses.
 
-The <Terminology title="What happens to mail for an address you never made" to="/docs/reference/terminology#aliases-and-mail-flow">unknown alias action</Terminology> applies because the <Terminology title="Sends every address to Mailmask, so new aliases just work" to="/docs/reference/terminology#cloudflare-and-deploy">catch-all</Terminology> sends every address without its own Email Routing rule to the <Terminology title="Mailmask itself, running on your Cloudflare account" to="/docs/reference/terminology#cloudflare-and-deploy">Worker</Terminology>.
+:::info
+A <Terminology title="Cloudflare's rule for addresses without their own rule" to="/docs/reference/terminology#cloudflare-and-deploy">catch-all</Terminology> you set up yourself still catches unknown addresses, because deploy only turns off one that points at this Worker.
+:::
 
-## Refusals Never Fall Through
+## Refusals From the Worker
 
-A known <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology> that is disabled, expired, or refuses a sender never forwards to the default <Terminology title="Your real inbox, where an alias's mail ends up" to="/docs/reference/terminology#aliases-and-mail-flow">destination</Terminology>. That way, turning off an <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology> really stops its mail, even with `forward` selected.
-
-| Setting   | What a refusal does      |
-|-----------|--------------------------|
-| `reject`  | Bounces with the reason. |
-| `drop`    | Discards silently.       |
-| `forward` | Bounces with the reason. |
+A known <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology> that has expired or refuses a sender bounces with its own reason, such as `Address has expired` or `Sender is blocked`. These <Terminology title="Mail an alias turns away instead of forwarding" to="/docs/reference/terminology#aliases-and-mail-flow">refusals</Terminology> come from the <Terminology title="Mailmask itself, running on your Cloudflare account" to="/docs/reference/terminology#cloudflare-and-deploy">Worker</Terminology>, never forward anywhere else, and trigger your notifiers.
 
 ## Other Domains
 
-Mail for any domain other than your <Terminology title="The domain every alias lives on" to="/docs/reference/terminology#cloudflare-and-deploy">base domain</Terminology>, including subdomains of it such as `x@sub.example.com`, is always rejected with `Recipient domain is not handled by this Worker`, whatever your <Terminology title="What happens to mail for an address you never made" to="/docs/reference/terminology#aliases-and-mail-flow">unknown alias action</Terminology> is. It never triggers a notification.
+Mail that reaches the <Terminology title="Mailmask itself, running on your Cloudflare account" to="/docs/reference/terminology#cloudflare-and-deploy">Worker</Terminology> for any domain other than your <Terminology title="The domain every alias lives on" to="/docs/reference/terminology#cloudflare-and-deploy">base domain</Terminology> is rejected with `Recipient domain is not handled by this Worker`. It never triggers a notification.
 
-This can happen if you route another domain's catch-all at the same <Terminology title="Mailmask itself, running on your Cloudflare account" to="/docs/reference/terminology#cloudflare-and-deploy">Worker</Terminology>, or if `base_domain` is set to a subdomain while the zone's <Terminology title="Sends every address to Mailmask, so new aliases just work" to="/docs/reference/terminology#cloudflare-and-deploy">catch-all</Terminology> sends apex mail to the <Terminology title="Mailmask itself, running on your Cloudflare account" to="/docs/reference/terminology#cloudflare-and-deploy">Worker</Terminology>.
-
-:::tip
-`drop` keeps spammers guessing, but a person who mistypes an address also gets no bounce. It is recommended to pick `reject` unless spam to random addresses is a real problem for you.
-:::
+This only happens when a rule or catch-all you created by hand sends another domain's mail to the same <Terminology title="Mailmask itself, running on your Cloudflare account" to="/docs/reference/terminology#cloudflare-and-deploy">Worker</Terminology>.

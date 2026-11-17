@@ -35,32 +35,32 @@ The forwarding runs on a Cloudflare <Terminology title="Mailmask itself, running
 
 ## Key Capabilities
 
-- **Aliases on demand** — Generate memorable (`velvet-harbor-42`) or random (`k7mq2xv9pa`) addresses, or pick your own. The alias list is bounded only by Cloudflare's Worker size and startup limits, which leave room for tens of thousands.
+- **Aliases on demand** — Generate memorable (`velvet-harbor-42`) or random (`k7mq2xv9pa`) addresses, or pick your own. Each enabled alias takes one Email Routing rule, and Cloudflare allows 200 per domain, while disabled or reserved aliases need no rule.
 - **Expiring aliases** — Give an <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology> a lifetime like `30m`, `7d`, or a date, and it stops accepting mail on its own.
 - **Sender rules** — Allow only specific senders or domains per <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology>, and block the ones that abuse it.
 - **One-switch shutdown** — Disable an <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology> without deleting it, so the address stays reserved.
 - **Subaddressing** — `alias+anything@` reaches the same <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology>.
-- **Refusal notifications** — Alert Discord, Slack, Telegram, ntfy, email, webhooks, and other supported services when a disabled, expired, or filtered <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology> turns mail away.
-- **Automatic Email Routing setup** — Deploying registers your inboxes and points the <Terminology title="Sends every address to Mailmask, so new aliases just work" to="/docs/reference/terminology#cloudflare-and-deploy">catch-all</Terminology> at the <Terminology title="Mailmask itself, running on your Cloudflare account" to="/docs/reference/terminology#cloudflare-and-deploy">Worker</Terminology>.
+- **Refusal notifications** — Alert Discord, Slack, Telegram, ntfy, email, webhooks, and other supported services when an expired or filtered <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology> turns mail away.
+- **Automatic Email Routing setup** — Deploying registers your inboxes and keeps a <Terminology title="Sends one alias's mail to Mailmask" to="/docs/reference/terminology#cloudflare-and-deploy">routing rule</Terminology> for each enabled <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology> that sends its mail to the <Terminology title="Mailmask itself, running on your Cloudflare account" to="/docs/reference/terminology#cloudflare-and-deploy">Worker</Terminology>, on an apex or a subdomain.
 
 ## How It Works
 
 ```mermaid
 flowchart LR
     Sender[Sender] --> Routing[Cloudflare Email Routing]
-    Routing --> Worker[Mailmask Worker]
-    Worker --> Known{Known alias?}
-    Known --> KnownYes([Yes]):::muted --> Active{Active, sender allowed?}
+    Routing --> Known{Enabled alias?}
+    Known --> KnownNo([No]):::muted --> Unknown[Cloudflare rejects: Address does not exist]
+    Known --> KnownYes([Yes]):::muted --> Worker[Mailmask Worker]
+    Worker --> Active{Not expired, sender allowed?}
     Active --> ActiveYes([Yes]):::muted --> Inbox[Your real inbox]
-    Active --> ActiveNo([No]):::muted --> Refuse[Reject or drop]
-    Known --> KnownNo([No]):::muted --> Unknown[Reject, drop, or forward to default destination]
+    Active --> ActiveNo([No]):::muted --> Refuse[Reject with the reason]
 ```
 
 When someone emails `velvet-harbor-42@example.com`, Cloudflare hands the message to your <Terminology title="Mailmask itself, running on your Cloudflare account" to="/docs/reference/terminology#cloudflare-and-deploy">Worker</Terminology>. The <Terminology title="Mailmask itself, running on your Cloudflare account" to="/docs/reference/terminology#cloudflare-and-deploy">Worker</Terminology> looks up the <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology>, checks that it is enabled, not expired, and that the sender is allowed, then forwards the message to its <Terminology title="Your real inbox, where an alias's mail ends up" to="/docs/reference/terminology#aliases-and-mail-flow">destination</Terminology>.
 
 Mail for an <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology> that doesn't pass those checks is turned away instead of reaching your inbox. Nothing is written to disk along the way.
 
-Mail for an address that isn't an <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology> follows your <Terminology title="What happens to mail for an address you never made" to="/docs/reference/terminology#aliases-and-mail-flow">unknown alias action</Terminology>, which rejects it, drops it, or forwards it to a default <Terminology title="Your real inbox, where an alias's mail ends up" to="/docs/reference/terminology#aliases-and-mail-flow">destination</Terminology>.
+Mail for an address that isn't an enabled <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology> has no <Terminology title="Sends one alias's mail to Mailmask" to="/docs/reference/terminology#cloudflare-and-deploy">routing rule</Terminology>, so Cloudflare rejects it before it reaches the <Terminology title="Mailmask itself, running on your Cloudflare account" to="/docs/reference/terminology#cloudflare-and-deploy">Worker</Terminology>.
 
 :::info
 Mailmask is forward-only. You receive mail at an <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology>, but replies you send come from your real address, so it is recommended to reply only when you're comfortable revealing it.
@@ -68,7 +68,7 @@ Mailmask is forward-only. You receive mail at an <Terminology title="A stand-in 
 
 ## What You Will Need
 
-- **Node.js** — v22 or v24.
+- **Node.js** — v22, v24, or v26.
 - **Cloudflare account** — The free plan is enough.
 - **A domain on Cloudflare** — With <Terminology title="Cloudflare's mail intake that hands messages to Mailmask" to="/docs/reference/terminology#cloudflare-and-deploy">Cloudflare Email Routing</Terminology> enabled, which adds the mail records for you.
 - **A real inbox** — Any address you can read, such as Gmail or Fastmail, to receive forwarded mail.

@@ -6,7 +6,7 @@ import type { Shared_NotificationPayload } from '../../shared.d.ts';
 /**
  * Tests - Worker - Notify - Send Notifications - Does Not Expose Telegram Bot Tokens In Failure Logs.
  *
- * @since UNRELEASED
+ * @since 1.0.0
  */
 export type Tests_Worker_Notify_SendNotifications_DoesNotExposeTelegramBotTokensInFailureLogs_Payload = { [Key in keyof Shared_NotificationPayload]: Shared_NotificationPayload[Key] };
 
@@ -21,7 +21,7 @@ export type Tests_Worker_Notify_SendNotifications_DoesNotExposeTelegramBotTokens
 /**
  * Tests - Worker - Notify - Send Notifications - Isolates One Notifier Failure From The Rest Of The Fan Out.
  *
- * @since UNRELEASED
+ * @since 1.0.0
  */
 export type Tests_Worker_Notify_SendNotifications_IsolatesOneNotifierFailureFromTheRestOfTheFanOut_Payload = { [Key in keyof Shared_NotificationPayload]: Shared_NotificationPayload[Key] };
 
@@ -36,7 +36,7 @@ export type Tests_Worker_Notify_SendNotifications_IsolatesOneNotifierFailureFrom
 /**
  * Tests - Worker - Notify - Send Notifications - Logs Nothing For Successful Notifiers.
  *
- * @since UNRELEASED
+ * @since 1.0.0
  */
 export type Tests_Worker_Notify_SendNotifications_LogsNothingForSuccessfulNotifiers_Payload = { [Key in keyof Shared_NotificationPayload]: Shared_NotificationPayload[Key] };
 
@@ -51,7 +51,7 @@ export type Tests_Worker_Notify_SendNotifications_LogsNothingForSuccessfulNotifi
 /**
  * Tests - Worker - Notify - Send Notifications - Stops Waiting For A Notifier After The Timeout.
  *
- * @since UNRELEASED
+ * @since 1.0.0
  */
 export type Tests_Worker_Notify_SendNotifications_StopsWaitingForANotifierAfterTheTimeout_Payload = { [Key in keyof Shared_NotificationPayload]: Shared_NotificationPayload[Key] };
 

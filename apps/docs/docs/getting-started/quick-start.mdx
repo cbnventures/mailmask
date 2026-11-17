@@ -20,13 +20,14 @@ Install the CLI, create your first <Terminology title="A stand-in address; mail 
 
 ## Prerequisites
 
-- **Node.js** — v22 or v24, with npm.
+- **Node.js** — v22, v24, or v26, with npm.
 - **Cloudflare account** — The free plan includes Workers and <Terminology title="Cloudflare's mail intake that hands messages to Mailmask" to="/docs/reference/terminology#cloudflare-and-deploy">Cloudflare Email Routing</Terminology>.
 - **A domain on Cloudflare** — The domain's DNS must be managed by Cloudflare.
-- **Email Routing enabled** — Turn it on under **Email > Email Routing** in the Cloudflare dashboard so the mail (MX) records are added.
+- **Email Routing records added** — In the Cloudflare dashboard, open **Email Routing** for the domain, go to **Settings**, and under **DNS records** select **Add missing records** so the mail (MX) records are added. For a subdomain, add it under **Settings > Subdomains** instead.
+- **An API token** — With the permission groups listed in [API Token Permissions](/docs/getting-started/deployment#api-token-permissions).
 
 :::warning
-The deploy command never changes your DNS. If <Terminology title="Cloudflare's mail intake that hands messages to Mailmask" to="/docs/reference/terminology#cloudflare-and-deploy">Cloudflare Email Routing</Terminology> is not enabled on the domain, deploy stops and asks you to enable it in the dashboard first.
+The deploy command never adds the Email Routing mail records; it only attaches the base domain and its `www` host to the Worker as custom domains. If <Terminology title="Cloudflare's mail intake that hands messages to Mailmask" to="/docs/reference/terminology#cloudflare-and-deploy">Cloudflare Email Routing</Terminology> isn't receiving mail for the domain, deploy stops before changing anything and names the dashboard steps to take first.
 :::
 
 ## Install
@@ -51,7 +52,7 @@ The starter <Terminology title="The one file that holds every alias and setting"
 - A `personal` <Terminology title="Your real inbox, where an alias's mail ends up" to="/docs/reference/terminology#aliases-and-mail-flow">destination</Terminology> that points at `you@example.com`.
 - Two sample aliases, `velvet-harbor-42` and `trial-signup`, that forward to `personal`.
 - One placeholder for every supported notifier type. They contain example URLs, addresses, and tokens that must not be deployed as-is.
-- A sample `base_domain` that has to become your own apex domain.
+- A sample `base_domain` that has to become your own domain.
 
 Replace or remove the samples and set your own <Terminology title="The domain every alias lives on" to="/docs/reference/terminology#cloudflare-and-deploy">base domain</Terminology> before your first deploy; the steps below show how.
 :::
@@ -60,7 +61,7 @@ Replace or remove the samples and set your own <Terminology title="The domain ev
 
 Run `mm` with no arguments to open the interactive menu, then work through these steps.
 
-1. **Open Settings.** Set the <Terminology title="Mailmask itself, running on your Cloudflare account" to="/docs/reference/terminology#cloudflare-and-deploy">Worker</Terminology> name and the email domain, which becomes your <Terminology title="The domain every alias lives on" to="/docs/reference/terminology#cloudflare-and-deploy">base domain</Terminology> and should be your zone's [apex domain](/docs/getting-started/deployment/#cloudflare-requirements), such as `example.com`.
+1. **Open Settings.** Set the <Terminology title="Mailmask itself, running on your Cloudflare account" to="/docs/reference/terminology#cloudflare-and-deploy">Worker</Terminology> name and the email domain, which becomes your <Terminology title="The domain every alias lives on" to="/docs/reference/terminology#cloudflare-and-deploy">base domain</Terminology> and can be your zone's apex domain, such as `example.com`, or a [subdomain set up in Email Routing](/docs/getting-started/deployment/#cloudflare-requirements).
 2. **Remove the sample aliases.** Under **Manage Aliases**, choose **Modify**, pick `velvet-harbor-42`, choose **Remove**, and confirm, then do the same for `trial-signup`.
 3. **Replace the sample destination.** Under **Manage Destinations**, remove `personal`, which only works once no <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology> uses it, then add it again with your real inbox address.
 4. **Remove the sample notifiers.** Set `notifiers` to `[]` in `config.json`, or remove every entry under **Manage Notifiers**; you can [add your own](/docs/features/notifications/#supported-services) at any time.
@@ -95,7 +96,7 @@ mm alias add -d personal -l "Online shopping"
 # Give deploy your Cloudflare API token.
 export CLOUDFLARE_API_TOKEN=your-token
 
-# Validate, register the inbox, deploy, and point the catch-all at the Worker.
+# Validate, register the inbox, deploy, and add a routing rule for each alias.
 mm deploy
 ```
 
@@ -119,9 +120,9 @@ When alias headers are enabled, the forwarded message carries `X-Mailmask-Alias`
 
 Check [Troubleshooting](/docs/reference/troubleshooting/) for the most common first-run problems:
 
-- Email Routing not enabled on the domain.
+- Email Routing not receiving mail for the domain.
 - A <Terminology title="Your real inbox, where an alias's mail ends up" to="/docs/reference/terminology#aliases-and-mail-flow">destination</Terminology> that has not been verified yet.
-- An <Terminology title="The key that lets the CLI deploy to your account" to="/docs/reference/terminology#cloudflare-and-deploy">API token</Terminology> missing one of the three required permissions.
+- An <Terminology title="The key that lets the CLI deploy to your account" to="/docs/reference/terminology#cloudflare-and-deploy">API token</Terminology> missing one of the required permission groups.
 
 ## What Is Next
 

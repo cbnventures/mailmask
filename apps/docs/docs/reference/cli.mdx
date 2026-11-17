@@ -28,7 +28,7 @@ Manage every <Terminology title="A stand-in address; mail still lands in your re
 
 ## Requirements
 
-- **Node.js runtime** — v22 or v24.
+- **Node.js runtime** — v22, v24, or v26.
 - **A Cloudflare API token** — Only needed for `deploy`. See [Deployment](/docs/getting-started/deployment/#api-token-permissions) for the required permissions.
 
 ## Usage
@@ -67,7 +67,7 @@ Running `mm` with no arguments opens a menu with these sections:
 - **Manage Aliases** — Create an <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology>, list them with their status, or modify one (enable, disable, change expiry, or remove).
 - **Manage Destinations** — Add, list, or remove a <Terminology title="Your real inbox, where an alias's mail ends up" to="/docs/reference/terminology#aliases-and-mail-flow">destination</Terminology> inbox.
 - **Manage Notifiers** — Add an ntfy topic or a Reverse Proxy for ntfy context, and list or remove any notifier type. Use direct commands to add the other services or send tests.
-- **Settings** — Edit the <Terminology title="Mailmask itself, running on your Cloudflare account" to="/docs/reference/terminology#cloudflare-and-deploy">Worker</Terminology> name, <Terminology title="The domain every alias lives on" to="/docs/reference/terminology#cloudflare-and-deploy">base domain</Terminology>, <Terminology title="What happens to mail for an address you never made" to="/docs/reference/terminology#aliases-and-mail-flow">unknown alias action</Terminology>, <Terminology title="alias+anything@ still reaches alias@" to="/docs/reference/terminology#aliases-and-mail-flow">subaddressing</Terminology>, and alias headers.
+- **Settings** — Edit the <Terminology title="Mailmask itself, running on your Cloudflare account" to="/docs/reference/terminology#cloudflare-and-deploy">Worker</Terminology> name, <Terminology title="The domain every alias lives on" to="/docs/reference/terminology#cloudflare-and-deploy">base domain</Terminology>, <Terminology title="alias+anything@ still reaches alias@" to="/docs/reference/terminology#aliases-and-mail-flow">subaddressing</Terminology>, and alias headers.
 - **Deploy** — Run the full deploy, with guided <Terminology title="The key that lets the CLI deploy to your account" to="/docs/reference/terminology#cloudflare-and-deploy">API token</Terminology> setup.
 - **Exit** — Close the CLI.
 
@@ -97,7 +97,7 @@ Print one line per <Terminology title="A stand-in address; mail still lands in y
 
 ### `alias enable <address>` and `alias disable <address>`
 
-Turn an <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology> on or off. A disabled <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology> refuses all mail but keeps its address reserved.
+Turn an <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology> on or off. A disabled <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology> keeps its address reserved, and the next deploy removes its <Terminology title="Sends one alias's mail to Mailmask" to="/docs/reference/terminology#cloudflare-and-deploy">routing rule</Terminology> so Cloudflare rejects its mail.
 
 ### `alias expire <address> <when>`
 
@@ -123,7 +123,7 @@ Print each <Terminology title="Your real inbox, where an alias's mail ends up" t
 
 ### `destination remove <name>`
 
-Remove a <Terminology title="Your real inbox, where an alias's mail ends up" to="/docs/reference/terminology#aliases-and-mail-flow">destination</Terminology>. The command refuses while any <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology> still forwards to it, or while it is the `default_destination`.
+Remove a <Terminology title="Your real inbox, where an alias's mail ends up" to="/docs/reference/terminology#aliases-and-mail-flow">destination</Terminology>. The command refuses while any <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology> still forwards to it.
 
 ## Notifier Commands
 
@@ -201,7 +201,7 @@ The generated `wrangler.toml` has no `account_id`, which only `deploy` adds. To 
 
 ### `deploy`
 
-Validate, register destinations, publish the <Terminology title="Mailmask itself, running on your Cloudflare account" to="/docs/reference/terminology#cloudflare-and-deploy">Worker</Terminology>, and point the <Terminology title="Sends every address to Mailmask, so new aliases just work" to="/docs/reference/terminology#cloudflare-and-deploy">catch-all</Terminology> at it. See [Deployment](/docs/getting-started/deployment/#what-deploy-does) for each step.
+Validate, register destinations, publish the <Terminology title="Mailmask itself, running on your Cloudflare account" to="/docs/reference/terminology#cloudflare-and-deploy">Worker</Terminology> with its <Terminology title="Your Worker's own web addresses" to="/docs/reference/terminology#cloudflare-and-deploy">custom domains</Terminology>, and keep a <Terminology title="Sends one alias's mail to Mailmask" to="/docs/reference/terminology#cloudflare-and-deploy">routing rule</Terminology> for each enabled alias. See [Deployment](/docs/getting-started/deployment/#what-deploy-does) for each step.
 
 The direct command reads `CLOUDFLARE_API_TOKEN` from the environment or a `.env` file. It exits with a non-zero code instead of prompting when the token is missing or invalid.
 

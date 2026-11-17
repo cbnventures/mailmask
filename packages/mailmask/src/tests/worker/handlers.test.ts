@@ -7,13 +7,6 @@ import { handleEmail } from '../../worker/handlers.js';
 
 import type {
   Tests_Worker_Handlers_BaseConfig,
-  Tests_Worker_Handlers_HandleEmail_AppliesRejectAndDropDecisionsWithoutWaitingForNotifications_Config,
-  Tests_Worker_Handlers_HandleEmail_AppliesRejectAndDropDecisionsWithoutWaitingForNotifications_ConsoleWarnSpy,
-  Tests_Worker_Handlers_HandleEmail_AppliesRejectAndDropDecisionsWithoutWaitingForNotifications_DropContext,
-  Tests_Worker_Handlers_HandleEmail_AppliesRejectAndDropDecisionsWithoutWaitingForNotifications_DropMessage,
-  Tests_Worker_Handlers_HandleEmail_AppliesRejectAndDropDecisionsWithoutWaitingForNotifications_FetchSpy,
-  Tests_Worker_Handlers_HandleEmail_AppliesRejectAndDropDecisionsWithoutWaitingForNotifications_RejectContext,
-  Tests_Worker_Handlers_HandleEmail_AppliesRejectAndDropDecisionsWithoutWaitingForNotifications_RejectMessage,
   Tests_Worker_Handlers_HandleEmail_ForwardsWithIdentifyingHeaders_ForwardHeaders,
   Tests_Worker_Handlers_HandleEmail_ForwardsWithIdentifyingHeaders_Message,
   Tests_Worker_Handlers_HandleEmail_NotifiesByEmailThroughTheCloudflareBinding_Config,
@@ -24,6 +17,13 @@ import type {
   Tests_Worker_Handlers_HandleEmail_NotifiesWhenAKnownAliasRefusesMail_Config,
   Tests_Worker_Handlers_HandleEmail_NotifiesWhenAKnownAliasRefusesMail_FetchSpy,
   Tests_Worker_Handlers_HandleEmail_NotifiesWhenAKnownAliasRefusesMail_Message,
+  Tests_Worker_Handlers_HandleEmail_RejectsRefusalsWithoutWaitingForNotifications_Config,
+  Tests_Worker_Handlers_HandleEmail_RejectsRefusalsWithoutWaitingForNotifications_ConsoleWarnSpy,
+  Tests_Worker_Handlers_HandleEmail_RejectsRefusalsWithoutWaitingForNotifications_ExpiredContext,
+  Tests_Worker_Handlers_HandleEmail_RejectsRefusalsWithoutWaitingForNotifications_ExpiredMessage,
+  Tests_Worker_Handlers_HandleEmail_RejectsRefusalsWithoutWaitingForNotifications_FetchSpy,
+  Tests_Worker_Handlers_HandleEmail_RejectsRefusalsWithoutWaitingForNotifications_RejectContext,
+  Tests_Worker_Handlers_HandleEmail_RejectsRefusalsWithoutWaitingForNotifications_RejectMessage,
   Tests_Worker_Handlers_HandleEmail_RejectsUnknownRecipientsWithoutNotifying_Config,
   Tests_Worker_Handlers_HandleEmail_RejectsUnknownRecipientsWithoutNotifying_FetchSpy,
   Tests_Worker_Handlers_HandleEmail_RejectsUnknownRecipientsWithoutNotifying_Message,
@@ -67,7 +67,6 @@ const baseConfig: Tests_Worker_Handlers_BaseConfig = {
   settings: {
     worker_name: 'mailmask',
     base_domain: 'mail.example.com',
-    unknown_alias_action: 'reject',
     subaddressing: true,
     add_alias_headers: true,
   },
@@ -79,26 +78,26 @@ const baseConfig: Tests_Worker_Handlers_BaseConfig = {
  * @since 0.0.1
  */
 describe('handleEmail', () => {
-  it('applies reject and drop decisions without waiting for notifications', async () => {
+  it('rejects refusals without waiting for notifications', async () => {
     vi.useFakeTimers();
 
-    const rejectMessage: Tests_Worker_Handlers_HandleEmail_AppliesRejectAndDropDecisionsWithoutWaitingForNotifications_RejectMessage = {
+    const rejectMessage: Tests_Worker_Handlers_HandleEmail_RejectsRefusalsWithoutWaitingForNotifications_RejectMessage = {
       to: 'old@mail.example.com',
       from: 'a@b.test',
       forward: vi.fn(async () => ({ messageId: 'test' })),
       setReject: vi.fn(),
     };
-    const dropMessage: Tests_Worker_Handlers_HandleEmail_AppliesRejectAndDropDecisionsWithoutWaitingForNotifications_DropMessage = {
-      to: 'old@mail.example.com',
+    const expiredMessage: Tests_Worker_Handlers_HandleEmail_RejectsRefusalsWithoutWaitingForNotifications_ExpiredMessage = {
+      to: 'trial@mail.example.com',
       from: 'a@b.test',
       forward: vi.fn(async () => ({ messageId: 'test' })),
       setReject: vi.fn(),
     };
-    const config: Tests_Worker_Handlers_HandleEmail_AppliesRejectAndDropDecisionsWithoutWaitingForNotifications_Config = configSchema.parse(baseConfig);
-    const rejectContext: Tests_Worker_Handlers_HandleEmail_AppliesRejectAndDropDecisionsWithoutWaitingForNotifications_RejectContext = { waitUntil: vi.fn() };
-    const dropContext: Tests_Worker_Handlers_HandleEmail_AppliesRejectAndDropDecisionsWithoutWaitingForNotifications_DropContext = { waitUntil: vi.fn() };
-    const fetchSpy: Tests_Worker_Handlers_HandleEmail_AppliesRejectAndDropDecisionsWithoutWaitingForNotifications_FetchSpy = vi.spyOn(globalThis, 'fetch').mockImplementation(() => new Promise(() => {}));
-    const consoleWarnSpy: Tests_Worker_Handlers_HandleEmail_AppliesRejectAndDropDecisionsWithoutWaitingForNotifications_ConsoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const config: Tests_Worker_Handlers_HandleEmail_RejectsRefusalsWithoutWaitingForNotifications_Config = configSchema.parse(baseConfig);
+    const rejectContext: Tests_Worker_Handlers_HandleEmail_RejectsRefusalsWithoutWaitingForNotifications_RejectContext = { waitUntil: vi.fn() };
+    const expiredContext: Tests_Worker_Handlers_HandleEmail_RejectsRefusalsWithoutWaitingForNotifications_ExpiredContext = { waitUntil: vi.fn() };
+    const fetchSpy: Tests_Worker_Handlers_HandleEmail_RejectsRefusalsWithoutWaitingForNotifications_FetchSpy = vi.spyOn(globalThis, 'fetch').mockImplementation(() => new Promise(() => {}));
+    const consoleWarnSpy: Tests_Worker_Handlers_HandleEmail_RejectsRefusalsWithoutWaitingForNotifications_ConsoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
     Reflect.set(config, 'notifiers', [{
       type: 'webhook',
@@ -106,19 +105,27 @@ describe('handleEmail', () => {
       url: 'https://slow.example.com/mailmask',
     }]);
 
+    Reflect.set(config, 'aliases', [
+      ...config['aliases'],
+      {
+        address: 'trial',
+        destination: 'personal',
+        enabled: true,
+        expires_at: '2026-01-01T00:00:00.000Z',
+      },
+    ]);
+
     await expect(handleEmail(rejectMessage, config, now, rejectContext)).resolves.toBeUndefined();
 
     expect(rejectMessage['setReject']).toHaveBeenCalledWith('Address is disabled');
 
     expect(rejectContext['waitUntil']).toHaveBeenCalledWith(expect.any(Promise));
 
-    Reflect.set(config['settings'], 'unknown_alias_action', 'drop');
+    await expect(handleEmail(expiredMessage, config, now, expiredContext)).resolves.toBeUndefined();
 
-    await expect(handleEmail(dropMessage, config, now, dropContext)).resolves.toBeUndefined();
+    expect(expiredMessage['setReject']).toHaveBeenCalledWith('Address has expired');
 
-    expect(dropMessage['setReject']).not.toHaveBeenCalled();
-
-    expect(dropContext['waitUntil']).toHaveBeenCalledWith(expect.any(Promise));
+    expect(expiredContext['waitUntil']).toHaveBeenCalledWith(expect.any(Promise));
 
     expect(fetchSpy).toHaveBeenCalledTimes(2);
 

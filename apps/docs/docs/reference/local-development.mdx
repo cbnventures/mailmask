@@ -37,6 +37,8 @@ npm run dev
 
 The dev script finds the first `config.json` in the project root or your platform config directory. On every run, it regenerates `wrangler.toml` beside that file and refreshes the Worker entry and bundled config in `.wrangler/mailmask/`. The generated entry imports the TypeScript source, so both code and config changes are picked up without a build or manual cleanup.
 
+Remove `unknown_alias_action` and `default_destination` from `config.json` (or run any `mm` command that saves it) before `npm run dev`, because the dev script doesn't drop them.
+
 ## Simulating Inbound Mail
 
 Wrangler accepts test messages for email Workers at a local endpoint:

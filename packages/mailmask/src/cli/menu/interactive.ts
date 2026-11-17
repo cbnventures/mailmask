@@ -588,7 +588,7 @@ async function destinationMenu(configPath: Cli_Menu_Interactive_DestinationMenu_
  *
  * @returns {Cli_Menu_Interactive_NotifierMenu_Returns}
  *
- * @since UNRELEASED
+ * @since 1.0.0
  */
 async function notifierMenu(configPath: Cli_Menu_Interactive_NotifierMenu_ConfigPath): Cli_Menu_Interactive_NotifierMenu_Returns {
   let inMenu: Cli_Menu_Interactive_NotifierMenu_InMenu = true;
@@ -741,7 +741,7 @@ async function notifierMenu(configPath: Cli_Menu_Interactive_NotifierMenu_Config
  *
  * @returns {Cli_Menu_Interactive_SettingsFlow_Returns}
  *
- * @since 0.0.1
+ * @since 1.1.0
  */
 async function settingsFlow(configPath: Cli_Menu_Interactive_SettingsFlow_ConfigPath): Cli_Menu_Interactive_SettingsFlow_Returns {
   const currentSettings: Cli_Menu_Interactive_SettingsFlow_CurrentSettings = getSettings(configPath);
@@ -757,39 +757,6 @@ async function settingsFlow(configPath: Cli_Menu_Interactive_SettingsFlow_Config
       name: 'base_domain',
       message: 'Email domain (the part after @):',
       initial: currentSettings['base_domain'],
-    },
-    {
-      type: 'select',
-      name: 'unknown_alias_action',
-      message: 'Mail to addresses that are not aliases:',
-      choices: [
-        {
-          title: 'Reject (sender gets a bounce)',
-          value: 'reject',
-        },
-        {
-          title: 'Drop silently',
-          value: 'drop',
-        },
-        {
-          title: 'Forward to a default destination',
-          value: 'forward',
-        },
-      ],
-      initial: [
-        'reject',
-        'drop',
-        'forward',
-      ].indexOf(currentSettings['unknown_alias_action']),
-    },
-    {
-      type: (previous) => (previous === 'forward') ? 'select' : null,
-      name: 'default_destination',
-      message: 'Default destination:',
-      choices: listDestinations(configPath).map((destination) => ({
-        title: `${destination['name']} (${destination['email']})`,
-        value: destination['name'],
-      })),
     },
     {
       type: 'confirm',
@@ -814,8 +781,6 @@ async function settingsFlow(configPath: Cli_Menu_Interactive_SettingsFlow_Config
     updateSettings(configPath, {
       worker_name: response['worker_name'].trim(),
       base_domain: response['base_domain'].trim().toLowerCase(),
-      unknown_alias_action: response['unknown_alias_action'],
-      default_destination: (response['unknown_alias_action'] === 'forward') ? response['default_destination'] : undefined,
       subaddressing: response['subaddressing'],
       add_alias_headers: response['add_alias_headers'],
     });

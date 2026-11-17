@@ -44,7 +44,6 @@ const baseConfig: Tests_Cli_Commands_Alias_BaseConfig = {
   settings: {
     worker_name: 'mailmask',
     base_domain: 'mail.example.com',
-    unknown_alias_action: 'reject',
     subaddressing: true,
     add_alias_headers: true,
   },

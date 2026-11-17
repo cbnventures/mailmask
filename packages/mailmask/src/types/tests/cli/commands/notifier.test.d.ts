@@ -8,7 +8,7 @@ import type {
 /**
  * Tests - CLI - Commands - Notifier.
  *
- * @since UNRELEASED
+ * @since 1.0.0
  */
 export type Tests_Cli_Commands_Notifier_TestConfigPath = string;
 
@@ -21,14 +21,14 @@ export type Tests_Cli_Commands_Notifier_Notifiers = Tests_Cli_Commands_Notifier_
 /**
  * Tests - CLI - Commands - Notifier - Notifier Commands.
  *
- * @since UNRELEASED
+ * @since 1.0.0
  */
 export type Tests_Cli_Commands_Notifier_NotifierCommands_ConfigJson = string;
 
 /**
  * Tests - CLI - Commands - Notifier - Notifier Commands - Adds Lists Tests And Removes Every Notifier Type.
  *
- * @since UNRELEASED
+ * @since 1.0.0
  */
 export type Tests_Cli_Commands_Notifier_NotifierCommands_AddsListsTestsAndRemovesEveryNotifierType_FetchSpy = MockInstance<typeof fetch>;
 
@@ -39,6 +39,6 @@ export type Tests_Cli_Commands_Notifier_NotifierCommands_AddsListsTestsAndRemove
 /**
  * Tests - CLI - Commands - Notifier - Notifier Commands - Rejects Duplicate Names Missing Names And Failed Test Requests.
  *
- * @since UNRELEASED
+ * @since 1.0.0
  */
 export type Tests_Cli_Commands_Notifier_NotifierCommands_RejectsDuplicateNamesMissingNamesAndFailedTestRequests_Returns = void;

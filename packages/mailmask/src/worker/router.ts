@@ -9,7 +9,6 @@ import type {
   Worker_Router_ResolveRoute_AtIndex,
   Worker_Router_ResolveRoute_BlockedSenders,
   Worker_Router_ResolveRoute_Config,
-  Worker_Router_ResolveRoute_DefaultDestination,
   Worker_Router_ResolveRoute_Destination,
   Worker_Router_ResolveRoute_Domain,
   Worker_Router_ResolveRoute_ExpiresAt,
@@ -18,7 +17,6 @@ import type {
   Worker_Router_ResolveRoute_Now,
   Worker_Router_ResolveRoute_PlusIndex,
   Worker_Router_ResolveRoute_Recipient,
-  Worker_Router_ResolveRoute_RefusalAction,
   Worker_Router_ResolveRoute_Returns,
   Worker_Router_ResolveRoute_Sender,
   Worker_Router_ResolveRoute_Settings,
@@ -53,8 +51,8 @@ function matchesSender(sender: Worker_Router_MatchesSender_Sender, pattern: Work
  * Worker - Router - Resolve Route.
  *
  * Decides what happens to an inbound message. Known, active aliases forward
- * to their destination unless a sender rule refuses the message; unknown
- * recipients follow the configured unknown alias action.
+ * to their destination unless a sender rule refuses the message; every
+ * refusal and unknown recipient is rejected so the sender gets a bounce.
  *
  * @param {Worker_Router_ResolveRoute_Recipient} recipient - Recipient.
  * @param {Worker_Router_ResolveRoute_Sender}    sender    - Sender.
@@ -63,16 +61,13 @@ function matchesSender(sender: Worker_Router_MatchesSender_Sender, pattern: Work
  *
  * @returns {Worker_Router_ResolveRoute_Returns}
  *
- * @since 0.0.1
+ * @since 1.1.0
  */
 function resolveRoute(recipient: Worker_Router_ResolveRoute_Recipient, sender: Worker_Router_ResolveRoute_Sender, config: Worker_Router_ResolveRoute_Config, now: Worker_Router_ResolveRoute_Now): Worker_Router_ResolveRoute_Returns {
   const settings: Worker_Router_ResolveRoute_Settings = config['settings'];
   const atIndex: Worker_Router_ResolveRoute_AtIndex = recipient.lastIndexOf('@');
   const domain: Worker_Router_ResolveRoute_Domain = recipient.slice(atIndex + 1).toLowerCase();
   let localPart: Worker_Router_ResolveRoute_LocalPart = recipient.slice(0, atIndex).toLowerCase();
-
-  // Disabled, expired, and refused mail never falls through to the catch-all destination.
-  const refusalAction: Worker_Router_ResolveRoute_RefusalAction = (settings['unknown_alias_action'] === 'drop') ? 'drop' : 'reject';
 
   if (atIndex < 0 || domain !== settings['base_domain']) {
     return {
@@ -95,23 +90,10 @@ function resolveRoute(recipient: Worker_Router_ResolveRoute_Recipient, sender: W
 
   const alias: Worker_Router_ResolveRoute_Alias = config['aliases'].find((configAlias) => configAlias['address'] === localPart);
 
+  // Email Routing only sends alias addresses here, so a miss means a stale rule or a "+tag" with subaddressing off.
   if (alias === undefined) {
-    if (settings['unknown_alias_action'] === 'forward') {
-      const defaultDestination: Worker_Router_ResolveRoute_DefaultDestination = config['destinations'].find((destination) => destination['name'] === settings['default_destination']);
-
-      if (defaultDestination !== undefined) {
-        return {
-          action: 'forward',
-          reason: 'Unknown alias forwarded to the default destination',
-          destinationEmail: defaultDestination['email'],
-          aliasAddress: undefined,
-          aliasLabel: undefined,
-        };
-      }
-    }
-
     return {
-      action: refusalAction,
+      action: 'reject',
       reason: 'Address not found',
       destinationEmail: undefined,
       aliasAddress: undefined,
@@ -121,7 +103,7 @@ function resolveRoute(recipient: Worker_Router_ResolveRoute_Recipient, sender: W
 
   if (alias['enabled'] === false) {
     return {
-      action: refusalAction,
+      action: 'reject',
       reason: 'Address is disabled',
       destinationEmail: undefined,
       aliasAddress: alias['address'],
@@ -133,7 +115,7 @@ function resolveRoute(recipient: Worker_Router_ResolveRoute_Recipient, sender: W
 
   if (expiresAt !== undefined && Date.parse(expiresAt) <= now) {
     return {
-      action: refusalAction,
+      action: 'reject',
       reason: 'Address has expired',
       destinationEmail: undefined,
       aliasAddress: alias['address'],
@@ -147,7 +129,7 @@ function resolveRoute(recipient: Worker_Router_ResolveRoute_Recipient, sender: W
 
   if (blockedSenders.some((blockedSender) => matchesSender(normalizedSender, blockedSender)) === true) {
     return {
-      action: refusalAction,
+      action: 'reject',
       reason: 'Sender is blocked',
       destinationEmail: undefined,
       aliasAddress: alias['address'],
@@ -160,7 +142,7 @@ function resolveRoute(recipient: Worker_Router_ResolveRoute_Recipient, sender: W
     && allowedSenders.some((allowedSender) => matchesSender(normalizedSender, allowedSender)) === false
   ) {
     return {
-      action: refusalAction,
+      action: 'reject',
       reason: 'Sender is not allowed',
       destinationEmail: undefined,
       aliasAddress: alias['address'],

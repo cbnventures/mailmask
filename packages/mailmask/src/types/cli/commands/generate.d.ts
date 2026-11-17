@@ -3,7 +3,7 @@ import type { Lib_Schema_ConfigSchema, Lib_Schema_SettingsConfig } from '../../l
 /**
  * CLI - Commands - Generate - Generate Wrangler Toml.
  *
- * @since UNRELEASED
+ * @since 1.0.0
  */
 export type Cli_Commands_Generate_GenerateWranglerToml_ConfigPath = string;
 

@@ -32,7 +32,7 @@ import type {
  * Maximum time one notifier may delay best-effort fan-out. Each notifier gets
  * its own deadline so one slow service cannot hold the others open.
  *
- * @since UNRELEASED
+ * @since 1.0.0
  */
 const NOTIFICATION_TIMEOUT_MILLISECONDS = 10_000;
 
@@ -46,7 +46,7 @@ const NOTIFICATION_TIMEOUT_MILLISECONDS = 10_000;
  *
  * @returns {Lib_Notification_EscapeSlack_Returns}
  *
- * @since UNRELEASED
+ * @since 1.0.0
  */
 function escapeSlack(value: Lib_Notification_EscapeSlack_Value): Lib_Notification_EscapeSlack_Returns {
   return value.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
@@ -62,7 +62,7 @@ function escapeSlack(value: Lib_Notification_EscapeSlack_Value): Lib_Notificatio
  *
  * @returns {Lib_Notification_TrimTrailingSlashes_Returns}
  *
- * @since UNRELEASED
+ * @since 1.0.0
  */
 function trimTrailingSlashes(value: Lib_Notification_TrimTrailingSlashes_Value): Lib_Notification_TrimTrailingSlashes_Returns {
   let trimmed: Lib_Notification_TrimTrailingSlashes_Trimmed = value;
@@ -89,7 +89,7 @@ function trimTrailingSlashes(value: Lib_Notification_TrimTrailingSlashes_Value):
  *
  * @returns {Lib_Notification_BuildRefusalNotification_Returns}
  *
- * @since UNRELEASED
+ * @since 1.0.0
  */
 function buildRefusalNotification(alias: Lib_Notification_BuildRefusalNotification_Alias, envelopeSender: Lib_Notification_BuildRefusalNotification_EnvelopeSender, recipient: Lib_Notification_BuildRefusalNotification_Recipient, reason: Lib_Notification_BuildRefusalNotification_Reason, action: Lib_Notification_BuildRefusalNotification_Action, occurredAt: Lib_Notification_BuildRefusalNotification_OccurredAt): Lib_Notification_BuildRefusalNotification_Returns {
   let reasonCode: Lib_Notification_BuildRefusalNotification_ReasonCode = 'refused';
@@ -156,7 +156,7 @@ function buildRefusalNotification(alias: Lib_Notification_BuildRefusalNotificati
  *
  * @returns {Lib_Notification_BuildTestNotification_Returns}
  *
- * @since UNRELEASED
+ * @since 1.0.0
  */
 function buildTestNotification(occurredAt: Lib_Notification_BuildTestNotification_OccurredAt = Date.now()): Lib_Notification_BuildTestNotification_Returns {
   return {
@@ -191,7 +191,7 @@ function buildTestNotification(occurredAt: Lib_Notification_BuildTestNotificatio
  *
  * @returns {Lib_Notification_BuildEmailMessage_Returns}
  *
- * @since UNRELEASED
+ * @since 1.0.0
  */
 function buildEmailMessage(notifier: Lib_Notification_BuildEmailMessage_Notifier, payload: Lib_Notification_BuildEmailMessage_Payload): Lib_Notification_BuildEmailMessage_Returns {
   return {
@@ -220,7 +220,7 @@ function buildEmailMessage(notifier: Lib_Notification_BuildEmailMessage_Notifier
  *
  * @returns {Lib_Notification_BuildNotifierRequest_Returns}
  *
- * @since UNRELEASED
+ * @since 1.0.0
  */
 function buildNotifierRequest(notifier: Lib_Notification_BuildNotifierRequest_Notifier, payload: Lib_Notification_BuildNotifierRequest_Payload): Lib_Notification_BuildNotifierRequest_Returns {
   if (notifier['type'] === 'email') {

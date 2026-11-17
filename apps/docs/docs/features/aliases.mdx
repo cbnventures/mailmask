@@ -77,7 +77,7 @@ Expiry is checked when each message arrives, so an <Terminology title="A stand-i
 ## Disabling and Removing
 
 ```bash
-# Refuse all mail but keep the address reserved.
+# Stop accepting mail but keep the address reserved.
 mm alias disable velvet-harbor-42
 
 # Start accepting mail again.
@@ -89,7 +89,7 @@ mm alias remove velvet-harbor-42
 
 These commands, like `mm alias expire`, take the part before the `@` in lowercase, exactly as it is stored, so `velvet-harbor-42` works but `velvet-harbor-42@example.com` doesn't.
 
-It is recommended to disable rather than remove an address you no longer want. A removed <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology> becomes an unknown address, and what happens to it then depends on your <Terminology title="What happens to mail for an address you never made" to="/docs/reference/terminology#aliases-and-mail-flow">unknown alias action</Terminology>.
+It is recommended to disable rather than remove an address you no longer want. Either way, the next deploy removes the <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology>'s <Terminology title="Sends one alias's mail to Mailmask" to="/docs/reference/terminology#cloudflare-and-deploy">routing rule</Terminology>, so Cloudflare rejects its mail with `Address does not exist`.
 
 ## Subaddressing
 

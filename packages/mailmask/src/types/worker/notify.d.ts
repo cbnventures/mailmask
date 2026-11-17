@@ -7,7 +7,7 @@ import type {
 /**
  * Worker - Notify - Run With Timeout.
  *
- * @since UNRELEASED
+ * @since 1.0.0
  */
 export type Worker_Notify_RunWithTimeout_Operation = Promise<unknown>;
 
@@ -22,7 +22,7 @@ export type Worker_Notify_RunWithTimeout_Timeout = Promise<void>;
 /**
  * Worker - Notify - Send Notification.
  *
- * @since UNRELEASED
+ * @since 1.0.0
  */
 export type Worker_Notify_SendNotification_Notifier = Lib_Schema_NotifierConfig;
 
@@ -45,7 +45,7 @@ export type Worker_Notify_SendNotification_Response = Response | undefined;
 /**
  * Worker - Notify - Send Notifications.
  *
- * @since UNRELEASED
+ * @since 1.0.0
  */
 export type Worker_Notify_SendNotifications_Notifiers = Lib_Schema_NotifierConfig[];
 

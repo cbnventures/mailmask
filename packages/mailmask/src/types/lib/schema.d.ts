@@ -44,10 +44,6 @@ export type Lib_Schema_SettingsConfigWorkerName = string;
 
 export type Lib_Schema_SettingsConfigBaseDomain = string;
 
-export type Lib_Schema_SettingsConfigUnknownAliasAction = 'reject' | 'drop' | 'forward';
-
-export type Lib_Schema_SettingsConfigDefaultDestination = string | undefined;
-
 export type Lib_Schema_SettingsConfigSubaddressing = boolean;
 
 export type Lib_Schema_SettingsConfigAddAliasHeaders = boolean;
@@ -55,8 +51,6 @@ export type Lib_Schema_SettingsConfigAddAliasHeaders = boolean;
 export type Lib_Schema_SettingsConfig = {
   worker_name: Lib_Schema_SettingsConfigWorkerName;
   base_domain: Lib_Schema_SettingsConfigBaseDomain;
-  unknown_alias_action: Lib_Schema_SettingsConfigUnknownAliasAction;
-  default_destination?: Lib_Schema_SettingsConfigDefaultDestination;
   subaddressing: Lib_Schema_SettingsConfigSubaddressing;
   add_alias_headers: Lib_Schema_SettingsConfigAddAliasHeaders;
 };
@@ -284,8 +278,11 @@ export type Lib_Schema_CloudflareZones = Lib_Schema_CloudflareZone[];
 
 export type Lib_Schema_CloudflareEmailRoutingSettingsEnabled = boolean;
 
+export type Lib_Schema_CloudflareEmailRoutingSettingsSupportSubaddress = boolean | undefined;
+
 export type Lib_Schema_CloudflareEmailRoutingSettings = {
   enabled: Lib_Schema_CloudflareEmailRoutingSettingsEnabled;
+  support_subaddress?: Lib_Schema_CloudflareEmailRoutingSettingsSupportSubaddress;
 };
 
 export type Lib_Schema_CloudflareDestinationAddressEmail = string;
@@ -298,6 +295,8 @@ export type Lib_Schema_CloudflareDestinationAddress = {
 };
 
 export type Lib_Schema_CloudflareDestinationAddresses = Lib_Schema_CloudflareDestinationAddress[];
+
+export type Lib_Schema_CloudflareCatchAllName = string | undefined;
 
 export type Lib_Schema_CloudflareCatchAllEnabled = boolean | undefined;
 
@@ -313,6 +312,59 @@ export type Lib_Schema_CloudflareCatchAllAction = {
 export type Lib_Schema_CloudflareCatchAllActions = Lib_Schema_CloudflareCatchAllAction[];
 
 export type Lib_Schema_CloudflareCatchAll = {
+  name?: Lib_Schema_CloudflareCatchAllName;
   enabled?: Lib_Schema_CloudflareCatchAllEnabled;
   actions: Lib_Schema_CloudflareCatchAllActions;
 };
+
+export type Lib_Schema_CloudflareRoutingRuleId = string;
+
+export type Lib_Schema_CloudflareRoutingRuleName = string | undefined;
+
+export type Lib_Schema_CloudflareRoutingRuleEnabled = boolean | undefined;
+
+export type Lib_Schema_CloudflareRoutingRuleMatcherType = string;
+
+export type Lib_Schema_CloudflareRoutingRuleMatcherField = string | undefined;
+
+export type Lib_Schema_CloudflareRoutingRuleMatcherValue = string | undefined;
+
+export type Lib_Schema_CloudflareRoutingRuleMatcher = {
+  type: Lib_Schema_CloudflareRoutingRuleMatcherType;
+  field?: Lib_Schema_CloudflareRoutingRuleMatcherField;
+  value?: Lib_Schema_CloudflareRoutingRuleMatcherValue;
+};
+
+export type Lib_Schema_CloudflareRoutingRuleActionType = string;
+
+export type Lib_Schema_CloudflareRoutingRuleActionValue = string[] | undefined;
+
+export type Lib_Schema_CloudflareRoutingRuleAction = {
+  type: Lib_Schema_CloudflareRoutingRuleActionType;
+  value?: Lib_Schema_CloudflareRoutingRuleActionValue;
+};
+
+export type Lib_Schema_CloudflareRoutingRuleMatchers = Lib_Schema_CloudflareRoutingRuleMatcher[];
+
+export type Lib_Schema_CloudflareRoutingRuleActions = Lib_Schema_CloudflareRoutingRuleAction[];
+
+export type Lib_Schema_CloudflareRoutingRule = {
+  id: Lib_Schema_CloudflareRoutingRuleId;
+  name?: Lib_Schema_CloudflareRoutingRuleName;
+  enabled?: Lib_Schema_CloudflareRoutingRuleEnabled;
+  matchers: Lib_Schema_CloudflareRoutingRuleMatchers;
+  actions: Lib_Schema_CloudflareRoutingRuleActions;
+};
+
+export type Lib_Schema_CloudflareRoutingRules = Lib_Schema_CloudflareRoutingRule[];
+
+export type Lib_Schema_CloudflareWorkerDomainHostname = string;
+
+export type Lib_Schema_CloudflareWorkerDomainService = string;
+
+export type Lib_Schema_CloudflareWorkerDomain = {
+  hostname: Lib_Schema_CloudflareWorkerDomainHostname;
+  service: Lib_Schema_CloudflareWorkerDomainService;
+};
+
+export type Lib_Schema_CloudflareWorkerDomains = Lib_Schema_CloudflareWorkerDomain[];

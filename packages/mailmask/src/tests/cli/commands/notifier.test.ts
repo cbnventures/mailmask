@@ -29,7 +29,6 @@ const baseConfig: Tests_Cli_Commands_Notifier_BaseConfig = {
   settings: {
     worker_name: 'mailmask',
     base_domain: 'mail.example.com',
-    unknown_alias_action: 'reject',
     subaddressing: true,
     add_alias_headers: true,
   },
@@ -106,7 +105,7 @@ const notifiers: Tests_Cli_Commands_Notifier_Notifiers = [
 /**
  * Tests - CLI - Commands - Notifier - Notifier Commands.
  *
- * @since UNRELEASED
+ * @since 1.0.0
  */
 describe('notifier commands', () => {
   beforeEach(() => {

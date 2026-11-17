@@ -21,7 +21,7 @@ Find out when one of your aliases turns mail away, using the notification servic
 
 ## Why Use This Feature?
 
-1. Alerts you when a disabled or expired <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology> still receives mail so you can tell whether someone legitimate is trying to reach you.
+1. Alerts you when an expired <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology> still receives mail so you can tell whether someone legitimate is trying to reach you.
 2. Shows which envelope sender a <Terminology title="Who an alias will or won't take mail from" to="/docs/reference/terminology#aliases-and-mail-flow">sender rule</Terminology> refused so you can adjust an allow list that is too strict.
 3. Fans out to several independent services while staying quiet for random addresses on your domain.
 
@@ -29,13 +29,12 @@ Find out when one of your aliases turns mail away, using the notification servic
 
 A notification is sent for every <Terminology title="Mail an alias turns away instead of forwarding" to="/docs/reference/terminology#aliases-and-mail-flow">refusal</Terminology> of a known <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology>:
 
-- The alias is disabled.
 - The alias has expired.
 - The sender matches a block list.
 - The sender isn't on the allow list.
 - The alias points to a destination that no longer exists.
 
-Mail to addresses that are not aliases never triggers a notification, whatever your <Terminology title="What happens to mail for an address you never made" to="/docs/reference/terminology#aliases-and-mail-flow">unknown alias action</Terminology> is.
+Mail to addresses that are not aliases, and to disabled aliases, never triggers a notification. Neither has a <Terminology title="Sends one alias's mail to Mailmask" to="/docs/reference/terminology#cloudflare-and-deploy">routing rule</Terminology>, so Cloudflare rejects it before it reaches the <Terminology title="Mailmask itself, running on your Cloudflare account" to="/docs/reference/terminology#cloudflare-and-deploy">Worker</Terminology>. If a disabled alias's mail still reaches the Worker, such as through a rule you made by hand or just before a deploy removes its rule, it is refused with `Address is disabled` and notifies with reason `disabled`.
 
 ## Supported Services
 
@@ -236,7 +235,7 @@ The config fields are `url` and optional `token`. Mailmask posts the [versioned 
   "app": "mailmask",
   "event": "message-refused",
   "title": "Mailmask refused a message",
-  "message": "Mail to old@example.com from sender@shop.test was rejected: Address is disabled.",
+  "message": "Mail to old@example.com from sender@shop.test was rejected: Address has expired.",
   "priority": 3,
   "tags": [
     "email"
@@ -246,7 +245,7 @@ The config fields are `url` and optional `token`. Mailmask posts the [versioned 
     "alias": "old@example.com",
     "envelopeSender": "sender@shop.test",
     "recipient": "old@example.com",
-    "reason": "disabled"
+    "reason": "expired"
   }
 }
 ```
@@ -257,7 +256,7 @@ The config fields are `url` and optional `token`. Mailmask posts the [versioned 
 | `app`                    | The string `mailmask`.                                                                            |
 | `event`                  | `message-refused` for live refusals; `test` for CLI test requests.                                |
 | `title`                  | `Mailmask refused a message` for live refusals.                                                   |
-| `message`                | `Mail to {recipient} from {envelopeSender} was {rejected\|dropped}: {routing reason}.`            |
+| `message`                | `Mail to {recipient} from {envelopeSender} was rejected: {routing reason}.`                       |
 | `priority`               | The number `3`.                                                                                   |
 | `tags`                   | `['email']` for live refusals; `['email', 'test']` for tests.                                     |
 | `occurredAt`             | An ISO 8601 UTC timestamp.                                                                        |
@@ -272,4 +271,4 @@ The content and headers of the refused email are never included.
 
 ## Delivery Behavior
 
-Mailmask applies the reject or drop decision first, then schedules all configured notifiers together in the background. Notifications are best effort and never delay or change routing; each notifier has its own 10-second timeout, and every failure produces one `Notifier "…" (…) failed:` warning in the Worker logs.
+Mailmask applies the reject decision first, then schedules all configured notifiers together in the background. Notifications are best effort and never delay or change routing; each notifier has its own 10-second timeout, and every failure produces one `Notifier "…" (…) failed:` warning in the Worker logs.

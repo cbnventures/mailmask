@@ -10,11 +10,10 @@ import type {
   Tests_Worker_Router_Now,
   Tests_Worker_Router_ResolveRoute_AppliesBlockedSendersBeforeAllowedSenders_Config,
   Tests_Worker_Router_ResolveRoute_DoesNotStripTagsWhenSubaddressingIsOff_Config,
-  Tests_Worker_Router_ResolveRoute_DropsRefusalsWhenTheUnknownAliasActionIsDrop_Config,
   Tests_Worker_Router_ResolveRoute_ForwardsAnActiveAliasToItsDestination_Decision,
-  Tests_Worker_Router_ResolveRoute_ForwardsUnknownRecipientsButNeverDisabledAliases_Config,
   Tests_Worker_Router_ResolveRoute_IgnoresCaseAndStripsSubaddressTags_Decision,
   Tests_Worker_Router_ResolveRoute_RefusesDisabledExpiredAndForeignRecipients_Config,
+  Tests_Worker_Router_ResolveRoute_RejectsUnknownRecipientsAndRefusalsInsteadOfForwardingThem_Config,
 } from '../../types/tests/worker/router.test.d.ts';
 
 const now: Tests_Worker_Router_Now = Date.parse('2026-10-24T12:00:00.000Z');
@@ -60,7 +59,6 @@ const baseConfig: Tests_Worker_Router_BaseConfig = {
   settings: {
     worker_name: 'mailmask',
     base_domain: 'mail.example.com',
-    unknown_alias_action: 'reject',
     subaddressing: true,
     add_alias_headers: true,
   },
@@ -157,26 +155,16 @@ describe('resolveRoute', () => {
     return;
   });
 
-  it('drops refusals when the unknown alias action is drop', () => {
-    const config: Tests_Worker_Router_ResolveRoute_DropsRefusalsWhenTheUnknownAliasActionIsDrop_Config = configSchema.parse(baseConfig);
+  it('rejects unknown recipients and refusals instead of forwarding them', () => {
+    const config: Tests_Worker_Router_ResolveRoute_RejectsUnknownRecipientsAndRefusalsInsteadOfForwardingThem_Config = configSchema.parse(baseConfig);
 
-    Reflect.set(config['settings'], 'unknown_alias_action', 'drop');
-
-    expect(resolveRoute('nobody@mail.example.com', 'a@b.test', config, now)['action']).toBe('drop');
-
-    expect(resolveRoute('old@mail.example.com', 'a@b.test', config, now)['action']).toBe('drop');
-
-    return;
-  });
-
-  it('forwards unknown recipients but never disabled aliases', () => {
-    const config: Tests_Worker_Router_ResolveRoute_ForwardsUnknownRecipientsButNeverDisabledAliases_Config = configSchema.parse(baseConfig);
-
-    Reflect.set(config['settings'], 'unknown_alias_action', 'forward');
-
-    Reflect.set(config['settings'], 'default_destination', 'spam');
-
-    expect(resolveRoute('nobody@mail.example.com', 'a@b.test', config, now)['destinationEmail']).toBe('spam@inbox.test');
+    expect(resolveRoute('nobody@mail.example.com', 'a@b.test', config, now)).toStrictEqual({
+      action: 'reject',
+      reason: 'Address not found',
+      destinationEmail: undefined,
+      aliasAddress: undefined,
+      aliasLabel: undefined,
+    });
 
     expect(resolveRoute('old@mail.example.com', 'a@b.test', config, now)['action']).toBe('reject');
 

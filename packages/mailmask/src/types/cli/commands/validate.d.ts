@@ -21,8 +21,6 @@ export type Cli_Commands_Validate_ValidateConfig_Config = { [Key in keyof Lib_Sc
 
 export type Cli_Commands_Validate_ValidateConfig_DestinationNames = Set<string>;
 
-export type Cli_Commands_Validate_ValidateConfig_DefaultDestination = string | undefined;
-
 export type Cli_Commands_Validate_ValidateConfig_NotifierNames = Set<string>;
 
 export type Cli_Commands_Validate_ValidateConfig_AddressCounts = Map<string, number>;

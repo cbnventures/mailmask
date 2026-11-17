@@ -1,5 +1,21 @@
 # mailmask
 
+## 1.1.0 - 2026-11-17
+
+### UPDATED
+- Refusals from an expired or filtered alias always bounce with their reason, and a disabled alias has no routing rule, so Cloudflare rejects its mail without a notification.
+- Deploy keeps one Email Routing rule per enabled alias instead of pointing the zone's catch-all at the Worker, turns on Email Routing subaddressing when subaddressing is true, and turns off a catch-all that 1.0.0 pointed at the Worker.
+
+### FIXED
+- Deploy's token walkthrough and permission check now include Zone Settings, which Email Routing status and subaddressing need, name each missing permission group before anything changes, and match Cloudflare's current token and Email Routing setup screens.
+
+### ADDED
+- Custom domains for the base domain and its www host, attached on deploy so the service page has an address, with www redirecting to the base domain.
+- Support for a subdomain base_domain such as mail.example.com, and for several Mailmask Workers sharing one zone.
+
+### REMOVED
+- The unknown_alias_action and default_destination settings, since Cloudflare now rejects mail to addresses that are not enabled aliases; configs that still have them load with a one-line notice.
+
 ## 1.0.0 - 2026-11-16
 
 ### UPDATED

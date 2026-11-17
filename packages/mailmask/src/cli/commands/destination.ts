@@ -71,15 +71,15 @@ function listDestinations(configPath: Cli_Commands_Destination_ListDestinations_
 /**
  * CLI - Commands - Destination - Remove Destination.
  *
- * Removes a destination by name. Refuses while any alias or the
- * default destination setting still references it.
+ * Removes a destination by name. Refuses while any alias still
+ * references it, so no alias is left without an inbox.
  *
  * @param {Cli_Commands_Destination_RemoveDestination_ConfigPath} configPath - Config path.
  * @param {Cli_Commands_Destination_RemoveDestination_Name}       name       - Name.
  *
  * @returns {Cli_Commands_Destination_RemoveDestination_Returns}
  *
- * @since 0.0.1
+ * @since 1.1.0
  */
 function removeDestination(configPath: Cli_Commands_Destination_RemoveDestination_ConfigPath, name: Cli_Commands_Destination_RemoveDestination_Name): Cli_Commands_Destination_RemoveDestination_Returns {
   const config: Cli_Commands_Destination_RemoveDestination_Config = configSchema.parse(loadConfig(configPath));
@@ -93,10 +93,6 @@ function removeDestination(configPath: Cli_Commands_Destination_RemoveDestinatio
 
   if (referencingAliases.length > 0) {
     throw new Error(`Destination "${name}" is still used by: ${referencingAliases.join(', ')}.`);
-  }
-
-  if (config['settings']['default_destination'] === name) {
-    throw new Error(`Destination "${name}" is the default destination. Change the setting first.`);
   }
 
   Reflect.set(config, 'destinations', filtered);

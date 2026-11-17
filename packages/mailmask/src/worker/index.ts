@@ -9,6 +9,7 @@ import type {
   Worker_Index_CreateWorker_Email_Returns,
   Worker_Index_CreateWorker_Fetch_MethodNotAllowedBody,
   Worker_Index_CreateWorker_Fetch_NotFoundBody,
+  Worker_Index_CreateWorker_Fetch_RedirectUrl,
   Worker_Index_CreateWorker_Fetch_Request,
   Worker_Index_CreateWorker_Fetch_RequestUrl,
   Worker_Index_CreateWorker_Fetch_Returns,
@@ -28,7 +29,7 @@ import type {
  *
  * @returns {Worker_Index_CreateWorker_Returns}
  *
- * @since UNRELEASED
+ * @since 1.0.0
  */
 function createWorker(rawConfig: Worker_Index_CreateWorker_RawConfig): Worker_Index_CreateWorker_Returns {
   const result: Worker_Index_CreateWorker_Result = configSchema.safeParse(rawConfig);
@@ -36,6 +37,15 @@ function createWorker(rawConfig: Worker_Index_CreateWorker_RawConfig): Worker_In
   return {
     async fetch(request: Worker_Index_CreateWorker_Fetch_Request): Worker_Index_CreateWorker_Fetch_Returns {
       const requestUrl: Worker_Index_CreateWorker_Fetch_RequestUrl = new URL(request['url']);
+
+      // Deploy attaches the www host too, so send it to the bare domain with the path and query intact.
+      if (result['success'] === true && requestUrl['hostname'] === `www.${result['data']['settings']['base_domain']}`) {
+        const redirectUrl: Worker_Index_CreateWorker_Fetch_RedirectUrl = new URL(requestUrl['href']);
+
+        Reflect.set(redirectUrl, 'hostname', result['data']['settings']['base_domain']);
+
+        return Response.redirect(redirectUrl['href'], 301);
+      }
 
       if (
         (

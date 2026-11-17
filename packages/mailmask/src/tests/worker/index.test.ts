@@ -6,8 +6,16 @@ import { createWorker } from '../../worker/index.js';
 
 import type {
   Tests_Worker_Index_BaseConfig,
+  Tests_Worker_Index_CreateWorker_DoesNotRedirectOtherHosts_Response,
+  Tests_Worker_Index_CreateWorker_DoesNotRedirectOtherHosts_Worker,
   Tests_Worker_Index_CreateWorker_ForwardsMailForAKnownAlias_Message,
   Tests_Worker_Index_CreateWorker_ForwardsMailForAKnownAlias_Worker,
+  Tests_Worker_Index_CreateWorker_RedirectsWwwRootAndOtherMethodsToTheBaseDomain_PostResponse,
+  Tests_Worker_Index_CreateWorker_RedirectsWwwRootAndOtherMethodsToTheBaseDomain_RootResponse,
+  Tests_Worker_Index_CreateWorker_RedirectsWwwRootAndOtherMethodsToTheBaseDomain_Worker,
+  Tests_Worker_Index_CreateWorker_RedirectsWwwToTheBaseDomainWithPathAndQuery_Request,
+  Tests_Worker_Index_CreateWorker_RedirectsWwwToTheBaseDomainWithPathAndQuery_Response,
+  Tests_Worker_Index_CreateWorker_RedirectsWwwToTheBaseDomainWithPathAndQuery_Worker,
   Tests_Worker_Index_CreateWorker_RejectsMailWhenTheConfigIsInvalid_Message,
   Tests_Worker_Index_CreateWorker_RejectsMailWhenTheConfigIsInvalid_Worker,
   Tests_Worker_Index_CreateWorker_ReturnsJSON404ForGETOutsideRoot_Body,
@@ -50,7 +58,6 @@ const baseConfig: Tests_Worker_Index_BaseConfig = {
   settings: {
     worker_name: 'mailmask',
     base_domain: 'mail.example.com',
-    unknown_alias_action: 'reject',
     subaddressing: true,
     add_alias_headers: true,
   },
@@ -199,6 +206,45 @@ describe('createWorker', () => {
     expect(body).toContain('A CBN Ventures project');
 
     expect(body).not.toContain('<script>');
+
+    return;
+  });
+
+  it('redirects www to the base domain with path and query', async () => {
+    const worker: Tests_Worker_Index_CreateWorker_RedirectsWwwToTheBaseDomainWithPathAndQuery_Worker = createWorker(baseConfig);
+    const request: Tests_Worker_Index_CreateWorker_RedirectsWwwToTheBaseDomainWithPathAndQuery_Request = new Request('https://www.mail.example.com/some/path?ref=card&page=2', { method: 'GET' });
+    const response: Tests_Worker_Index_CreateWorker_RedirectsWwwToTheBaseDomainWithPathAndQuery_Response = await worker.fetch(request);
+
+    expect(response.status).toBe(301);
+
+    expect(response.headers.get('Location')).toBe('https://mail.example.com/some/path?ref=card&page=2');
+
+    return;
+  });
+
+  it('redirects www root and other methods to the base domain', async () => {
+    const worker: Tests_Worker_Index_CreateWorker_RedirectsWwwRootAndOtherMethodsToTheBaseDomain_Worker = createWorker(baseConfig);
+    const rootResponse: Tests_Worker_Index_CreateWorker_RedirectsWwwRootAndOtherMethodsToTheBaseDomain_RootResponse = await worker.fetch(new Request('https://www.mail.example.com/', { method: 'HEAD' }));
+    const postResponse: Tests_Worker_Index_CreateWorker_RedirectsWwwRootAndOtherMethodsToTheBaseDomain_PostResponse = await worker.fetch(new Request('https://www.mail.example.com/form', { method: 'POST' }));
+
+    expect(rootResponse.status).toBe(301);
+
+    expect(rootResponse.headers.get('Location')).toBe('https://mail.example.com/');
+
+    expect(postResponse.status).toBe(301);
+
+    expect(postResponse.headers.get('Location')).toBe('https://mail.example.com/form');
+
+    return;
+  });
+
+  it('does not redirect other hosts', async () => {
+    const worker: Tests_Worker_Index_CreateWorker_DoesNotRedirectOtherHosts_Worker = createWorker(baseConfig);
+    const response: Tests_Worker_Index_CreateWorker_DoesNotRedirectOtherHosts_Response = await worker.fetch(new Request('https://www.other.example.com/', { method: 'GET' }));
+
+    expect(response.status).toBe(200);
+
+    expect(response.headers.get('Location')).toBeNull();
 
     return;
   });

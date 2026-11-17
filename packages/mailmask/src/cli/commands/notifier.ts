@@ -41,7 +41,7 @@ import type {
  *
  * @returns {Cli_Commands_Notifier_AddNotifier_Returns}
  *
- * @since UNRELEASED
+ * @since 1.0.0
  */
 function addNotifier(configPath: Cli_Commands_Notifier_AddNotifier_ConfigPath, notifier: Cli_Commands_Notifier_AddNotifier_Notifier): Cli_Commands_Notifier_AddNotifier_Returns {
   const config: Cli_Commands_Notifier_AddNotifier_Config = configSchema.parse(loadConfig(configPath));
@@ -113,7 +113,7 @@ function removeNotifier(configPath: Cli_Commands_Notifier_RemoveNotifier_ConfigP
  *
  * @returns {Cli_Commands_Notifier_TestNotifier_Returns}
  *
- * @since UNRELEASED
+ * @since 1.0.0
  */
 async function testNotifier(configPath: Cli_Commands_Notifier_TestNotifier_ConfigPath, name: Cli_Commands_Notifier_TestNotifier_Name): Cli_Commands_Notifier_TestNotifier_Returns {
   const config: Cli_Commands_Notifier_TestNotifier_Config = configSchema.parse(loadConfig(configPath));

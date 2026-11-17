@@ -39,25 +39,11 @@ export type Tests_Worker_Router_ResolveRoute_AppliesBlockedSendersBeforeAllowedS
 export type Tests_Worker_Router_ResolveRoute_DoesNotStripTagsWhenSubaddressingIsOff_Config = { [Key in keyof Lib_Schema_ConfigSchema]: Lib_Schema_ConfigSchema[Key] };
 
 /**
- * Tests - Worker - Router - Resolve Route - Drops Refusals When The Unknown Alias Action Is Drop.
- *
- * @since 0.0.1
- */
-export type Tests_Worker_Router_ResolveRoute_DropsRefusalsWhenTheUnknownAliasActionIsDrop_Config = { [Key in keyof Lib_Schema_ConfigSchema]: Lib_Schema_ConfigSchema[Key] };
-
-/**
  * Tests - Worker - Router - Resolve Route - Forwards An Active Alias To Its Destination.
  *
  * @since 0.0.1
  */
 export type Tests_Worker_Router_ResolveRoute_ForwardsAnActiveAliasToItsDestination_Decision = Shared_RouteDecision;
-
-/**
- * Tests - Worker - Router - Resolve Route - Forwards Unknown Recipients But Never Disabled Aliases.
- *
- * @since 0.0.1
- */
-export type Tests_Worker_Router_ResolveRoute_ForwardsUnknownRecipientsButNeverDisabledAliases_Config = { [Key in keyof Lib_Schema_ConfigSchema]: Lib_Schema_ConfigSchema[Key] };
 
 /**
  * Tests - Worker - Router - Resolve Route - Ignores Case And Strips Subaddress Tags.
@@ -72,3 +58,10 @@ export type Tests_Worker_Router_ResolveRoute_IgnoresCaseAndStripsSubaddressTags_
  * @since 0.0.1
  */
 export type Tests_Worker_Router_ResolveRoute_RefusesDisabledExpiredAndForeignRecipients_Config = { [Key in keyof Lib_Schema_ConfigSchema]: Lib_Schema_ConfigSchema[Key] };
+
+/**
+ * Tests - Worker - Router - Resolve Route - Rejects Unknown Recipients And Refusals Instead Of Forwarding Them.
+ *
+ * @since 1.1.0
+ */
+export type Tests_Worker_Router_ResolveRoute_RejectsUnknownRecipientsAndRefusalsInsteadOfForwardingThem_Config = { [Key in keyof Lib_Schema_ConfigSchema]: Lib_Schema_ConfigSchema[Key] };

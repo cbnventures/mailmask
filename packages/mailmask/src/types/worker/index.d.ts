@@ -5,7 +5,7 @@ import type { Lib_Schema_ConfigSchema } from '../lib/schema.d.ts';
 /**
  * Worker - Index - Create Worker.
  *
- * @since UNRELEASED
+ * @since 1.0.0
  */
 export type Worker_Index_CreateWorker_RawConfig = unknown;
 
@@ -39,7 +39,7 @@ export type Worker_Index_CreateWorker_Result = z.ZodSafeParseResult<Lib_Schema_C
 /**
  * Worker - Index - Create Worker - Email.
  *
- * @since UNRELEASED
+ * @since 1.0.0
  */
 export type Worker_Index_CreateWorker_Email_Message = Pick<ForwardableEmailMessage, 'to' | 'from' | 'forward' | 'setReject'>;
 
@@ -56,13 +56,15 @@ export type Worker_Index_CreateWorker_Email_Returns = Promise<void>;
 /**
  * Worker - Index - Create Worker - Fetch.
  *
- * @since 1.0.0
+ * @since 1.1.0
  */
 export type Worker_Index_CreateWorker_Fetch_Request = Request;
 
 export type Worker_Index_CreateWorker_Fetch_Returns = Promise<Response>;
 
 export type Worker_Index_CreateWorker_Fetch_RequestUrl = URL;
+
+export type Worker_Index_CreateWorker_Fetch_RedirectUrl = URL;
 
 export type Worker_Index_CreateWorker_Fetch_RootResponse = Response;
 

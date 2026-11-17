@@ -56,7 +56,7 @@ const aliasSchema = z.object({
  * Validates an Apprise API endpoint and the optional Apprise notification
  * URLs that the API should target.
  *
- * @since UNRELEASED
+ * @since 1.0.0
  */
 const appriseNotifierSchema = z.object({
   type: z.literal('apprise'),
@@ -71,7 +71,7 @@ const appriseNotifierSchema = z.object({
  * Validates a Discord incoming webhook notifier. Only Discord's documented
  * webhook URL forms are accepted.
  *
- * @since UNRELEASED
+ * @since 1.0.0
  */
 const discordNotifierSchema = z.object({
   type: z.literal('discord'),
@@ -85,7 +85,7 @@ const discordNotifierSchema = z.object({
  * Validates the sender and verified recipient used by a Cloudflare
  * send_email binding.
  *
- * @since UNRELEASED
+ * @since 1.0.0
  */
 const emailNotifierSchema = z.object({
   type: z.literal('email'),
@@ -100,7 +100,7 @@ const emailNotifierSchema = z.object({
  * Validates a Gotify server and application token. Mailmask appends Gotify's
  * message endpoint to the configured server URL.
  *
- * @since UNRELEASED
+ * @since 1.0.0
  */
 const gotifyNotifierSchema = z.object({
   type: z.literal('gotify'),
@@ -115,7 +115,7 @@ const gotifyNotifierSchema = z.object({
  * Validates a Matrix homeserver, room ID, and access token. Room IDs use the
  * canonical exclamation-mark form expected by the client API.
  *
- * @since UNRELEASED
+ * @since 1.0.0
  */
 const matrixNotifierSchema = z.object({
   type: z.literal('matrix'),
@@ -162,7 +162,7 @@ const ntfyReverseProxyNotifierSchema = z.object({
  * Validates a Pushover user key and application API token. Both values are
  * required by Pushover's message endpoint.
  *
- * @since UNRELEASED
+ * @since 1.0.0
  */
 const pushoverNotifierSchema = z.object({
   type: z.literal('pushover'),
@@ -177,7 +177,7 @@ const pushoverNotifierSchema = z.object({
  * Validates a Slack incoming webhook notifier. Only Slack's documented
  * incoming-webhook URL prefix is accepted.
  *
- * @since UNRELEASED
+ * @since 1.0.0
  */
 const slackNotifierSchema = z.object({
   type: z.literal('slack'),
@@ -191,7 +191,7 @@ const slackNotifierSchema = z.object({
  * Validates a Telegram bot token and target chat ID. The chat ID remains a
  * string so both numeric IDs and channel usernames are supported.
  *
- * @since UNRELEASED
+ * @since 1.0.0
  */
 const telegramNotifierSchema = z.object({
   type: z.literal('telegram'),
@@ -206,7 +206,7 @@ const telegramNotifierSchema = z.object({
  * Validates a generic HTTPS webhook and its optional bearer token. Webhooks
  * receive Mailmask's versioned JSON payload without service translation.
  *
- * @since UNRELEASED
+ * @since 1.0.0
  */
 const webhookNotifierSchema = z.object({
   type: z.literal('webhook'),
@@ -221,7 +221,7 @@ const webhookNotifierSchema = z.object({
  * Discriminated union over the notifier type field, so each notifier
  * is validated against the fields its type needs.
  *
- * @since UNRELEASED
+ * @since 1.0.0
  */
 const notifierSchema = z.discriminatedUnion('type', [
   appriseNotifierSchema,
@@ -241,25 +241,16 @@ const notifierSchema = z.discriminatedUnion('type', [
  * Lib - Schema - Settings Schema.
  *
  * Validates global settings such as the Worker name, the email domain,
- * and what happens to mail for addresses that are not aliases.
+ * subaddressing, and whether forwarded mail carries alias headers.
  *
- * @since 0.0.1
+ * @since 1.1.0
  */
 const settingsSchema = z.object({
   worker_name: z.string().min(1).regex(LIB_REGEX_WORKER_NAME, { message: 'Worker name must contain only lowercase alphanumeric characters and hyphens, and cannot start or end with a hyphen' }),
   base_domain: z.string().min(1).regex(LIB_REGEX_BASE_DOMAIN, { message: 'Base domain must be a valid domain name (lowercase alphanumeric characters, hyphens, and dots)' }),
-  unknown_alias_action: z.enum([
-    'reject',
-    'drop',
-    'forward',
-  ]),
-  default_destination: z.string().min(1).optional(),
   subaddressing: z.boolean(),
   add_alias_headers: z.boolean(),
-}).strict().refine((settings) => settings['unknown_alias_action'] !== 'forward' || settings['default_destination'] !== undefined, {
-  message: 'A default_destination is required when unknown_alias_action is "forward"',
-  path: ['default_destination'],
-});
+}).strict();
 
 /**
  * Lib - Schema - Config Schema.
@@ -267,7 +258,7 @@ const settingsSchema = z.object({
  * Top-level schema that composes destinations, aliases, notifiers, and
  * settings into a single validated configuration object.
  *
- * @since UNRELEASED
+ * @since 1.0.0
  */
 const configSchema = z.object({
   destinations: z.array(destinationSchema),
@@ -312,13 +303,14 @@ const cloudflareZonesSchema = z.array(z.object({
 /**
  * Lib - Schema - Cloudflare Email Routing Settings Schema.
  *
- * Validates the Email Routing settings of a zone, used to confirm
- * that Email Routing is enabled before the catch-all is configured.
+ * Validates the Email Routing settings of a zone, used to confirm that Email
+ * Routing is enabled and whether "alias+tag@" already matches alias rules.
  *
- * @since 0.0.1
+ * @since 1.1.0
  */
 const cloudflareEmailRoutingSettingsSchema = z.object({
   enabled: z.boolean(),
+  support_subaddress: z.boolean().optional(),
 });
 
 /**
@@ -337,18 +329,55 @@ const cloudflareDestinationAddressesSchema = z.array(z.object({
 /**
  * Lib - Schema - Cloudflare Catch All Schema.
  *
- * Validates the catch-all rule of a zone so the previous action
- * can be reported before it is pointed at the Worker.
+ * Validates the catch-all rule of a zone so deploy can tell whether
+ * Mailmask 1.0.0 pointed it at the Worker and hand it back.
  *
- * @since 0.0.1
+ * @since 1.1.0
  */
 const cloudflareCatchAllSchema = z.object({
+  name: z.string().optional(),
   enabled: z.boolean().optional(),
   actions: z.array(z.object({
     type: z.string(),
     value: z.array(z.string()).optional(),
   })),
 });
+
+/**
+ * Lib - Schema - Cloudflare Routing Rules Schema.
+ *
+ * Validates the Email Routing rules on a zone so deploy can keep one literal
+ * rule per enabled alias and leave every rule it did not create alone.
+ *
+ * @since 1.1.0
+ */
+const cloudflareRoutingRulesSchema = z.array(z.object({
+  id: z.string(),
+  name: z.string().optional(),
+  enabled: z.boolean().optional(),
+  matchers: z.array(z.object({
+    type: z.string(),
+    field: z.string().optional(),
+    value: z.string().optional(),
+  })),
+  actions: z.array(z.object({
+    type: z.string(),
+    value: z.array(z.string()).optional(),
+  })),
+}));
+
+/**
+ * Lib - Schema - Cloudflare Worker Domains Schema.
+ *
+ * Validates the Workers custom domains on a zone so deploy can attach the
+ * missing ones and refuse hostnames that already belong to another Worker.
+ *
+ * @since 1.1.0
+ */
+const cloudflareWorkerDomainsSchema = z.array(z.object({
+  hostname: z.string(),
+  service: z.string(),
+}));
 
 export {
   aliasSchema,
@@ -357,6 +386,8 @@ export {
   cloudflareDestinationAddressesSchema,
   cloudflareEmailRoutingSettingsSchema,
   cloudflareEnvelopeSchema,
+  cloudflareRoutingRulesSchema,
+  cloudflareWorkerDomainsSchema,
   cloudflareZonesSchema,
   configSchema,
   destinationSchema,

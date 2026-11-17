@@ -9,7 +9,7 @@ import type {
 /**
  * Tests - Lib - Notification - Build Notifier Request - Builds Every Service Request In Its Official API Shape.
  *
- * @since UNRELEASED
+ * @since 1.0.0
  */
 export type Tests_Lib_Notification_BuildNotifierRequest_BuildsEveryServiceRequestInItsOfficialAPIShape_Payload = { [Key in keyof Shared_NotificationPayload]: Shared_NotificationPayload[Key] };
 
@@ -42,6 +42,6 @@ export type Tests_Lib_Notification_BuildNotifierRequest_BuildsEveryServiceReques
 /**
  * Tests - Lib - Notification - Build Refusal Notification - Builds The Exact Versioned Mailmask Payload.
  *
- * @since UNRELEASED
+ * @since 1.0.0
  */
 export type Tests_Lib_Notification_BuildRefusalNotification_BuildsTheExactVersionedMailmaskPayload_Payload = { [Key in keyof Shared_NotificationPayload]: Shared_NotificationPayload[Key] };

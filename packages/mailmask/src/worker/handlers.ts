@@ -19,7 +19,7 @@ import type {
  * Worker - Handlers - Handle Email.
  *
  * Routes one inbound message: forwards it to the alias destination with
- * optional identifying headers, or rejects or drops it. Refusals on known
+ * optional identifying headers, or rejects it. Refusals on known
  * aliases schedule a best-effort notification for every configured notifier.
  *
  * @param {Worker_Handlers_HandleEmail_Message}      message        - Message.
@@ -30,7 +30,7 @@ import type {
  *
  * @returns {Worker_Handlers_HandleEmail_Returns}
  *
- * @since UNRELEASED
+ * @since 1.0.0
  */
 async function handleEmail(message: Worker_Handlers_HandleEmail_Message, config: Worker_Handlers_HandleEmail_Config, now: Worker_Handlers_HandleEmail_Now, context: Worker_Handlers_HandleEmail_Context, emailBinding?: Worker_Handlers_HandleEmail_EmailBinding): Worker_Handlers_HandleEmail_Returns {
   const settings: Worker_Handlers_HandleEmail_Settings = config['settings'];
@@ -52,9 +52,7 @@ async function handleEmail(message: Worker_Handlers_HandleEmail_Message, config:
     return;
   }
 
-  if (decision['action'] !== 'drop') {
-    message.setReject(decision['reason']);
-  }
+  message.setReject(decision['reason']);
 
   // Only refusals on known aliases notify; unknown recipients are mostly spam.
   if (decision['aliasAddress'] !== undefined) {
@@ -63,7 +61,7 @@ async function handleEmail(message: Worker_Handlers_HandleEmail_Message, config:
       message['from'],
       message['to'],
       decision['reason'],
-      (decision['action'] === 'drop') ? 'drop' : 'reject',
+      'reject',
       now,
     );
 

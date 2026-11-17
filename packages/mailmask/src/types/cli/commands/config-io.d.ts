@@ -3,6 +3,30 @@ import type { Lib_Schema_ConfigSchema } from '../../lib/schema.d.ts';
 /**
  * CLI - Commands - Config IO.
  *
+ * @since 1.1.0
+ */
+export type Cli_Commands_ConfigIo_NoticedConfigPaths = Set<string>;
+
+/**
+ * CLI - Commands - Config IO - Drop Retired Settings.
+ *
+ * @since 1.1.0
+ */
+export type Cli_Commands_ConfigIo_DropRetiredSettings_ConfigPath = string;
+
+export type Cli_Commands_ConfigIo_DropRetiredSettings_Parsed = unknown;
+
+export type Cli_Commands_ConfigIo_DropRetiredSettings_Returns = void;
+
+export type Cli_Commands_ConfigIo_DropRetiredSettings_Settings = unknown;
+
+export type Cli_Commands_ConfigIo_DropRetiredSettings_RetiredKey = string;
+
+export type Cli_Commands_ConfigIo_DropRetiredSettings_RetiredKeys = Cli_Commands_ConfigIo_DropRetiredSettings_RetiredKey[];
+
+/**
+ * CLI - Commands - Config IO.
+ *
  * @since 0.0.1
  */
 export type Cli_Commands_ConfigIo_LoadConfig_ConfigPath = string;

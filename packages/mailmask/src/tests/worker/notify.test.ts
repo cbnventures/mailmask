@@ -36,7 +36,7 @@ afterEach(() => {
 /**
  * Tests - Worker - Notify - Send Notifications.
  *
- * @since UNRELEASED
+ * @since 1.0.0
  */
 describe('sendNotifications', () => {
   it('isolates one notifier failure from the rest of the fan-out', async () => {

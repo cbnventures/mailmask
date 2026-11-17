@@ -113,7 +113,7 @@ export type Cli_Menu_Interactive_ModifyAliasFlow_ExpiresAt = string | undefined;
 /**
  * CLI - Menu - Interactive - Notifier Menu.
  *
- * @since UNRELEASED
+ * @since 1.0.0
  */
 export type Cli_Menu_Interactive_NotifierMenu_ConfigPath = string;
 

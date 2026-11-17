@@ -42,7 +42,7 @@ import type {
  *
  * @returns {Worker_Notify_RunWithTimeout_Returns}
  *
- * @since UNRELEASED
+ * @since 1.0.0
  */
 async function runWithTimeout(operation: Worker_Notify_RunWithTimeout_Operation, controller: Worker_Notify_RunWithTimeout_Controller): Worker_Notify_RunWithTimeout_Returns {
   let timeoutId: Worker_Notify_RunWithTimeout_TimeoutId = undefined;
@@ -88,7 +88,7 @@ async function runWithTimeout(operation: Worker_Notify_RunWithTimeout_Operation,
  *
  * @returns {Worker_Notify_SendNotification_Returns}
  *
- * @since UNRELEASED
+ * @since 1.0.0
  */
 async function sendNotification(notifier: Worker_Notify_SendNotification_Notifier, payload: Worker_Notify_SendNotification_Payload, emailBinding: Worker_Notify_SendNotification_EmailBinding): Worker_Notify_SendNotification_Returns {
   const controller: Worker_Notify_SendNotification_Controller = new AbortController();
@@ -162,7 +162,7 @@ async function sendNotification(notifier: Worker_Notify_SendNotification_Notifie
  *
  * @returns {Worker_Notify_SendNotifications_Returns}
  *
- * @since UNRELEASED
+ * @since 1.0.0
  */
 async function sendNotifications(notifiers: Worker_Notify_SendNotifications_Notifiers, payload: Worker_Notify_SendNotifications_Payload, emailBinding?: Worker_Notify_SendNotifications_EmailBinding): Worker_Notify_SendNotifications_Returns {
   const requests: Worker_Notify_SendNotifications_Requests = notifiers.map(async (notifier) => {

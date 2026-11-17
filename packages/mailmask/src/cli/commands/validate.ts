@@ -5,7 +5,6 @@ import type {
   Cli_Commands_Validate_ValidateConfig_AddressCounts,
   Cli_Commands_Validate_ValidateConfig_Config,
   Cli_Commands_Validate_ValidateConfig_ConfigPath,
-  Cli_Commands_Validate_ValidateConfig_DefaultDestination,
   Cli_Commands_Validate_ValidateConfig_DestinationNames,
   Cli_Commands_Validate_ValidateConfig_EntryAddress,
   Cli_Commands_Validate_ValidateConfig_EntryCount,
@@ -26,7 +25,7 @@ import type {
  *
  * @returns {Cli_Commands_Validate_ValidateConfig_Returns}
  *
- * @since 0.0.1
+ * @since 1.1.0
  */
 function validateConfig(configPath: Cli_Commands_Validate_ValidateConfig_ConfigPath): Cli_Commands_Validate_ValidateConfig_Returns {
   const errors: Cli_Commands_Validate_ValidateConfig_Errors = [];
@@ -59,12 +58,6 @@ function validateConfig(configPath: Cli_Commands_Validate_ValidateConfig_ConfigP
     if (destinationNames.has(alias['destination']) === false) {
       errors.push(`Alias "${alias['address']}": destination "${alias['destination']}" does not exist (missing).`);
     }
-  }
-
-  const defaultDestination: Cli_Commands_Validate_ValidateConfig_DefaultDestination = config['settings']['default_destination'];
-
-  if (defaultDestination !== undefined && destinationNames.has(defaultDestination) === false) {
-    errors.push(`Settings: default_destination "${defaultDestination}" does not exist (missing).`);
   }
 
   const notifierNames: Cli_Commands_Validate_ValidateConfig_NotifierNames = new Set();

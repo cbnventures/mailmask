@@ -4,8 +4,9 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { Logger } from '@cbnventures/nova/toolkit';
 import {
-  afterEach, describe, expect, it,
+  afterEach, describe, expect, it, vi,
 } from 'vitest';
 
 import { validateConfig } from '../../../cli/commands/validate.js';
@@ -15,8 +16,10 @@ import type {
   Tests_Cli_Commands_Validate_SampleConfigPath,
   Tests_Cli_Commands_Validate_TestConfigPath,
   Tests_Cli_Commands_Validate_ValidateConfig_AcceptsTheSampleConfig_Result,
+  Tests_Cli_Commands_Validate_ValidateConfig_IgnoresRetiredUnknownAddressSettingsWithOneNotice_FirstResult,
+  Tests_Cli_Commands_Validate_ValidateConfig_IgnoresRetiredUnknownAddressSettingsWithOneNotice_SecondResult,
+  Tests_Cli_Commands_Validate_ValidateConfig_IgnoresRetiredUnknownAddressSettingsWithOneNotice_WarnSpy,
   Tests_Cli_Commands_Validate_ValidateConfig_ReportsMissingDestinationsAndDuplicateAliases_Result,
-  Tests_Cli_Commands_Validate_ValidateConfig_RequiresADefaultDestinationWhenForwardingUnknownMail_Result,
 } from '../../../types/tests/cli/commands/validate.test.d.ts';
 
 const testConfigPath: Tests_Cli_Commands_Validate_TestConfigPath = join(tmpdir(), `mailmask-test-validate-${randomUUID()}.json`);
@@ -26,7 +29,6 @@ const sampleConfigPath: Tests_Cli_Commands_Validate_SampleConfigPath = join(dirn
 const baseSettings: Tests_Cli_Commands_Validate_BaseSettings = {
   worker_name: 'mailmask',
   base_domain: 'mail.example.com',
-  unknown_alias_action: 'reject',
   subaddressing: true,
   add_alias_headers: true,
 };
@@ -86,20 +88,38 @@ describe('validateConfig', () => {
     return;
   });
 
-  it('requires a default destination when forwarding unknown mail', () => {
+  it('ignores retired unknown address settings with one notice', () => {
+    const warnSpy: Tests_Cli_Commands_Validate_ValidateConfig_IgnoresRetiredUnknownAddressSettingsWithOneNotice_WarnSpy = vi.spyOn(Logger, 'warn').mockImplementation(() => undefined);
+
     writeFileSync(testConfigPath, JSON.stringify({
-      destinations: [],
+      destinations: [{
+        name: 'personal',
+        email: 'me@inbox.test',
+      }],
       aliases: [],
       notifiers: [],
       settings: {
         ...baseSettings,
         unknown_alias_action: 'forward',
+        default_destination: 'personal',
       },
     }));
 
-    const result: Tests_Cli_Commands_Validate_ValidateConfig_RequiresADefaultDestinationWhenForwardingUnknownMail_Result = validateConfig(testConfigPath);
+    const firstResult: Tests_Cli_Commands_Validate_ValidateConfig_IgnoresRetiredUnknownAddressSettingsWithOneNotice_FirstResult = validateConfig(testConfigPath);
+    const secondResult: Tests_Cli_Commands_Validate_ValidateConfig_IgnoresRetiredUnknownAddressSettingsWithOneNotice_SecondResult = validateConfig(testConfigPath);
 
-    expect(result['errors'][0]).toContain('default_destination');
+    expect(firstResult).toStrictEqual({
+      valid: true,
+      errors: [],
+    });
+
+    expect(secondResult['valid']).toBe(true);
+
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+
+    expect(warnSpy.mock.calls[0]).toEqual([expect.stringContaining('Ignoring unknown_alias_action and default_destination')]);
+
+    vi.restoreAllMocks();
 
     return;
   });

@@ -11,7 +11,7 @@ import type {
  *
  * @returns {Worker_Landing_Page_LandingPage_Returns}
  *
- * @since UNRELEASED
+ * @since 1.0.0
  */
 function landingPage(): Worker_Landing_Page_LandingPage_Returns {
   const html: Worker_Landing_Page_LandingPage_Html = [

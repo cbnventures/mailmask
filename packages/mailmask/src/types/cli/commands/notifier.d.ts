@@ -4,7 +4,7 @@ import type { Shared_NotificationRequest } from '../../shared.d.ts';
 /**
  * CLI - Commands - Notifier - Add Notifier.
  *
- * @since UNRELEASED
+ * @since 1.0.0
  */
 export type Cli_Commands_Notifier_AddNotifier_ConfigPath = string;
 
@@ -43,7 +43,7 @@ export type Cli_Commands_Notifier_RemoveNotifier_Filtered = Array<Lib_Schema_Not
 /**
  * CLI - Commands - Notifier - Test Notifier.
  *
- * @since UNRELEASED
+ * @since 1.0.0
  */
 export type Cli_Commands_Notifier_TestNotifier_ConfigPath = string;
 

@@ -1,7 +1,7 @@
 /**
  * Shared - Notification Email Message.
  *
- * @since UNRELEASED
+ * @since 1.0.0
  */
 export type Shared_NotificationEmailMessage_From = string;
 
@@ -21,7 +21,7 @@ export type Shared_NotificationEmailMessage = {
 /**
  * Shared - Notification Payload.
  *
- * @since UNRELEASED
+ * @since 1.0.0
  */
 export type Shared_NotificationPayload_Version = 1;
 
@@ -79,7 +79,7 @@ export type Shared_NotificationPayload = {
 /**
  * Shared - Notification Request.
  *
- * @since UNRELEASED
+ * @since 1.0.0
  */
 export type Shared_NotificationRequest_Url = string;
 
@@ -99,9 +99,9 @@ export type Shared_NotificationRequest = {
 /**
  * Shared - Route Decision.
  *
- * @since 0.0.1
+ * @since 1.1.0
  */
-export type Shared_RouteDecision_Action = 'forward' | 'reject' | 'drop';
+export type Shared_RouteDecision_Action = 'forward' | 'reject';
 
 export type Shared_RouteDecision_Reason = string;
 
@@ -117,4 +117,37 @@ export type Shared_RouteDecision = {
   destinationEmail: Shared_RouteDecision_DestinationEmail;
   aliasAddress: Shared_RouteDecision_AliasAddress;
   aliasLabel: Shared_RouteDecision_AliasLabel;
+};
+
+/**
+ * Shared - Routing Rule Plan.
+ *
+ * @since 1.1.0
+ */
+export type Shared_RoutingRulePlan_CreateAddress = string;
+
+export type Shared_RoutingRulePlan_Create = Shared_RoutingRulePlan_CreateAddress[];
+
+export type Shared_RoutingRulePlan_Rule_Id = string;
+
+export type Shared_RoutingRulePlan_Rule_Address = string;
+
+export type Shared_RoutingRulePlan_Rule = {
+  id: Shared_RoutingRulePlan_Rule_Id;
+  address: Shared_RoutingRulePlan_Rule_Address;
+};
+
+export type Shared_RoutingRulePlan_Update = Shared_RoutingRulePlan_Rule[];
+
+export type Shared_RoutingRulePlan_Remove = Shared_RoutingRulePlan_Rule[];
+
+export type Shared_RoutingRulePlan_SkippedAddress = string;
+
+export type Shared_RoutingRulePlan_Skipped = Shared_RoutingRulePlan_SkippedAddress[];
+
+export type Shared_RoutingRulePlan = {
+  create: Shared_RoutingRulePlan_Create;
+  update: Shared_RoutingRulePlan_Update;
+  remove: Shared_RoutingRulePlan_Remove;
+  skipped: Shared_RoutingRulePlan_Skipped;
 };

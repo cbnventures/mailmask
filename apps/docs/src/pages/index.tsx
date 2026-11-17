@@ -167,8 +167,8 @@ function Home() {
       description: (
         <>
           Deploy checks your API token, registers your inboxes with
-          Cloudflare, publishes the Worker, and points Email Routing at it,
-          then lists every alias so you know what is live.
+          Cloudflare, publishes the Worker, and adds a routing rule for each
+          enabled alias, then lists every alias so you know what is live.
         </>
       ),
       linkTo: '/docs/getting-started/deployment/',
@@ -182,6 +182,9 @@ function Home() {
         'INFO Config is valid.',
         'INFO Verifying API token permissions...',
         'INFO Permissions verified.',
+        'INFO Checking custom domains...',
+        'INFO Custom domains already point at the Worker.',
+        'INFO Checking routing rules...',
         'INFO Checking destination addresses...',
         'INFO All destination addresses are verified.',
         'INFO Generating wrangler.toml...',
@@ -191,13 +194,13 @@ function Home() {
         '────────────',
         'Uploaded mailmask',
         'INFO Worker deployed.',
-        'INFO Email Routing catch-all already points at the Worker.',
+        'INFO Routing rules for "example.com" already match the enabled aliases.',
         '',
         'Alias reference:',
         '',
-        '  velvet-harbor-42@example.com -> you@example.net (active)',
-        '  k7mq2xv9pa@example.com -> you@example.net (expires 2026-12-31T00:00:00.000Z)',
-        '  newsletters@example.com -> you@example.net (disabled)',
+        '  velvet-harbor-42@example.com -> personal (active)',
+        '  k7mq2xv9pa@example.com -> personal (expires 2026-12-31T00:00:00.000Z)',
+        '  newsletters@example.com -> personal (disabled)',
         '',
         'INFO Deploy complete.',
       ].join('\n'),
@@ -274,7 +277,7 @@ function Home() {
             {
               icon: 'lucide:at-sign',
               title: 'Aliases on Demand',
-              description: 'Generate memorable (velvet-harbor-42) or random (k7mq2xv9pa) addresses, or pick your own. One catch-all rule covers them all, so there\'s nothing to set up or pay per alias.',
+              description: 'Generate memorable (velvet-harbor-42) or random (k7mq2xv9pa) addresses, or pick your own. Deploy adds each one\'s routing rule for you, so there\'s nothing to set up or pay per alias.',
             },
             {
               icon: 'lucide:timer',

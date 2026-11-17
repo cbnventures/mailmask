@@ -24,7 +24,7 @@ export type Worker_Router_MatchesSender_SenderDomain = string;
 /**
  * Worker - Router - Resolve Route.
  *
- * @since 0.0.1
+ * @since 1.1.0
  */
 export type Worker_Router_ResolveRoute_Recipient = string;
 
@@ -44,13 +44,9 @@ export type Worker_Router_ResolveRoute_Domain = string;
 
 export type Worker_Router_ResolveRoute_LocalPart = string;
 
-export type Worker_Router_ResolveRoute_RefusalAction = 'reject' | 'drop';
-
 export type Worker_Router_ResolveRoute_PlusIndex = number;
 
 export type Worker_Router_ResolveRoute_Alias = Lib_Schema_AliasConfig | undefined;
-
-export type Worker_Router_ResolveRoute_DefaultDestination = Lib_Schema_DestinationConfig | undefined;
 
 export type Worker_Router_ResolveRoute_ExpiresAt = string | undefined;
 
