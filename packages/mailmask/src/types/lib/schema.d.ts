@@ -248,7 +248,7 @@ export type Lib_Schema_CloudflareEnvelopeError = {
   message: Lib_Schema_CloudflareEnvelopeErrorMessage;
 };
 
-export type Lib_Schema_CloudflareEnvelopeErrors = Lib_Schema_CloudflareEnvelopeError[] | undefined;
+export type Lib_Schema_CloudflareEnvelopeErrors = Lib_Schema_CloudflareEnvelopeError[] | null | undefined;
 
 export type Lib_Schema_CloudflareEnvelopeResult = unknown;
 

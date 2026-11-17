@@ -271,7 +271,8 @@ const configSchema = z.object({
  * Lib - Schema - Cloudflare Envelope Schema.
  *
  * Validates the response envelope that wraps every Cloudflare v4
- * API result, including the error list returned on failure.
+ * API result, including the error list, which some endpoints such
+ * as Workers custom domains send as null on success.
  *
  * @since 0.0.1
  */
@@ -280,7 +281,7 @@ const cloudflareEnvelopeSchema = z.object({
   errors: z.array(z.object({
     code: z.number(),
     message: z.string(),
-  })).optional(),
+  })).nullish(),
   result: z.unknown(),
 });
 

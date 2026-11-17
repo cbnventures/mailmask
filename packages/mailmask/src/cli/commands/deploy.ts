@@ -577,8 +577,14 @@ async function hasPermission(token: Cli_Commands_Deploy_HasPermission_Token, pat
     await cloudflareRequest(token, 'GET', path, undefined);
 
     return true;
-  } catch {
-    return false;
+  } catch (error) {
+    // Only a request Cloudflare refused means a missing permission. A response
+    // mailmask can't read, or a network failure, is reported as itself.
+    if (error instanceof Error && error['message'].startsWith('Cloudflare API ') === true) {
+      return false;
+    }
+
+    throw error;
   }
 }
 
@@ -665,7 +671,11 @@ async function cloudflareRequest(token: Cli_Commands_Deploy_CloudflareRequest_To
   if (response['ok'] === false || envelope['success'] === false) {
     let errorDetails: Cli_Commands_Deploy_CloudflareRequest_ErrorDetails = `HTTP ${String(response['status'])}`;
 
-    if (envelope['errors'] !== undefined && envelope['errors'].length > 0) {
+    if (
+      envelope['errors'] !== undefined
+      && envelope['errors'] !== null
+      && envelope['errors'].length > 0
+    ) {
       errorDetails = envelope['errors'].map((error) => `${String(error['code'])}: ${error['message']}`).join(', ');
     }
 

@@ -32,6 +32,7 @@ import type {
   Tests_Cli_Commands_Deploy_EnsureEmailRoutingEnabled_AcceptsASubdomainWhoseMxRecordsPointToCloudflare_Routing,
   Tests_Cli_Commands_Deploy_EnsureEmailRoutingEnabled_StopsForAnApexWithoutEmailRouting_RoutingCheck,
   Tests_Cli_Commands_Deploy_EnsureEmailRoutingEnabled_StopsForASubdomainWithoutCloudflareMxRecords_RoutingCheck,
+  Tests_Cli_Commands_Deploy_FindMissingPermissions_AcceptsANullErrorListOnSuccess_Missing,
   Tests_Cli_Commands_Deploy_FindMissingPermissions_NamesEachMissingPermission_Cases,
   Tests_Cli_Commands_Deploy_FindMissingPermissions_NamesEachMissingPermission_Missing,
   Tests_Cli_Commands_Deploy_FindMissingPermissions_NamesEachPermissionOnceWhenEveryProbeFails_Missing,
@@ -282,6 +283,24 @@ describe('findMissingPermissions', () => {
 
       vi.restoreAllMocks();
     }
+
+    return;
+  });
+
+  it('accepts a null error list on success', async () => {
+    // Cloudflare's Workers custom domains endpoint answers success with "errors": null.
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async () => new Response(JSON.stringify({
+      success: true,
+      errors: null,
+      result: [],
+    }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    }));
+
+    const missing: Tests_Cli_Commands_Deploy_FindMissingPermissions_AcceptsANullErrorListOnSuccess_Missing = await findMissingPermissions('token', 'zone-id', 'account-id');
+
+    expect(missing).toEqual([]);
 
     return;
   });

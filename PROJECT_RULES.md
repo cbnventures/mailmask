@@ -111,7 +111,7 @@ Nova supplies `NODE_ENV`, `LOG_LEVEL`, and `LOG_TIME` in generated dotenv files.
 | Entity            | Convention                   | Example                                             |
 |-------------------|------------------------------|-----------------------------------------------------|
 | Source files      | kebab-case                   | `router.ts`, `config-io.ts`                         |
-| Config keys       | snake_case                   | `base_domain`, `unknown_alias_action`, `expires_at` |
+| Config keys       | snake_case                   | `base_domain`, `worker_name`, `expires_at`          |
 | Alias addresses   | lowercase local part         | `velvet-harbor-42`, `trial.signup`                  |
 | Destination names | lowercase kebab-case         | `personal`, `work-inbox`                            |
 | Type files        | Mirror source path           | `packages/mailmask/src/types/worker/router.d.ts`    |

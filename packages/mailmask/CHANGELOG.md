@@ -1,5 +1,10 @@
 # mailmask
 
+## 1.1.1 - 2026-11-17
+
+### FIXED
+- Deploy accepts Cloudflare answers whose error list is null, such as the custom domains list, so a token with Account > Workers Scripts > Edit is no longer reported as missing it, and an answer mailmask can't read is shown as itself instead of as a missing permission.
+
 ## 1.1.0 - 2026-11-17
 
 ### UPDATED

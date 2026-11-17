@@ -103,6 +103,15 @@ export type Tests_Cli_Commands_Deploy_EnsureEmailRoutingEnabled_StopsForAnApexWi
 export type Tests_Cli_Commands_Deploy_EnsureEmailRoutingEnabled_StopsForASubdomainWithoutCloudflareMxRecords_RoutingCheck = Promise<Lib_Schema_CloudflareEmailRoutingSettings>;
 
 /**
+ * Tests - CLI - Commands - Deploy - Find Missing Permissions - Accepts A Null Error List On Success.
+ *
+ * @since 1.1.1
+ */
+export type Tests_Cli_Commands_Deploy_FindMissingPermissions_AcceptsANullErrorListOnSuccess_Permission = string;
+
+export type Tests_Cli_Commands_Deploy_FindMissingPermissions_AcceptsANullErrorListOnSuccess_Missing = Tests_Cli_Commands_Deploy_FindMissingPermissions_AcceptsANullErrorListOnSuccess_Permission[];
+
+/**
  * Tests - CLI - Commands - Deploy - Find Missing Permissions - Names Each Missing Permission.
  *
  * @since 1.1.0
