@@ -1,5 +1,3 @@
-import { spawnSync } from 'node:child_process';
-import { resolveMx } from 'node:dns/promises';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
@@ -7,22 +5,16 @@ import { Bootstrap, Logger } from '@cbnventures/nova/toolkit';
 import chalk from 'chalk';
 import prompts from 'prompts';
 
+import { Runner as CloudflareAdapter } from '../../lib/cloudflare.js';
 import { APP_NAME } from '../../lib/item.js';
-import { getWranglerCliPath } from '../../lib/package-runtime.js';
+import { Runner as PublicDnsAdapter } from '../../lib/public-dns.js';
 import { LIB_REGEX_SURROUNDING_QUOTES } from '../../lib/regex.js';
-import {
-  cloudflareCatchAllSchema,
-  cloudflareDestinationAddressesSchema,
-  cloudflareEmailRoutingSettingsSchema,
-  cloudflareEnvelopeSchema,
-  cloudflareRoutingRulesSchema,
-  cloudflareWorkerDomainsSchema,
-  cloudflareZonesSchema,
-} from '../../lib/schema.js';
 import { describeAliasStatus, listAliases } from './alias.js';
 import { listDestinations } from './destination.js';
 import { generateWranglerToml, getWranglerTomlPath } from './generate.js';
 import { listNotifiers } from './notifier.js';
+import { describePhoneAliasStatus, listPhoneAliases } from './phone-alias.js';
+import { connectPhoneProviders, listPhoneProviders } from './phone-provider.js';
 import { getSettings } from './settings.js';
 import { validateConfig } from './validate.js';
 
@@ -40,34 +32,38 @@ import type {
   Cli_Commands_Deploy_AttachCustomDomains_Token,
   Cli_Commands_Deploy_AttachCustomDomains_WorkerName,
   Cli_Commands_Deploy_AttachCustomDomains_ZoneId,
-  Cli_Commands_Deploy_BuildRoutingRule_Address,
-  Cli_Commands_Deploy_BuildRoutingRule_Returns,
-  Cli_Commands_Deploy_BuildRoutingRule_WorkerName,
-  Cli_Commands_Deploy_CloudflareRequest_Body,
-  Cli_Commands_Deploy_CloudflareRequest_Envelope,
-  Cli_Commands_Deploy_CloudflareRequest_ErrorDetails,
-  Cli_Commands_Deploy_CloudflareRequest_Method,
-  Cli_Commands_Deploy_CloudflareRequest_Path,
-  Cli_Commands_Deploy_CloudflareRequest_Response,
-  Cli_Commands_Deploy_CloudflareRequest_ResponseData,
-  Cli_Commands_Deploy_CloudflareRequest_Returns,
-  Cli_Commands_Deploy_CloudflareRequest_Token,
+  Cli_Commands_Deploy_BuildDeployWarnings_EmailSendingReady,
+  Cli_Commands_Deploy_BuildDeployWarnings_HasPhoneAliases,
+  Cli_Commands_Deploy_BuildDeployWarnings_HasPlivo,
+  Cli_Commands_Deploy_BuildDeployWarnings_PendingRecords,
+  Cli_Commands_Deploy_BuildDeployWarnings_Returns,
+  Cli_Commands_Deploy_BuildDeployWarnings_SendingWarnings,
+  Cli_Commands_Deploy_BuildDeployWarnings_Settings,
+  Cli_Commands_Deploy_BuildDeployWarnings_WorkersPlan,
+  Cli_Commands_Deploy_BuildRoutingRuleName_Address,
+  Cli_Commands_Deploy_BuildRoutingRuleName_Returns,
+  Cli_Commands_Deploy_BuildRoutingRuleName_WorkerName,
+  Cli_Commands_Deploy_CheckEmailSendingRecords_BaseDomain,
+  Cli_Commands_Deploy_CheckEmailSendingRecords_PendingRecords,
+  Cli_Commands_Deploy_CheckEmailSendingRecords_Records,
+  Cli_Commands_Deploy_CheckEmailSendingRecords_Returns,
   Cli_Commands_Deploy_Deploy_AccountId,
   Cli_Commands_Deploy_Deploy_ConfigPath,
+  Cli_Commands_Deploy_Deploy_ConnectedProviders,
+  Cli_Commands_Deploy_Deploy_EmailSendingReady,
   Cli_Commands_Deploy_Deploy_Interactive,
   Cli_Commands_Deploy_Deploy_MissingHostnames,
+  Cli_Commands_Deploy_Deploy_PendingRecords,
   Cli_Commands_Deploy_Deploy_Result,
   Cli_Commands_Deploy_Deploy_Returns,
   Cli_Commands_Deploy_Deploy_Routing,
   Cli_Commands_Deploy_Deploy_RoutingPlan,
+  Cli_Commands_Deploy_Deploy_SendingRecords,
   Cli_Commands_Deploy_Deploy_Settings,
   Cli_Commands_Deploy_Deploy_Token,
+  Cli_Commands_Deploy_Deploy_WorkersPlan,
   Cli_Commands_Deploy_Deploy_WranglerTomlPath,
   Cli_Commands_Deploy_Deploy_ZoneInfo,
-  Cli_Commands_Deploy_DeployWorker_DeployResult,
-  Cli_Commands_Deploy_DeployWorker_Returns,
-  Cli_Commands_Deploy_DeployWorker_WranglerCliPath,
-  Cli_Commands_Deploy_DeployWorker_WranglerTomlPath,
   Cli_Commands_Deploy_EnableSubaddressing_Returns,
   Cli_Commands_Deploy_EnableSubaddressing_Routing,
   Cli_Commands_Deploy_EnableSubaddressing_Token,
@@ -81,47 +77,21 @@ import type {
   Cli_Commands_Deploy_EnsureDestinationAddresses_Existing,
   Cli_Commands_Deploy_EnsureDestinationAddresses_ExistingAddresses,
   Cli_Commands_Deploy_EnsureDestinationAddresses_NormalizedEmail,
-  Cli_Commands_Deploy_EnsureDestinationAddresses_Page,
-  Cli_Commands_Deploy_EnsureDestinationAddresses_PageAddresses,
   Cli_Commands_Deploy_EnsureDestinationAddresses_Pending,
-  Cli_Commands_Deploy_EnsureDestinationAddresses_Result,
   Cli_Commands_Deploy_EnsureDestinationAddresses_Returns,
   Cli_Commands_Deploy_EnsureDestinationAddresses_Token,
   Cli_Commands_Deploy_EnsureEmailRoutingEnabled_BaseDomain,
-  Cli_Commands_Deploy_EnsureEmailRoutingEnabled_MxRecords,
-  Cli_Commands_Deploy_EnsureEmailRoutingEnabled_Result,
   Cli_Commands_Deploy_EnsureEmailRoutingEnabled_Returns,
   Cli_Commands_Deploy_EnsureEmailRoutingEnabled_Routing,
   Cli_Commands_Deploy_EnsureEmailRoutingEnabled_Token,
   Cli_Commands_Deploy_EnsureEmailRoutingEnabled_ZoneId,
   Cli_Commands_Deploy_EnsureEmailRoutingEnabled_ZoneName,
-  Cli_Commands_Deploy_FindMissingPermissions_AccountId,
-  Cli_Commands_Deploy_FindMissingPermissions_Missing,
-  Cli_Commands_Deploy_FindMissingPermissions_Probes,
-  Cli_Commands_Deploy_FindMissingPermissions_Returns,
-  Cli_Commands_Deploy_FindMissingPermissions_Token,
-  Cli_Commands_Deploy_FindMissingPermissions_ZoneId,
-  Cli_Commands_Deploy_GetLiteralAddress_Matcher,
-  Cli_Commands_Deploy_GetLiteralAddress_Returns,
-  Cli_Commands_Deploy_GetLiteralAddress_Rule,
   Cli_Commands_Deploy_GetZoneInfo_BaseDomain,
   Cli_Commands_Deploy_GetZoneInfo_Candidates,
-  Cli_Commands_Deploy_GetZoneInfo_FirstZone,
   Cli_Commands_Deploy_GetZoneInfo_Parts,
-  Cli_Commands_Deploy_GetZoneInfo_Result,
   Cli_Commands_Deploy_GetZoneInfo_Returns,
   Cli_Commands_Deploy_GetZoneInfo_Token,
-  Cli_Commands_Deploy_GetZoneInfo_Zones,
-  Cli_Commands_Deploy_HasPermission_Path,
-  Cli_Commands_Deploy_HasPermission_Returns,
-  Cli_Commands_Deploy_HasPermission_Token,
-  Cli_Commands_Deploy_ListRoutingRules_Page,
-  Cli_Commands_Deploy_ListRoutingRules_PageRules,
-  Cli_Commands_Deploy_ListRoutingRules_Result,
-  Cli_Commands_Deploy_ListRoutingRules_Returns,
-  Cli_Commands_Deploy_ListRoutingRules_Rules,
-  Cli_Commands_Deploy_ListRoutingRules_Token,
-  Cli_Commands_Deploy_ListRoutingRules_ZoneId,
+  Cli_Commands_Deploy_GetZoneInfo_Zone,
   Cli_Commands_Deploy_LoadEnvToken_Content,
   Cli_Commands_Deploy_LoadEnvToken_EnvValue,
   Cli_Commands_Deploy_LoadEnvToken_Match,
@@ -135,7 +105,6 @@ import type {
   Cli_Commands_Deploy_PlanCustomDomains_Hostnames,
   Cli_Commands_Deploy_PlanCustomDomains_MissingHostnames,
   Cli_Commands_Deploy_PlanCustomDomains_NormalizedBaseDomain,
-  Cli_Commands_Deploy_PlanCustomDomains_Result,
   Cli_Commands_Deploy_PlanCustomDomains_Returns,
   Cli_Commands_Deploy_PlanCustomDomains_Token,
   Cli_Commands_Deploy_PlanCustomDomains_WorkerName,
@@ -144,9 +113,7 @@ import type {
   Cli_Commands_Deploy_PlanRoutingRules_BaseDomain,
   Cli_Commands_Deploy_PlanRoutingRules_DomainRuleCount,
   Cli_Commands_Deploy_PlanRoutingRules_DomainSuffix,
-  Cli_Commands_Deploy_PlanRoutingRules_IsCurrent,
   Cli_Commands_Deploy_PlanRoutingRules_OtherRules,
-  Cli_Commands_Deploy_PlanRoutingRules_OwnedAction,
   Cli_Commands_Deploy_PlanRoutingRules_OwnedAddress,
   Cli_Commands_Deploy_PlanRoutingRules_OwnedRule,
   Cli_Commands_Deploy_PlanRoutingRules_OwnedRules,
@@ -162,16 +129,22 @@ import type {
   Cli_Commands_Deploy_PrintAliasSummary_Aliases,
   Cli_Commands_Deploy_PrintAliasSummary_ConfigPath,
   Cli_Commands_Deploy_PrintAliasSummary_Now,
+  Cli_Commands_Deploy_PrintAliasSummary_PhoneAliases,
+  Cli_Commands_Deploy_PrintAliasSummary_PhoneStatus,
   Cli_Commands_Deploy_PrintAliasSummary_Returns,
   Cli_Commands_Deploy_PrintAliasSummary_Settings,
   Cli_Commands_Deploy_PrintAliasSummary_Status,
   Cli_Commands_Deploy_PrintAliasSummary_StatusDescription,
+  Cli_Commands_Deploy_PrintDeployWarnings_ConfigPath,
+  Cli_Commands_Deploy_PrintDeployWarnings_EmailSendingReady,
+  Cli_Commands_Deploy_PrintDeployWarnings_PendingRecords,
+  Cli_Commands_Deploy_PrintDeployWarnings_Returns,
+  Cli_Commands_Deploy_PrintDeployWarnings_Warnings,
+  Cli_Commands_Deploy_PrintDeployWarnings_WorkersPlan,
   Cli_Commands_Deploy_PromptForApiToken_PromptResult,
   Cli_Commands_Deploy_PromptForApiToken_Returns,
   Cli_Commands_Deploy_PromptForApiToken_Token,
   Cli_Commands_Deploy_ReleaseCatchAll_CatchAll,
-  Cli_Commands_Deploy_ReleaseCatchAll_PointsAtWorker,
-  Cli_Commands_Deploy_ReleaseCatchAll_Result,
   Cli_Commands_Deploy_ReleaseCatchAll_Returns,
   Cli_Commands_Deploy_ReleaseCatchAll_Token,
   Cli_Commands_Deploy_ReleaseCatchAll_WorkerName,
@@ -183,12 +156,15 @@ import type {
   Cli_Commands_Deploy_SaveEnvToken_Regex,
   Cli_Commands_Deploy_SaveEnvToken_Returns,
   Cli_Commands_Deploy_SaveEnvToken_Token,
-  Cli_Commands_Deploy_VerifyApiToken_Envelope,
-  Cli_Commands_Deploy_VerifyApiToken_Response,
-  Cli_Commands_Deploy_VerifyApiToken_ResponseData,
-  Cli_Commands_Deploy_VerifyApiToken_Returns,
-  Cli_Commands_Deploy_VerifyApiToken_Token,
+  Cli_Commands_Deploy_SetUpEmailSending_BaseDomain,
+  Cli_Commands_Deploy_SetUpEmailSending_ErrorMessage,
+  Cli_Commands_Deploy_SetUpEmailSending_Returns,
+  Cli_Commands_Deploy_SetUpEmailSending_Setup,
+  Cli_Commands_Deploy_SetUpEmailSending_Token,
+  Cli_Commands_Deploy_SetUpEmailSending_ZoneId,
+  Cli_Commands_Deploy_SetUpEmailSending_ZoneName,
   Cli_Commands_Deploy_VerifyPermissions_AccountId,
+  Cli_Commands_Deploy_VerifyPermissions_EmailSending,
   Cli_Commands_Deploy_VerifyPermissions_Interactive,
   Cli_Commands_Deploy_VerifyPermissions_Missing,
   Cli_Commands_Deploy_VerifyPermissions_MissingMessage,
@@ -197,16 +173,6 @@ import type {
   Cli_Commands_Deploy_VerifyPermissions_Token,
   Cli_Commands_Deploy_VerifyPermissions_ZoneId,
 } from '../../types/cli/commands/deploy.d.ts';
-
-/**
- * CLI - Commands - Deploy - Cloudflare API Base.
- *
- * Base URL for the Cloudflare v4 REST API used by every
- * authenticated request made during the deployment pipeline.
- *
- * @since 0.0.1
- */
-const CLOUDFLARE_API_BASE = 'https://api.cloudflare.com/client/v4';
 
 /**
  * CLI - Commands - Deploy - Config Dir.
@@ -272,15 +238,15 @@ const ROUTING_RULE_ADDRESS_LIMIT = 90;
  * CLI - Commands - Deploy - Deploy.
  *
  * Orchestrates the full deployment pipeline: authentication, validation,
- * destination registration, Worker deployment, custom domains, and one
- * Email Routing rule per enabled alias that sends its mail to the Worker.
+ * destinations, Worker deployment, custom domains, one Email Routing rule per
+ * enabled alias, and the webhooks that send phone alias texts to the Worker.
  *
  * @param {Cli_Commands_Deploy_Deploy_ConfigPath}  configPath    - Config path.
  * @param {Cli_Commands_Deploy_Deploy_Interactive} [interactive] - Interactive.
  *
  * @returns {Cli_Commands_Deploy_Deploy_Returns}
  *
- * @since 1.1.0
+ * @since 1.2.0
  */
 async function deploy(configPath: Cli_Commands_Deploy_Deploy_ConfigPath, interactive: Cli_Commands_Deploy_Deploy_Interactive = false): Cli_Commands_Deploy_Deploy_Returns {
   // Step 1: Resolve API token.
@@ -317,7 +283,7 @@ async function deploy(configPath: Cli_Commands_Deploy_Deploy_ConfigPath, interac
   Logger.info('Verifying API token permissions...');
 
   const zoneInfo: Cli_Commands_Deploy_Deploy_ZoneInfo = await getZoneInfo(token, settings['base_domain']);
-  const accountId: Cli_Commands_Deploy_Deploy_AccountId = await verifyPermissions(token, zoneInfo['zoneId'], zoneInfo['accountId'], interactive);
+  const accountId: Cli_Commands_Deploy_Deploy_AccountId = await verifyPermissions(token, zoneInfo['zoneId'], zoneInfo['accountId'], interactive, settings['send_from_aliases'] === true);
 
   Logger.info('Permissions verified.');
 
@@ -350,15 +316,15 @@ async function deploy(configPath: Cli_Commands_Deploy_Deploy_ConfigPath, interac
   // Step 8: Deploy worker.
   Logger.info('Deploying worker...');
 
-  deployWorker(wranglerTomlPath);
+  CloudflareAdapter.deployWorker(wranglerTomlPath);
 
   Logger.info('Worker deployed.');
 
   // Step 9: Attach the base domain and its www host to the Worker.
   await attachCustomDomains(token, accountId, zoneInfo['zoneId'], settings['worker_name'], missingHostnames);
 
-  // Step 10: Let Email Routing match "alias+tag@" to the alias rule.
-  if (settings['subaddressing'] === true) {
+  // Step 10: Let Email Routing match "alias+tag@" to the alias rule, which reply addresses need too.
+  if (settings['subaddressing'] === true || settings['send_from_aliases'] === true) {
     await enableSubaddressing(token, zoneInfo['zoneId'], routing);
   }
 
@@ -367,8 +333,35 @@ async function deploy(configPath: Cli_Commands_Deploy_Deploy_ConfigPath, interac
 
   await releaseCatchAll(token, zoneInfo['zoneId'], settings['worker_name']);
 
-  // Step 12: Print alias summary.
+  // Step 12: Onboard the base domain to Email Sending so replies can leave from the aliases, then confirm its records resolve and read the Workers plan.
+  let emailSendingReady: Cli_Commands_Deploy_Deploy_EmailSendingReady = false;
+  let pendingRecords: Cli_Commands_Deploy_Deploy_PendingRecords = [];
+  let workersPlan: Cli_Commands_Deploy_Deploy_WorkersPlan = 'paid';
+
+  if (settings['send_from_aliases'] === true) {
+    const sendingRecords: Cli_Commands_Deploy_Deploy_SendingRecords = await setUpEmailSending(token, zoneInfo['zoneId'], zoneInfo['zoneName'], settings['base_domain']);
+
+    if (sendingRecords !== undefined) {
+      emailSendingReady = true;
+      pendingRecords = await checkEmailSendingRecords(settings['base_domain'], sendingRecords);
+    }
+
+    workersPlan = await CloudflareAdapter.getWorkersPlan(token, accountId);
+  }
+
+  // Step 13: Point every phone alias number at the Worker's webhook routes on the base domain.
+  if (listPhoneAliases(configPath).length > 0) {
+    Logger.info('Connecting phone numbers...');
+
+    const connectedProviders: Cli_Commands_Deploy_Deploy_ConnectedProviders = await connectPhoneProviders(configPath, `https://${settings['base_domain']}`);
+
+    Logger.info(`Phone numbers on ${connectedProviders.join(', ')} now send texts to the Worker.`);
+  }
+
+  // Step 14: Print alias summary and the caveats that apply to this config.
   printAliasSummary(configPath);
+
+  printDeployWarnings(configPath, emailSendingReady, workersPlan, pendingRecords);
 
   Logger.info('Deploy complete.');
 
@@ -391,7 +384,7 @@ async function resolveApiToken(interactive: Cli_Commands_Deploy_ResolveApiToken_
   const envToken: Cli_Commands_Deploy_ResolveApiToken_EnvToken = loadEnvToken();
 
   if (envToken !== undefined) {
-    if (await verifyApiToken(envToken) === true) {
+    if (await CloudflareAdapter.verifyToken(envToken) === true) {
       return envToken;
     }
 
@@ -412,48 +405,23 @@ async function resolveApiToken(interactive: Cli_Commands_Deploy_ResolveApiToken_
 }
 
 /**
- * CLI - Commands - Deploy - Verify API Token.
- *
- * Calls the Cloudflare token verify endpoint to confirm
- * the token is valid and has not expired.
- *
- * @param {Cli_Commands_Deploy_VerifyApiToken_Token} token - Token.
- *
- * @returns {Cli_Commands_Deploy_VerifyApiToken_Returns}
- *
- * @since 0.0.1
- */
-async function verifyApiToken(token: Cli_Commands_Deploy_VerifyApiToken_Token): Cli_Commands_Deploy_VerifyApiToken_Returns {
-  try {
-    const response: Cli_Commands_Deploy_VerifyApiToken_Response = await fetch(`${CLOUDFLARE_API_BASE}/user/tokens/verify`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    const responseData: Cli_Commands_Deploy_VerifyApiToken_ResponseData = await response.json();
-    const envelope: Cli_Commands_Deploy_VerifyApiToken_Envelope = cloudflareEnvelopeSchema.safeParse(responseData);
-
-    return envelope['success'] === true && envelope['data']['success'] === true;
-  } catch {
-    return false;
-  }
-}
-
-/**
  * CLI - Commands - Deploy - Verify Permissions.
  *
- * Probes the Cloudflare API for each permission scope the deploy needs
- * and, in interactive mode, waits for the user to fix missing ones.
+ * Asks the Cloudflare adapter which permission groups the token lacks, including
+ * Email Sending, DNS, and Billing when sending from aliases is on, and waits for a fix.
  *
- * @param {Cli_Commands_Deploy_VerifyPermissions_Token}       token       - Token.
- * @param {Cli_Commands_Deploy_VerifyPermissions_ZoneId}      zoneId      - Zone id.
- * @param {Cli_Commands_Deploy_VerifyPermissions_AccountId}   accountId   - Account id.
- * @param {Cli_Commands_Deploy_VerifyPermissions_Interactive} interactive - Interactive.
+ * @param {Cli_Commands_Deploy_VerifyPermissions_Token}        token        - Token.
+ * @param {Cli_Commands_Deploy_VerifyPermissions_ZoneId}       zoneId       - Zone id.
+ * @param {Cli_Commands_Deploy_VerifyPermissions_AccountId}    accountId    - Account id.
+ * @param {Cli_Commands_Deploy_VerifyPermissions_Interactive}  interactive  - Interactive.
+ * @param {Cli_Commands_Deploy_VerifyPermissions_EmailSending} emailSending - Email sending.
  *
  * @returns {Cli_Commands_Deploy_VerifyPermissions_Returns}
  *
- * @since 1.1.0
+ * @since 1.2.0
  */
-async function verifyPermissions(token: Cli_Commands_Deploy_VerifyPermissions_Token, zoneId: Cli_Commands_Deploy_VerifyPermissions_ZoneId, accountId: Cli_Commands_Deploy_VerifyPermissions_AccountId, interactive: Cli_Commands_Deploy_VerifyPermissions_Interactive): Cli_Commands_Deploy_VerifyPermissions_Returns {
-  const missing: Cli_Commands_Deploy_VerifyPermissions_Missing = await findMissingPermissions(token, zoneId, accountId);
+async function verifyPermissions(token: Cli_Commands_Deploy_VerifyPermissions_Token, zoneId: Cli_Commands_Deploy_VerifyPermissions_ZoneId, accountId: Cli_Commands_Deploy_VerifyPermissions_AccountId, interactive: Cli_Commands_Deploy_VerifyPermissions_Interactive, emailSending: Cli_Commands_Deploy_VerifyPermissions_EmailSending): Cli_Commands_Deploy_VerifyPermissions_Returns {
+  const missing: Cli_Commands_Deploy_VerifyPermissions_Missing = await CloudflareAdapter.findMissingPermissions(token, zoneId, accountId, emailSending);
 
   if (missing.length === 0) {
     return accountId;
@@ -496,96 +464,7 @@ async function verifyPermissions(token: Cli_Commands_Deploy_VerifyPermissions_To
     throw new Error('Deploy cancelled. Please update your API token permissions and try again.');
   }
 
-  return verifyPermissions(token, zoneId, accountId, interactive);
-}
-
-/**
- * CLI - Commands - Deploy - Find Missing Permissions.
- *
- * Reads every Cloudflare endpoint deploy calls and names the permission group
- * behind each one the token can't reach, so a gap shows before anything changes.
- *
- * @param {Cli_Commands_Deploy_FindMissingPermissions_Token}     token     - Token.
- * @param {Cli_Commands_Deploy_FindMissingPermissions_ZoneId}    zoneId    - Zone id.
- * @param {Cli_Commands_Deploy_FindMissingPermissions_AccountId} accountId - Account id.
- *
- * @returns {Cli_Commands_Deploy_FindMissingPermissions_Returns}
- *
- * @since 1.1.0
- */
-async function findMissingPermissions(token: Cli_Commands_Deploy_FindMissingPermissions_Token, zoneId: Cli_Commands_Deploy_FindMissingPermissions_ZoneId, accountId: Cli_Commands_Deploy_FindMissingPermissions_AccountId): Cli_Commands_Deploy_FindMissingPermissions_Returns {
-  const probes: Cli_Commands_Deploy_FindMissingPermissions_Probes = [
-    {
-      permission: 'Account > Workers Scripts > Edit',
-      path: `/accounts/${accountId}/workers/scripts`,
-    },
-    {
-      permission: 'Account > Workers Scripts > Edit',
-      path: `/accounts/${accountId}/workers/domains?zone_id=${zoneId}`,
-    },
-    {
-      permission: 'Account > Email Routing Addresses > Edit',
-      path: `/accounts/${accountId}/email/routing/addresses?per_page=5`,
-    },
-    {
-      permission: 'Zone > Zone Settings > Edit',
-      path: `/zones/${zoneId}/email/routing`,
-    },
-    {
-      permission: 'Zone > Email Routing Rules > Edit',
-      path: `/zones/${zoneId}/email/routing/rules?per_page=5`,
-    },
-    {
-      permission: 'Zone > Email Routing Rules > Edit',
-      path: `/zones/${zoneId}/email/routing/rules/catch_all`,
-    },
-    {
-      permission: 'Zone > Workers Routes > Edit',
-      path: `/zones/${zoneId}/workers/routes`,
-    },
-  ];
-  const missing: Cli_Commands_Deploy_FindMissingPermissions_Missing = [];
-
-  for (const probe of probes) {
-    if (missing.includes(probe['permission']) === true) {
-      continue;
-    }
-
-    if (await hasPermission(token, probe['path']) === false) {
-      missing.push(probe['permission']);
-    }
-  }
-
-  return missing;
-}
-
-/**
- * CLI - Commands - Deploy - Has Permission.
- *
- * Issues a read request against a Cloudflare endpoint and reports
- * whether the token was allowed to perform it.
- *
- * @param {Cli_Commands_Deploy_HasPermission_Token} token - Token.
- * @param {Cli_Commands_Deploy_HasPermission_Path}  path  - Path.
- *
- * @returns {Cli_Commands_Deploy_HasPermission_Returns}
- *
- * @since 0.0.1
- */
-async function hasPermission(token: Cli_Commands_Deploy_HasPermission_Token, path: Cli_Commands_Deploy_HasPermission_Path): Cli_Commands_Deploy_HasPermission_Returns {
-  try {
-    await cloudflareRequest(token, 'GET', path, undefined);
-
-    return true;
-  } catch (error) {
-    // Only a request Cloudflare refused means a missing permission. A response
-    // mailmask can't read, or a network failure, is reported as itself.
-    if (error instanceof Error && error['message'].startsWith('Cloudflare API ') === true) {
-      return false;
-    }
-
-    throw error;
-  }
+  return verifyPermissions(token, zoneId, accountId, interactive, emailSending);
 }
 
 /**
@@ -608,10 +487,12 @@ async function promptForApiToken(): Cli_Commands_Deploy_PromptForApiToken_Return
   Logger.info('  4. Under "Account policy", select your account, then search for each permission group and tick:');
   Logger.info('     - Workers Scripts: Edit');
   Logger.info('     - Email Routing Addresses: Edit');
+  Logger.info('     - Billing: Read (only when sending from aliases is on)');
   Logger.info('  5. Under "Zone policy", select the zone that holds your base domain, then search for each permission group and tick:');
   Logger.info('     - Zone Settings: Edit');
   Logger.info('     - Email Routing Rules: Edit');
   Logger.info('     - Workers Routes: Edit');
+  Logger.info('     - Email Sending: Edit and DNS: Edit (only when sending from aliases is on)');
   Logger.info('  6. Click "Continue to summary" then "Create Token"');
   Logger.info('  7. Copy the generated token');
   Logger.info('');
@@ -629,7 +510,7 @@ async function promptForApiToken(): Cli_Commands_Deploy_PromptForApiToken_Return
 
   const token: Cli_Commands_Deploy_PromptForApiToken_Token = promptResult['apiToken'].trim();
 
-  if (await verifyApiToken(token) === false) {
+  if (await CloudflareAdapter.verifyToken(token) === false) {
     throw new Error('API token is invalid. Please check the token and try again.');
   }
 
@@ -638,51 +519,6 @@ async function promptForApiToken(): Cli_Commands_Deploy_PromptForApiToken_Return
   Logger.info('API token saved to .env file.');
 
   return token;
-}
-
-/**
- * CLI - Commands - Deploy - Cloudflare Request.
- *
- * Sends an authenticated request to the Cloudflare v4 API, validates the
- * response envelope, and returns the unvalidated result payload. Throws
- * with the API error details when the request does not succeed.
- *
- * @param {Cli_Commands_Deploy_CloudflareRequest_Token}  token  - Token.
- * @param {Cli_Commands_Deploy_CloudflareRequest_Method} method - Method.
- * @param {Cli_Commands_Deploy_CloudflareRequest_Path}   path   - Path.
- * @param {Cli_Commands_Deploy_CloudflareRequest_Body}   body   - Body.
- *
- * @returns {Cli_Commands_Deploy_CloudflareRequest_Returns}
- *
- * @since 0.0.1
- */
-async function cloudflareRequest(token: Cli_Commands_Deploy_CloudflareRequest_Token, method: Cli_Commands_Deploy_CloudflareRequest_Method, path: Cli_Commands_Deploy_CloudflareRequest_Path, body: Cli_Commands_Deploy_CloudflareRequest_Body): Cli_Commands_Deploy_CloudflareRequest_Returns {
-  const response: Cli_Commands_Deploy_CloudflareRequest_Response = await fetch(`${CLOUDFLARE_API_BASE}${path}`, {
-    method,
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-    ...((body !== undefined) ? { body: JSON.stringify(body) } : {}),
-  });
-  const responseData: Cli_Commands_Deploy_CloudflareRequest_ResponseData = await response.json();
-  const envelope: Cli_Commands_Deploy_CloudflareRequest_Envelope = cloudflareEnvelopeSchema.parse(responseData);
-
-  if (response['ok'] === false || envelope['success'] === false) {
-    let errorDetails: Cli_Commands_Deploy_CloudflareRequest_ErrorDetails = `HTTP ${String(response['status'])}`;
-
-    if (
-      envelope['errors'] !== undefined
-      && envelope['errors'] !== null
-      && envelope['errors'].length > 0
-    ) {
-      errorDetails = envelope['errors'].map((error) => `${String(error['code'])}: ${error['message']}`).join(', ');
-    }
-
-    throw new Error(`Cloudflare API ${method} ${path} failed: ${errorDetails}`);
-  }
-
-  return envelope['result'];
 }
 
 /**
@@ -696,7 +532,7 @@ async function cloudflareRequest(token: Cli_Commands_Deploy_CloudflareRequest_To
  *
  * @returns {Cli_Commands_Deploy_GetZoneInfo_Returns}
  *
- * @since 0.0.1
+ * @since 1.2.0
  */
 async function getZoneInfo(token: Cli_Commands_Deploy_GetZoneInfo_Token, baseDomain: Cli_Commands_Deploy_GetZoneInfo_BaseDomain): Cli_Commands_Deploy_GetZoneInfo_Returns {
   // e.g., "mail.example.co.uk" -> try "mail.example.co.uk", then "example.co.uk", then "co.uk".
@@ -704,23 +540,16 @@ async function getZoneInfo(token: Cli_Commands_Deploy_GetZoneInfo_Token, baseDom
   const candidates: Cli_Commands_Deploy_GetZoneInfo_Candidates = parts.slice(0, parts.length - 1).map((_unused, i) => parts.slice(i).join('.'));
 
   for (const candidate of candidates) {
-    let result: Cli_Commands_Deploy_GetZoneInfo_Result = undefined;
+    let zone: Cli_Commands_Deploy_GetZoneInfo_Zone = undefined;
 
     try {
-      result = await cloudflareRequest(token, 'GET', `/zones?name=${candidate}`, undefined);
+      zone = await CloudflareAdapter.findZone(token, candidate);
     } catch {
       continue;
     }
 
-    const zones: Cli_Commands_Deploy_GetZoneInfo_Zones = cloudflareZonesSchema.parse(result);
-    const firstZone: Cli_Commands_Deploy_GetZoneInfo_FirstZone = zones[0];
-
-    if (firstZone !== undefined) {
-      return {
-        zoneId: firstZone['id'],
-        accountId: firstZone['account']['id'],
-        zoneName: firstZone['name'],
-      };
+    if (zone !== undefined) {
+      return zone;
     }
   }
 
@@ -741,11 +570,10 @@ async function getZoneInfo(token: Cli_Commands_Deploy_GetZoneInfo_Token, baseDom
  *
  * @returns {Cli_Commands_Deploy_EnsureEmailRoutingEnabled_Returns}
  *
- * @since 1.1.0
+ * @since 1.2.0
  */
 async function ensureEmailRoutingEnabled(token: Cli_Commands_Deploy_EnsureEmailRoutingEnabled_Token, zoneId: Cli_Commands_Deploy_EnsureEmailRoutingEnabled_ZoneId, zoneName: Cli_Commands_Deploy_EnsureEmailRoutingEnabled_ZoneName, baseDomain: Cli_Commands_Deploy_EnsureEmailRoutingEnabled_BaseDomain): Cli_Commands_Deploy_EnsureEmailRoutingEnabled_Returns {
-  const result: Cli_Commands_Deploy_EnsureEmailRoutingEnabled_Result = await cloudflareRequest(token, 'GET', `/zones/${zoneId}/email/routing`, undefined);
-  const routing: Cli_Commands_Deploy_EnsureEmailRoutingEnabled_Routing = cloudflareEmailRoutingSettingsSchema.parse(result);
+  const routing: Cli_Commands_Deploy_EnsureEmailRoutingEnabled_Routing = await CloudflareAdapter.getEmailRouting(token, zoneId);
 
   if (baseDomain === zoneName) {
     if (routing['enabled'] === false) {
@@ -755,16 +583,7 @@ async function ensureEmailRoutingEnabled(token: Cli_Commands_Deploy_EnsureEmailR
     return routing;
   }
 
-  let mxRecords: Cli_Commands_Deploy_EnsureEmailRoutingEnabled_MxRecords = [];
-
-  try {
-    mxRecords = await resolveMx(baseDomain);
-  } catch {
-    mxRecords = [];
-  }
-
-  // Cloudflare adds the route1, route2, and route3 .mx.cloudflare.net records when a subdomain joins Email Routing.
-  if (mxRecords.some((mxRecord) => mxRecord['exchange'].toLowerCase().endsWith('.mx.cloudflare.net') === true) === false) {
+  if (await CloudflareAdapter.hasEmailRoutingMx(baseDomain) === false) {
     throw new Error(`Email Routing is not set up for the subdomain "${baseDomain}". In the Cloudflare dashboard, open Email Routing for "${zoneName}", go to Settings > Subdomains, add "${baseDomain}" so Cloudflare adds its records, and deploy again once its MX records point to Cloudflare.`);
   }
 
@@ -783,75 +602,18 @@ async function ensureEmailRoutingEnabled(token: Cli_Commands_Deploy_EnsureEmailR
  *
  * @returns {Cli_Commands_Deploy_EnableSubaddressing_Returns}
  *
- * @since 1.1.0
+ * @since 1.2.0
  */
 async function enableSubaddressing(token: Cli_Commands_Deploy_EnableSubaddressing_Token, zoneId: Cli_Commands_Deploy_EnableSubaddressing_ZoneId, routing: Cli_Commands_Deploy_EnableSubaddressing_Routing): Cli_Commands_Deploy_EnableSubaddressing_Returns {
-  if (routing['support_subaddress'] === true) {
+  if (routing['subaddressing'] === true) {
     return;
   }
 
-  await cloudflareRequest(token, 'PATCH', `/zones/${zoneId}/email/routing`, { support_subaddress: true });
+  await CloudflareAdapter.enableSubaddressing(token, zoneId);
 
   Logger.info('Turned on Email Routing subaddressing so "alias+tag@" reaches the alias.');
 
   return;
-}
-
-/**
- * CLI - Commands - Deploy - Get Literal Address.
- *
- * Returns the lowercased address a routing rule matches when it is a single
- * literal "to" matcher, which is the only kind of rule deploy creates.
- *
- * @param {Cli_Commands_Deploy_GetLiteralAddress_Rule} rule - Rule.
- *
- * @returns {Cli_Commands_Deploy_GetLiteralAddress_Returns}
- *
- * @since 1.1.0
- */
-function getLiteralAddress(rule: Cli_Commands_Deploy_GetLiteralAddress_Rule): Cli_Commands_Deploy_GetLiteralAddress_Returns {
-  const matcher: Cli_Commands_Deploy_GetLiteralAddress_Matcher = rule['matchers'][0];
-
-  if (
-    rule['matchers'].length !== 1
-    || matcher === undefined
-    || matcher['type'] !== 'literal'
-    || matcher['field'] !== 'to'
-    || matcher['value'] === undefined
-  ) {
-    return undefined;
-  }
-
-  return matcher['value'].toLowerCase();
-}
-
-/**
- * CLI - Commands - Deploy - List Routing Rules.
- *
- * Reads every Email Routing rule on the zone, page by page, so deploy can tell the
- * rules it owns apart from ones the user or another Worker created.
- *
- * @param {Cli_Commands_Deploy_ListRoutingRules_Token}  token  - Token.
- * @param {Cli_Commands_Deploy_ListRoutingRules_ZoneId} zoneId - Zone id.
- *
- * @returns {Cli_Commands_Deploy_ListRoutingRules_Returns}
- *
- * @since 1.1.0
- */
-async function listRoutingRules(token: Cli_Commands_Deploy_ListRoutingRules_Token, zoneId: Cli_Commands_Deploy_ListRoutingRules_ZoneId): Cli_Commands_Deploy_ListRoutingRules_Returns {
-  const rules: Cli_Commands_Deploy_ListRoutingRules_Rules = [];
-  let page: Cli_Commands_Deploy_ListRoutingRules_Page = 1;
-  let pageRules: Cli_Commands_Deploy_ListRoutingRules_PageRules = [];
-
-  do {
-    const result: Cli_Commands_Deploy_ListRoutingRules_Result = await cloudflareRequest(token, 'GET', `/zones/${zoneId}/email/routing/rules?page=${String(page)}&per_page=50`, undefined);
-
-    pageRules = cloudflareRoutingRulesSchema.parse(result);
-    rules.push(...pageRules);
-    page += 1;
-  } while (pageRules.length === 50);
-
-  return rules;
 }
 
 /**
@@ -868,10 +630,10 @@ async function listRoutingRules(token: Cli_Commands_Deploy_ListRoutingRules_Toke
  *
  * @returns {Cli_Commands_Deploy_PlanRoutingRules_Returns}
  *
- * @since 1.1.0
+ * @since 1.2.0
  */
 async function planRoutingRules(token: Cli_Commands_Deploy_PlanRoutingRules_Token, zoneId: Cli_Commands_Deploy_PlanRoutingRules_ZoneId, workerName: Cli_Commands_Deploy_PlanRoutingRules_WorkerName, baseDomain: Cli_Commands_Deploy_PlanRoutingRules_BaseDomain, aliases: Cli_Commands_Deploy_PlanRoutingRules_Aliases): Cli_Commands_Deploy_PlanRoutingRules_Returns {
-  const rules: Cli_Commands_Deploy_PlanRoutingRules_Rules = await listRoutingRules(token, zoneId);
+  const rules: Cli_Commands_Deploy_PlanRoutingRules_Rules = await CloudflareAdapter.listRoutingRules(token, zoneId);
   const ownerPrefix: Cli_Commands_Deploy_PlanRoutingRules_OwnerPrefix = `${ROUTING_RULE_NAME_PREFIX}${workerName}:`;
   const domainSuffix: Cli_Commands_Deploy_PlanRoutingRules_DomainSuffix = `@${baseDomain.toLowerCase()}`;
   const ownedRules: Cli_Commands_Deploy_PlanRoutingRules_OwnedRules = rules.filter((rule) => (rule['name'] ?? '').startsWith(ownerPrefix) === true);
@@ -889,19 +651,14 @@ async function planRoutingRules(token: Cli_Commands_Deploy_PlanRoutingRules_Toke
       throw new Error(`The alias address "${wantedAddress}" is longer than the ${String(ROUTING_RULE_ADDRESS_LIMIT)} characters an Email Routing rule can match. Shorten the alias and deploy again.`);
     }
 
-    const ownedRule: Cli_Commands_Deploy_PlanRoutingRules_OwnedRule = ownedRules.find((rule) => getLiteralAddress(rule) === wantedAddress);
+    const ownedRule: Cli_Commands_Deploy_PlanRoutingRules_OwnedRule = ownedRules.find((rule) => rule['address'] === wantedAddress);
 
     if (ownedRule !== undefined) {
-      const ownedAction: Cli_Commands_Deploy_PlanRoutingRules_OwnedAction = ownedRule['actions'][0];
-      const isCurrent: Cli_Commands_Deploy_PlanRoutingRules_IsCurrent = ownedRule['enabled'] === true
-        && ownedRule['name'] === `${ownerPrefix}${wantedAddress}`
-        && ownedRule['actions'].length === 1
-        && ownedAction !== undefined
-        && ownedAction['type'] === 'worker'
-        && (ownedAction['value'] ?? []).length === 1
-        && (ownedAction['value'] ?? []).includes(workerName) === true;
-
-      if (isCurrent === false) {
+      if (
+        ownedRule['enabled'] !== true
+        || ownedRule['name'] !== buildRoutingRuleName(workerName, wantedAddress)
+        || ownedRule['workerName'] !== workerName
+      ) {
         plan['update'].push({
           id: ownedRule['id'],
           address: wantedAddress,
@@ -912,7 +669,7 @@ async function planRoutingRules(token: Cli_Commands_Deploy_PlanRoutingRules_Toke
     }
 
     // A rule someone else made for the same address wins, so leave it and say so.
-    if (otherRules.some((rule) => getLiteralAddress(rule) === wantedAddress) === true) {
+    if (otherRules.some((rule) => rule['address'] === wantedAddress) === true) {
       plan['skipped'].push(wantedAddress);
 
       continue;
@@ -922,7 +679,7 @@ async function planRoutingRules(token: Cli_Commands_Deploy_PlanRoutingRules_Toke
   }
 
   for (const ownedRule of ownedRules) {
-    const ownedAddress: Cli_Commands_Deploy_PlanRoutingRules_OwnedAddress = getLiteralAddress(ownedRule);
+    const ownedAddress: Cli_Commands_Deploy_PlanRoutingRules_OwnedAddress = ownedRule['address'];
 
     if (ownedAddress === undefined || wantedAddresses.includes(ownedAddress) === false) {
       plan['remove'].push({
@@ -932,7 +689,7 @@ async function planRoutingRules(token: Cli_Commands_Deploy_PlanRoutingRules_Toke
     }
   }
 
-  const domainRuleCount: Cli_Commands_Deploy_PlanRoutingRules_DomainRuleCount = rules.filter((rule) => (getLiteralAddress(rule) ?? '').endsWith(domainSuffix) === true).length;
+  const domainRuleCount: Cli_Commands_Deploy_PlanRoutingRules_DomainRuleCount = rules.filter((rule) => (rule['address'] ?? '').endsWith(domainSuffix) === true).length;
   const projectedRuleCount: Cli_Commands_Deploy_PlanRoutingRules_ProjectedRuleCount = domainRuleCount + plan['create'].length - plan['remove'].length;
 
   if (projectedRuleCount > ROUTING_RULE_LIMIT) {
@@ -956,23 +713,23 @@ async function planRoutingRules(token: Cli_Commands_Deploy_PlanRoutingRules_Toke
  *
  * @returns {Cli_Commands_Deploy_ApplyRoutingRules_Returns}
  *
- * @since 1.1.0
+ * @since 1.2.0
  */
 async function applyRoutingRules(token: Cli_Commands_Deploy_ApplyRoutingRules_Token, zoneId: Cli_Commands_Deploy_ApplyRoutingRules_ZoneId, workerName: Cli_Commands_Deploy_ApplyRoutingRules_WorkerName, baseDomain: Cli_Commands_Deploy_ApplyRoutingRules_BaseDomain, plan: Cli_Commands_Deploy_ApplyRoutingRules_Plan): Cli_Commands_Deploy_ApplyRoutingRules_Returns {
   for (const address of plan['create']) {
-    await cloudflareRequest(token, 'POST', `/zones/${zoneId}/email/routing/rules`, buildRoutingRule(workerName, address));
+    await CloudflareAdapter.createRoutingRule(token, zoneId, buildRoutingRuleName(workerName, address), address, workerName);
 
     Logger.info(`Added a routing rule that sends "${address}" to the Worker.`);
   }
 
   for (const rule of plan['update']) {
-    await cloudflareRequest(token, 'PUT', `/zones/${zoneId}/email/routing/rules/${rule['id']}`, buildRoutingRule(workerName, rule['address']));
+    await CloudflareAdapter.updateRoutingRule(token, zoneId, rule['id'], buildRoutingRuleName(workerName, rule['address']), rule['address'], workerName);
 
     Logger.info(`Updated the routing rule for "${rule['address']}" so it sends mail to the Worker.`);
   }
 
   for (const rule of plan['remove']) {
-    await cloudflareRequest(token, 'DELETE', `/zones/${zoneId}/email/routing/rules/${rule['id']}`, undefined);
+    await CloudflareAdapter.deleteRoutingRule(token, zoneId, rule['id']);
 
     Logger.info(`Removed the routing rule for "${rule['address']}" because the alias is gone or disabled.`);
   }
@@ -993,32 +750,20 @@ async function applyRoutingRules(token: Cli_Commands_Deploy_ApplyRoutingRules_To
 }
 
 /**
- * CLI - Commands - Deploy - Build Routing Rule.
+ * CLI - Commands - Deploy - Build Routing Rule Name.
  *
- * Builds the literal rule that sends one alias address to the Worker. The name
- * carries the Worker name so two Mailmask Workers on one zone keep their own.
+ * Builds the name of the rule for one alias address. It carries the Worker name
+ * so two Mailmask Workers on one zone keep their own rules apart.
  *
- * @param {Cli_Commands_Deploy_BuildRoutingRule_WorkerName} workerName - Worker name.
- * @param {Cli_Commands_Deploy_BuildRoutingRule_Address}    address    - Address.
+ * @param {Cli_Commands_Deploy_BuildRoutingRuleName_WorkerName} workerName - Worker name.
+ * @param {Cli_Commands_Deploy_BuildRoutingRuleName_Address}    address    - Address.
  *
- * @returns {Cli_Commands_Deploy_BuildRoutingRule_Returns}
+ * @returns {Cli_Commands_Deploy_BuildRoutingRuleName_Returns}
  *
- * @since 1.1.0
+ * @since 1.2.0
  */
-function buildRoutingRule(workerName: Cli_Commands_Deploy_BuildRoutingRule_WorkerName, address: Cli_Commands_Deploy_BuildRoutingRule_Address): Cli_Commands_Deploy_BuildRoutingRule_Returns {
-  return {
-    name: `${ROUTING_RULE_NAME_PREFIX}${workerName}:${address}`,
-    enabled: true,
-    matchers: [{
-      type: 'literal',
-      field: 'to',
-      value: address,
-    }],
-    actions: [{
-      type: 'worker',
-      value: [workerName],
-    }],
-  };
+function buildRoutingRuleName(workerName: Cli_Commands_Deploy_BuildRoutingRuleName_WorkerName, address: Cli_Commands_Deploy_BuildRoutingRuleName_Address): Cli_Commands_Deploy_BuildRoutingRuleName_Returns {
+  return `${ROUTING_RULE_NAME_PREFIX}${workerName}:${address}`;
 }
 
 /**
@@ -1033,28 +778,89 @@ function buildRoutingRule(workerName: Cli_Commands_Deploy_BuildRoutingRule_Worke
  *
  * @returns {Cli_Commands_Deploy_ReleaseCatchAll_Returns}
  *
- * @since 1.1.0
+ * @since 1.2.0
  */
 async function releaseCatchAll(token: Cli_Commands_Deploy_ReleaseCatchAll_Token, zoneId: Cli_Commands_Deploy_ReleaseCatchAll_ZoneId, workerName: Cli_Commands_Deploy_ReleaseCatchAll_WorkerName): Cli_Commands_Deploy_ReleaseCatchAll_Returns {
-  const result: Cli_Commands_Deploy_ReleaseCatchAll_Result = await cloudflareRequest(token, 'GET', `/zones/${zoneId}/email/routing/rules/catch_all`, undefined);
-  const catchAll: Cli_Commands_Deploy_ReleaseCatchAll_CatchAll = cloudflareCatchAllSchema.parse(result);
-  const pointsAtWorker: Cli_Commands_Deploy_ReleaseCatchAll_PointsAtWorker = catchAll['actions'].some((action) => action['type'] === 'worker' && (action['value'] ?? []).includes(workerName) === true);
+  const catchAll: Cli_Commands_Deploy_ReleaseCatchAll_CatchAll = await CloudflareAdapter.getCatchAll(token, zoneId);
 
-  if (pointsAtWorker === false) {
+  if (catchAll['workerNames'].includes(workerName) === false) {
     return;
   }
 
   // Mailmask 1.0.0 never stored the action it replaced, so there is nothing to restore.
-  await cloudflareRequest(token, 'PUT', `/zones/${zoneId}/email/routing/rules/catch_all`, {
-    name: catchAll['name'] ?? `${workerName}: catch-all`,
-    enabled: false,
-    matchers: [{ type: 'all' }],
-    actions: [{ type: 'drop' }],
-  });
+  await CloudflareAdapter.disableCatchAll(token, zoneId, catchAll['name'] ?? `${workerName}: catch-all`);
 
   Logger.info('Turned off the Email Routing catch-all that pointed at the Worker. Each alias now has its own rule, and Cloudflare rejects mail to other addresses.');
 
   return;
+}
+
+/**
+ * CLI - Commands - Deploy - Set Up Email Sending.
+ *
+ * Onboards the base domain to Cloudflare Email Sending and adds its DNS records,
+ * returning the records it expects. A refusal only warns and returns undefined.
+ *
+ * @param {Cli_Commands_Deploy_SetUpEmailSending_Token}      token      - Token.
+ * @param {Cli_Commands_Deploy_SetUpEmailSending_ZoneId}     zoneId     - Zone id.
+ * @param {Cli_Commands_Deploy_SetUpEmailSending_ZoneName}   zoneName   - Zone name.
+ * @param {Cli_Commands_Deploy_SetUpEmailSending_BaseDomain} baseDomain - Base domain.
+ *
+ * @returns {Cli_Commands_Deploy_SetUpEmailSending_Returns}
+ *
+ * @since 1.2.0
+ */
+async function setUpEmailSending(token: Cli_Commands_Deploy_SetUpEmailSending_Token, zoneId: Cli_Commands_Deploy_SetUpEmailSending_ZoneId, zoneName: Cli_Commands_Deploy_SetUpEmailSending_ZoneName, baseDomain: Cli_Commands_Deploy_SetUpEmailSending_BaseDomain): Cli_Commands_Deploy_SetUpEmailSending_Returns {
+  Logger.info('Checking Email Sending...');
+
+  try {
+    const setup: Cli_Commands_Deploy_SetUpEmailSending_Setup = await CloudflareAdapter.ensureEmailSendingDomain(token, zoneId, zoneName, baseDomain);
+
+    if (setup['created'] === true) {
+      Logger.info(`Onboarded "${baseDomain}" to Cloudflare Email Sending.`);
+    }
+
+    for (const addedRecord of setup['addedRecords']) {
+      Logger.info(`Added the Email Sending DNS record ${addedRecord}.`);
+    }
+
+    if (setup['created'] === false && setup['addedRecords'].length === 0) {
+      Logger.info(`Email Sending is already set up for "${baseDomain}".`);
+    }
+
+    return setup['records'];
+  } catch (error) {
+    const errorMessage: Cli_Commands_Deploy_SetUpEmailSending_ErrorMessage = (error instanceof Error) ? error['message'] : String(error);
+
+    Logger.warn(`Could not set up Cloudflare Email Sending for "${baseDomain}", so replies to outside addresses will bounce. Mail still forwards. (${errorMessage})`);
+
+    return undefined;
+  }
+}
+
+/**
+ * CLI - Commands - Deploy - Check Email Sending Records.
+ *
+ * Waits a short, bounded time for the Email Sending records to resolve on public
+ * DNS, because Cloudflare's API has no verified state, and returns those still pending.
+ *
+ * @param {Cli_Commands_Deploy_CheckEmailSendingRecords_BaseDomain} baseDomain - Base domain.
+ * @param {Cli_Commands_Deploy_CheckEmailSendingRecords_Records}    records    - Records.
+ *
+ * @returns {Cli_Commands_Deploy_CheckEmailSendingRecords_Returns}
+ *
+ * @since 1.2.0
+ */
+async function checkEmailSendingRecords(baseDomain: Cli_Commands_Deploy_CheckEmailSendingRecords_BaseDomain, records: Cli_Commands_Deploy_CheckEmailSendingRecords_Records): Cli_Commands_Deploy_CheckEmailSendingRecords_Returns {
+  Logger.info('Checking that the Email Sending DNS records resolve publicly...');
+
+  const pendingRecords: Cli_Commands_Deploy_CheckEmailSendingRecords_PendingRecords = await PublicDnsAdapter.findPendingRecords(records);
+
+  if (pendingRecords.length === 0) {
+    Logger.info(`Email Sending DNS records for "${baseDomain}" resolve publicly.`);
+  }
+
+  return pendingRecords;
 }
 
 /**
@@ -1070,7 +876,7 @@ async function releaseCatchAll(token: Cli_Commands_Deploy_ReleaseCatchAll_Token,
  *
  * @returns {Cli_Commands_Deploy_EnsureDestinationAddresses_Returns}
  *
- * @since 1.0.0
+ * @since 1.2.0
  */
 async function ensureDestinationAddresses(configPath: Cli_Commands_Deploy_EnsureDestinationAddresses_ConfigPath, token: Cli_Commands_Deploy_EnsureDestinationAddresses_Token, accountId: Cli_Commands_Deploy_EnsureDestinationAddresses_AccountId): Cli_Commands_Deploy_EnsureDestinationAddresses_Returns {
   const destinations: Cli_Commands_Deploy_EnsureDestinationAddresses_Destinations = listDestinations(configPath);
@@ -1080,18 +886,7 @@ async function ensureDestinationAddresses(configPath: Cli_Commands_Deploy_Ensure
     ...destinationEmails,
     ...emailNotifierEmails,
   ])];
-  const existingAddresses: Cli_Commands_Deploy_EnsureDestinationAddresses_ExistingAddresses = [];
-  let page: Cli_Commands_Deploy_EnsureDestinationAddresses_Page = 1;
-  let pageAddresses: Cli_Commands_Deploy_EnsureDestinationAddresses_PageAddresses = [];
-
-  do {
-    const result: Cli_Commands_Deploy_EnsureDestinationAddresses_Result = await cloudflareRequest(token, 'GET', `/accounts/${accountId}/email/routing/addresses?page=${String(page)}&per_page=50`, undefined);
-
-    pageAddresses = cloudflareDestinationAddressesSchema.parse(result);
-    existingAddresses.push(...pageAddresses);
-    page += 1;
-  } while (pageAddresses.length === 50);
-
+  const existingAddresses: Cli_Commands_Deploy_EnsureDestinationAddresses_ExistingAddresses = await CloudflareAdapter.listDestinationAddresses(token, accountId);
   const pending: Cli_Commands_Deploy_EnsureDestinationAddresses_Pending = [];
 
   for (const email of emails) {
@@ -1099,7 +894,7 @@ async function ensureDestinationAddresses(configPath: Cli_Commands_Deploy_Ensure
     const existing: Cli_Commands_Deploy_EnsureDestinationAddresses_Existing = existingAddresses.find((existingAddress) => existingAddress['email'].toLowerCase() === normalizedEmail);
 
     if (existing === undefined) {
-      await cloudflareRequest(token, 'POST', `/accounts/${accountId}/email/routing/addresses`, { email });
+      await CloudflareAdapter.createDestinationAddress(token, accountId, email);
 
       Logger.info(`Registered destination "${email}". Cloudflare sent a verification email to it.`);
 
@@ -1108,7 +903,7 @@ async function ensureDestinationAddresses(configPath: Cli_Commands_Deploy_Ensure
       continue;
     }
 
-    if (existing['verified'] === undefined || existing['verified'] === null) {
+    if (existing['verified'] === false) {
       pending.push(email);
     }
   }
@@ -1140,7 +935,7 @@ async function ensureDestinationAddresses(configPath: Cli_Commands_Deploy_Ensure
  *
  * @returns {Cli_Commands_Deploy_PlanCustomDomains_Returns}
  *
- * @since 1.1.0
+ * @since 1.2.0
  */
 async function planCustomDomains(token: Cli_Commands_Deploy_PlanCustomDomains_Token, accountId: Cli_Commands_Deploy_PlanCustomDomains_AccountId, zoneId: Cli_Commands_Deploy_PlanCustomDomains_ZoneId, workerName: Cli_Commands_Deploy_PlanCustomDomains_WorkerName, baseDomain: Cli_Commands_Deploy_PlanCustomDomains_BaseDomain): Cli_Commands_Deploy_PlanCustomDomains_Returns {
   const normalizedBaseDomain: Cli_Commands_Deploy_PlanCustomDomains_NormalizedBaseDomain = baseDomain.toLowerCase();
@@ -1148,8 +943,7 @@ async function planCustomDomains(token: Cli_Commands_Deploy_PlanCustomDomains_To
     normalizedBaseDomain,
     `www.${normalizedBaseDomain}`,
   ];
-  const result: Cli_Commands_Deploy_PlanCustomDomains_Result = await cloudflareRequest(token, 'GET', `/accounts/${accountId}/workers/domains?zone_id=${zoneId}`, undefined);
-  const domains: Cli_Commands_Deploy_PlanCustomDomains_Domains = cloudflareWorkerDomainsSchema.parse(result);
+  const domains: Cli_Commands_Deploy_PlanCustomDomains_Domains = await CloudflareAdapter.listWorkerDomains(token, accountId, zoneId);
   const missingHostnames: Cli_Commands_Deploy_PlanCustomDomains_MissingHostnames = [];
   const conflicts: Cli_Commands_Deploy_PlanCustomDomains_Conflicts = [];
 
@@ -1162,8 +956,8 @@ async function planCustomDomains(token: Cli_Commands_Deploy_PlanCustomDomains_To
       continue;
     }
 
-    if (existing['service'] !== workerName) {
-      conflicts.push(`  - "${hostname}" is attached to the Worker "${existing['service']}"`);
+    if (existing['workerName'] !== workerName) {
+      conflicts.push(`  - "${hostname}" is attached to the Worker "${existing['workerName']}"`);
     }
   }
 
@@ -1197,16 +991,12 @@ async function planCustomDomains(token: Cli_Commands_Deploy_PlanCustomDomains_To
  *
  * @returns {Cli_Commands_Deploy_AttachCustomDomains_Returns}
  *
- * @since 1.1.0
+ * @since 1.2.0
  */
 async function attachCustomDomains(token: Cli_Commands_Deploy_AttachCustomDomains_Token, accountId: Cli_Commands_Deploy_AttachCustomDomains_AccountId, zoneId: Cli_Commands_Deploy_AttachCustomDomains_ZoneId, workerName: Cli_Commands_Deploy_AttachCustomDomains_WorkerName, hostnames: Cli_Commands_Deploy_AttachCustomDomains_Hostnames): Cli_Commands_Deploy_AttachCustomDomains_Returns {
   for (const hostname of hostnames) {
     try {
-      await cloudflareRequest(token, 'PUT', `/accounts/${accountId}/workers/domains`, {
-        hostname,
-        service: workerName,
-        zone_id: zoneId,
-      });
+      await CloudflareAdapter.attachWorkerDomain(token, accountId, zoneId, hostname, workerName);
     } catch (error) {
       const errorMessage: Cli_Commands_Deploy_AttachCustomDomains_ErrorMessage = (error instanceof Error) ? error['message'] : String(error);
 
@@ -1216,37 +1006,6 @@ async function attachCustomDomains(token: Cli_Commands_Deploy_AttachCustomDomain
     }
 
     Logger.info(`Attached the custom domain "${hostname}" to the Worker.`);
-  }
-
-  return;
-}
-
-/**
- * CLI - Commands - Deploy - Worker.
- *
- * Spawns the Wrangler deploy process with the generated
- * configuration file and aborts on non-zero exit codes.
- *
- * @param {Cli_Commands_Deploy_DeployWorker_WranglerTomlPath} wranglerTomlPath - Wrangler toml path.
- *
- * @returns {Cli_Commands_Deploy_DeployWorker_Returns}
- *
- * @since 0.0.1
- */
-function deployWorker(wranglerTomlPath: Cli_Commands_Deploy_DeployWorker_WranglerTomlPath): Cli_Commands_Deploy_DeployWorker_Returns {
-  const wranglerCliPath: Cli_Commands_Deploy_DeployWorker_WranglerCliPath = getWranglerCliPath();
-  const deployResult: Cli_Commands_Deploy_DeployWorker_DeployResult = spawnSync(process.execPath, [
-    wranglerCliPath,
-    'deploy',
-    '--config',
-    wranglerTomlPath,
-  ], {
-    encoding: 'utf-8',
-    stdio: 'inherit',
-  });
-
-  if (deployResult['status'] !== 0) {
-    throw new Error('Worker deployment failed.');
   }
 
   return;
@@ -1324,21 +1083,22 @@ function saveEnvToken(token: Cli_Commands_Deploy_SaveEnvToken_Token): Cli_Comman
 /**
  * CLI - Commands - Deploy - Print Alias Summary.
  *
- * Logs every configured alias with its full address, destination,
- * and status so the user has a reference after deploying.
+ * Logs every configured email and phone alias with its destination and
+ * status so the user has a reference after deploying.
  *
  * @param {Cli_Commands_Deploy_PrintAliasSummary_ConfigPath} configPath - Config path.
  *
  * @returns {Cli_Commands_Deploy_PrintAliasSummary_Returns}
  *
- * @since 0.0.1
+ * @since 1.2.0
  */
 function printAliasSummary(configPath: Cli_Commands_Deploy_PrintAliasSummary_ConfigPath): Cli_Commands_Deploy_PrintAliasSummary_Returns {
   const aliases: Cli_Commands_Deploy_PrintAliasSummary_Aliases = listAliases(configPath);
+  const phoneAliases: Cli_Commands_Deploy_PrintAliasSummary_PhoneAliases = listPhoneAliases(configPath);
   const settings: Cli_Commands_Deploy_PrintAliasSummary_Settings = getSettings(configPath);
   const now: Cli_Commands_Deploy_PrintAliasSummary_Now = Date.now();
 
-  if (aliases.length === 0) {
+  if (aliases.length === 0 && phoneAliases.length === 0) {
     return;
   }
 
@@ -1353,18 +1113,93 @@ function printAliasSummary(configPath: Cli_Commands_Deploy_PrintAliasSummary_Con
     process.stdout.write(`  ${chalk.cyan(`${alias['address']}@${settings['base_domain']}`)} -> ${alias['destination']} (${status})\n`);
   }
 
+  for (const phoneAlias of phoneAliases) {
+    const phoneStatus: Cli_Commands_Deploy_PrintAliasSummary_PhoneStatus = describePhoneAliasStatus(phoneAlias, now);
+
+    process.stdout.write(`  ${chalk.cyan(phoneAlias['number'])} -> ${phoneAlias['destination']} (${chalk.yellow(phoneStatus)})\n`);
+  }
+
   process.stdout.write('\n');
 
   return;
 }
 
+/**
+ * CLI - Commands - Deploy - Print Deploy Warnings.
+ *
+ * Prints the caveats that apply to the deployed config, so limits of sending
+ * from aliases and of phone aliases show up in the terminal, not only the docs.
+ *
+ * @param {Cli_Commands_Deploy_PrintDeployWarnings_ConfigPath}        configPath        - Config path.
+ * @param {Cli_Commands_Deploy_PrintDeployWarnings_EmailSendingReady} emailSendingReady - Email sending ready.
+ * @param {Cli_Commands_Deploy_PrintDeployWarnings_WorkersPlan}       workersPlan       - Workers plan.
+ * @param {Cli_Commands_Deploy_PrintDeployWarnings_PendingRecords}    pendingRecords    - Pending records.
+ *
+ * @returns {Cli_Commands_Deploy_PrintDeployWarnings_Returns}
+ *
+ * @since 1.2.0
+ */
+function printDeployWarnings(configPath: Cli_Commands_Deploy_PrintDeployWarnings_ConfigPath, emailSendingReady: Cli_Commands_Deploy_PrintDeployWarnings_EmailSendingReady, workersPlan: Cli_Commands_Deploy_PrintDeployWarnings_WorkersPlan, pendingRecords: Cli_Commands_Deploy_PrintDeployWarnings_PendingRecords): Cli_Commands_Deploy_PrintDeployWarnings_Returns {
+  const warnings: Cli_Commands_Deploy_PrintDeployWarnings_Warnings = buildDeployWarnings(getSettings(configPath), emailSendingReady, listPhoneAliases(configPath).length > 0, listPhoneProviders(configPath).some((phoneProvider) => phoneProvider['type'] === 'plivo'), workersPlan, pendingRecords);
+
+  for (const warning of warnings) {
+    Logger.warn(warning);
+  }
+
+  return;
+}
+
+/**
+ * CLI - Commands - Deploy - Build Deploy Warnings.
+ *
+ * Builds the short, factual caveats for a config: sending from aliases, its Email
+ * Sending setup and records, the Workers plan, phone alias texts, and Plivo countries.
+ *
+ * @param {Cli_Commands_Deploy_BuildDeployWarnings_Settings}          settings          - Settings.
+ * @param {Cli_Commands_Deploy_BuildDeployWarnings_EmailSendingReady} emailSendingReady - Email sending ready.
+ * @param {Cli_Commands_Deploy_BuildDeployWarnings_HasPhoneAliases}   hasPhoneAliases   - Has phone aliases.
+ * @param {Cli_Commands_Deploy_BuildDeployWarnings_HasPlivo}          hasPlivo          - Has plivo.
+ * @param {Cli_Commands_Deploy_BuildDeployWarnings_WorkersPlan}       workersPlan       - Workers plan.
+ * @param {Cli_Commands_Deploy_BuildDeployWarnings_PendingRecords}    pendingRecords    - Pending records.
+ *
+ * @returns {Cli_Commands_Deploy_BuildDeployWarnings_Returns}
+ *
+ * @since 1.2.0
+ */
+function buildDeployWarnings(settings: Cli_Commands_Deploy_BuildDeployWarnings_Settings, emailSendingReady: Cli_Commands_Deploy_BuildDeployWarnings_EmailSendingReady, hasPhoneAliases: Cli_Commands_Deploy_BuildDeployWarnings_HasPhoneAliases, hasPlivo: Cli_Commands_Deploy_BuildDeployWarnings_HasPlivo, workersPlan: Cli_Commands_Deploy_BuildDeployWarnings_WorkersPlan, pendingRecords: Cli_Commands_Deploy_BuildDeployWarnings_PendingRecords): Cli_Commands_Deploy_BuildDeployWarnings_Returns {
+  const sendingWarnings: Cli_Commands_Deploy_BuildDeployWarnings_SendingWarnings = [];
+
+  if (emailSendingReady === false) {
+    sendingWarnings.push(`Email Sending is not set up for "${settings['base_domain']}" (see the warning above), so replies to outside addresses bounce. Fix that and deploy again.`);
+  } else if (pendingRecords.length > 0) {
+    sendingWarnings.push(`Email Sending is set up for "${settings['base_domain']}", but these DNS records don't resolve publicly yet: ${pendingRecords.join(', ')}. Replies can bounce until they do; deploy again later to check.`);
+  }
+
+  if (workersPlan === 'free') {
+    sendingWarnings.push('This account is on Workers Free, so replies to outside addresses bounce. Upgrade to Workers Paid to send them.');
+  }
+
+  if (workersPlan === 'unknown') {
+    sendingWarnings.push('Could not read this account\'s Workers plan from Cloudflare. If replies bounce, upgrade to Workers Paid.');
+  }
+
+  return [
+    ...((settings['send_from_aliases'] === true) ? [
+      'Sending from aliases is on. Use Reply, not Reply All: Reply All mails the other recipients straight from your real address.',
+      ...sendingWarnings,
+    ] : []),
+    ...((hasPhoneAliases === true) ? ['A text from a destination phone is sent on from its phone alias based on the caller number the provider reports, and carrier caller ID can be spoofed.'] : []),
+    ...((hasPlivo === true) ? ['Plivo sets the countries a number can text in its console (Messaging > Settings > Geo Permissions). Mailmask cannot change that list.'] : []),
+  ];
+}
+
 export {
   applyRoutingRules,
   attachCustomDomains,
+  buildDeployWarnings,
   deploy,
   enableSubaddressing,
   ensureEmailRoutingEnabled,
-  findMissingPermissions,
   planCustomDomains,
   planRoutingRules,
   releaseCatchAll,

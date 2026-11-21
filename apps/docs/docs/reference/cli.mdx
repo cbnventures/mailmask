@@ -1,7 +1,7 @@
 ---
 id: cli
 title: CLI Reference
-description: Manage aliases, destination inboxes, validation, wrangler.toml generation, and Cloudflare deployment with the mailmask (mm) command line tool.
+description: Manage aliases, phone aliases, destinations, validation, wrangler.toml generation, and deployment with the mailmask (mm) command line tool.
 sidebar_position: 1
 keywords:
   - mailmask
@@ -23,7 +23,7 @@ Manage every <Terminology title="A stand-in address; mail still lands in your re
 ## Why Use This Command?
 
 1. Opens a guided menu with no arguments so you never need to remember flags for everyday changes.
-2. Offers direct commands for managing aliases, destinations, and notifiers, plus `validate`, `generate`, and `deploy`, so you can script everyday changes.
+2. Offers direct commands for managing aliases, phone aliases, destinations, and notifiers, plus `validate`, `generate`, and `deploy`, so you can script everyday changes.
 3. Validates the <Terminology title="The one file that holds every alias and setting" to="/docs/reference/terminology#cloudflare-and-deploy">config</Terminology> on every change so broken references are caught before they reach Cloudflare.
 
 ## Requirements
@@ -65,6 +65,7 @@ Manage every <Terminology title="A stand-in address; mail still lands in your re
 Running `mm` with no arguments opens a menu with these sections:
 
 - **Manage Aliases** — Create an <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology>, list them with their status, or modify one (enable, disable, change expiry, or remove).
+- **Manage Phone Aliases** — List each <Terminology title="A rented number that forwards its texts to you" to="/docs/reference/terminology#phone-aliases">phone alias</Terminology> with its status, or modify one (enable, disable, change expiry, remove, or release). Adding numbers and providers uses direct commands.
 - **Manage Destinations** — Add, list, or remove a <Terminology title="Your real inbox, where an alias's mail ends up" to="/docs/reference/terminology#aliases-and-mail-flow">destination</Terminology> inbox.
 - **Manage Notifiers** — Add an ntfy topic or a Reverse Proxy for ntfy context, and list or remove any notifier type. Use direct commands to add the other services or send tests.
 - **Settings** — Edit the <Terminology title="Mailmask itself, running on your Cloudflare account" to="/docs/reference/terminology#cloudflare-and-deploy">Worker</Terminology> name, <Terminology title="The domain every alias lives on" to="/docs/reference/terminology#cloudflare-and-deploy">base domain</Terminology>, <Terminology title="alias+anything@ still reaches alias@" to="/docs/reference/terminology#aliases-and-mail-flow">subaddressing</Terminology>, and alias headers.
@@ -115,15 +116,86 @@ Delete an <Terminology title="A stand-in address; mail still lands in your real 
 
 Add a <Terminology title="Your real inbox, where an alias's mail ends up" to="/docs/reference/terminology#aliases-and-mail-flow">destination</Terminology> inbox. Cloudflare emails it a verification link on the next deploy.
 
-The address is saved in lowercase, and the command refuses a name or address that another <Terminology title="Your real inbox, where an alias's mail ends up" to="/docs/reference/terminology#aliases-and-mail-flow">destination</Terminology> already uses.
+The address is saved in lowercase, and the command refuses a name or address that another <Terminology title="Your real inbox, where an alias's mail ends up" to="/docs/reference/terminology#aliases-and-mail-flow">destination</Terminology> already uses. Add `--phone <number>` to save the real number that phone aliases text.
+
+### `destination phone <name> <number>`
+
+Set the real phone number of a <Terminology title="Your real inbox, where an alias's mail ends up" to="/docs/reference/terminology#aliases-and-mail-flow">destination</Terminology>, such as `+15550100199`, or pass `none` to clear it. Clearing is refused while a <Terminology title="A rented number that forwards its texts to you" to="/docs/reference/terminology#phone-aliases">phone alias</Terminology> still forwards to it.
 
 ### `destination list`
 
-Print each <Terminology title="Your real inbox, where an alias's mail ends up" to="/docs/reference/terminology#aliases-and-mail-flow">destination</Terminology> name and address, separated by tabs.
+Print each <Terminology title="Your real inbox, where an alias's mail ends up" to="/docs/reference/terminology#aliases-and-mail-flow">destination</Terminology> name, address, and phone number, separated by tabs.
 
 ### `destination remove <name>`
 
-Remove a <Terminology title="Your real inbox, where an alias's mail ends up" to="/docs/reference/terminology#aliases-and-mail-flow">destination</Terminology>. The command refuses while any <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology> still forwards to it.
+Remove a <Terminology title="Your real inbox, where an alias's mail ends up" to="/docs/reference/terminology#aliases-and-mail-flow">destination</Terminology>. The command refuses while any <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology> or <Terminology title="A rented number that forwards its texts to you" to="/docs/reference/terminology#phone-aliases">phone alias</Terminology> still forwards to it.
+
+## Phone Commands
+
+Commands that take `<number>` accept the number with or without spaces, dashes, and parentheses, such as `+1 (555) 010-0100`. See [Phone Aliases](/docs/features/phone-aliases/) for how forwarding and sending work.
+
+The interactive menu's **Manage Phone Providers** and **Manage Phone Aliases** screens walk through the same steps, including a number search. A purchase there always asks for a final confirmation, and nothing is bought if you say no.
+
+### `phone provider add-telnyx <name>`
+
+Add a Telnyx account. Requires `--api-key <key>` and `--public-key <key>`, the base64 webhook key from the portal's **Keys & Credentials** page. Add `--countries <codes>`, such as `US,CA`, to limit the countries the numbers may text; without it, every country is allowed.
+
+### `phone provider add-plivo <name>`
+
+Add a Plivo account. Requires `--auth-id <id>` and `--auth-token <token>`.
+
+### `phone provider check <name>`
+
+Read the account with the saved credentials and fail when the provider refuses them. It changes nothing on the account.
+
+### `phone provider connect`
+
+Point every <Terminology title="A rented number that forwards its texts to you" to="/docs/reference/terminology#phone-aliases">phone alias</Terminology> number at the deployed <Terminology title="Mailmask itself, running on your Cloudflare account" to="/docs/reference/terminology#cloudflare-and-deploy">Worker</Terminology>, the same step `deploy` runs last.
+
+### `phone provider list` and `phone provider remove <name>`
+
+List each <Terminology title="The Telnyx or Plivo account that rents your numbers" to="/docs/reference/terminology#phone-aliases">phone provider</Terminology> name and type, or remove one. Removing is refused while a phone alias still uses the provider.
+
+### `phone search <provider>`
+
+List numbers the provider can sell, with the features each one supports. It never buys anything.
+
+| Flag                     | Description                                |
+|--------------------------|--------------------------------------------|
+| `-c, --country <code>`   | Two-letter country code. Defaults to `US`. |
+| `-a, --area-code <code>` | Area code to search in.                    |
+| `-n, --limit <count>`    | Most numbers to list. Defaults to `10`.    |
+
+### `phone add <number>`
+
+Create a <Terminology title="A rented number that forwards its texts to you" to="/docs/reference/terminology#phone-aliases">phone alias</Terminology>. Without `--buy`, the number must already be on the provider account.
+
+| Flag                       | Description                                                                          |
+|----------------------------|--------------------------------------------------------------------------------------|
+| `-p, --provider <name>`    | Phone provider that rents the number. Required.                                      |
+| `-d, --destination <name>` | Destination whose `phone` receives the texts. Required.                              |
+| `--buy`                    | Buy the number first, which charges the provider account. Requires `--yes`.          |
+| `--yes`                    | Confirms the purchase that `--buy` makes.                                            |
+| `-l, --label <label>`      | Where you used this number.                                                          |
+| `-e, --expires <when>`     | Expiry: `30m`, `12h`, `7d`, `4w`, an ISO date, or `never`.                           |
+| `--allow <senders>`        | Comma-separated numbers or sender names allowed to text, such as `+1555*` or `ACME`. |
+| `--block <senders>`        | Comma-separated numbers or sender names to drop.                                     |
+
+### `phone list`
+
+Print one line per <Terminology title="A rented number that forwards its texts to you" to="/docs/reference/terminology#phone-aliases">phone alias</Terminology> with its number, provider, destination, status, and label, separated by tabs.
+
+### `phone enable <number>`, `phone disable <number>`, and `phone expire <number> <when>`
+
+Turn a <Terminology title="A rented number that forwards its texts to you" to="/docs/reference/terminology#phone-aliases">phone alias</Terminology> on or off, or set when it expires. A disabled number stays on the provider account.
+
+### `phone remove <number>`
+
+Delete a <Terminology title="A rented number that forwards its texts to you" to="/docs/reference/terminology#phone-aliases">phone alias</Terminology> from the <Terminology title="The one file that holds every alias and setting" to="/docs/reference/terminology#cloudflare-and-deploy">config</Terminology> and keep the number on the provider account.
+
+### `phone release <number>`
+
+Give the number back to the provider and delete its <Terminology title="A rented number that forwards its texts to you" to="/docs/reference/terminology#phone-aliases">phone alias</Terminology>. It requires `--yes`, because a released number cannot be got back.
 
 ## Notifier Commands
 
@@ -201,7 +273,7 @@ The generated `wrangler.toml` has no `account_id`, which only `deploy` adds. To 
 
 ### `deploy`
 
-Validate, register destinations, publish the <Terminology title="Mailmask itself, running on your Cloudflare account" to="/docs/reference/terminology#cloudflare-and-deploy">Worker</Terminology> with its <Terminology title="Your Worker's own web addresses" to="/docs/reference/terminology#cloudflare-and-deploy">custom domains</Terminology>, and keep a <Terminology title="Sends one alias's mail to Mailmask" to="/docs/reference/terminology#cloudflare-and-deploy">routing rule</Terminology> for each enabled alias. See [Deployment](/docs/getting-started/deployment/#what-deploy-does) for each step.
+Validate, register destinations, publish the <Terminology title="Mailmask itself, running on your Cloudflare account" to="/docs/reference/terminology#cloudflare-and-deploy">Worker</Terminology> with its <Terminology title="Your Worker's own web addresses" to="/docs/reference/terminology#cloudflare-and-deploy">custom domains</Terminology>, keep a <Terminology title="Sends one alias's mail to Mailmask" to="/docs/reference/terminology#cloudflare-and-deploy">routing rule</Terminology> for each enabled alias, and point every phone alias number at the Worker. See [Deployment](/docs/getting-started/deployment/#what-deploy-does) for each step.
 
 The direct command reads `CLOUDFLARE_API_TOKEN` from the environment or a `.env` file. It exits with a non-zero code instead of prompting when the token is missing or invalid.
 

@@ -16,11 +16,33 @@ import {
   setAliasExpiry,
 } from './commands/alias.js';
 import { deploy } from './commands/deploy.js';
-import { addDestination, listDestinations, removeDestination } from './commands/destination.js';
+import {
+  addDestination,
+  listDestinations,
+  removeDestination,
+  setDestinationPhone,
+} from './commands/destination.js';
 import { generateWranglerToml, getWranglerTomlPath } from './commands/generate.js';
 import {
   addNotifier, listNotifiers, removeNotifier, testNotifier,
 } from './commands/notifier.js';
+import {
+  addPhoneAlias,
+  describePhoneAliasStatus,
+  listPhoneAliases,
+  releasePhoneAlias,
+  removePhoneAlias,
+  searchPhoneNumbers,
+  setPhoneAliasEnabled,
+  setPhoneAliasExpiry,
+} from './commands/phone-alias.js';
+import {
+  addPhoneProvider,
+  checkPhoneProvider,
+  connectPhoneProviders,
+  listPhoneProviders,
+  removePhoneProvider,
+} from './commands/phone-provider.js';
 import { getSettings } from './commands/settings.js';
 import { validateConfig } from './commands/validate.js';
 import { interactiveMenu } from './menu/interactive.js';
@@ -34,14 +56,23 @@ import type {
   Cli_Index_Main_Alias,
   Cli_Index_Main_AliasCommand,
   Cli_Index_Main_AliasStyleOption,
+  Cli_Index_Main_AvailableNumbers,
   Cli_Index_Main_ConfigDirs,
   Cli_Index_Main_ConfigPath,
+  Cli_Index_Main_ConnectedProviders,
+  Cli_Index_Main_ConnectSettings,
   Cli_Index_Main_DestinationCommand,
+  Cli_Index_Main_DestinationCountries,
   Cli_Index_Main_ExpiresAt,
   Cli_Index_Main_ListSettings,
   Cli_Index_Main_Message,
   Cli_Index_Main_NotifierCommand,
   Cli_Index_Main_Now,
+  Cli_Index_Main_PhoneCommand,
+  Cli_Index_Main_PhoneExpiresAt,
+  Cli_Index_Main_PhoneNow,
+  Cli_Index_Main_PhoneProviderCommand,
+  Cli_Index_Main_PhoneResult,
   Cli_Index_Main_Result,
   Cli_Index_Main_Returns,
   Cli_Index_Main_Settings,
@@ -256,13 +287,26 @@ async function main(): Cli_Index_Main_Returns {
   destinationCommand
     .command('add <name> <email>')
     .description('Add a destination inbox')
-    .action((name, email) => {
+    .option('--phone <number>', 'Real phone number that phone aliases text (E.164, e.g. +15550100100)')
+    .action((name, email, options) => {
       addDestination(configPath, {
         name,
         email,
+        ...((options['phone'] !== undefined) ? { phone: options['phone'] } : {}),
       });
 
       Logger.info(`Destination "${name}" added. Cloudflare will email it a verification link on the next deploy.`);
+
+      return;
+    });
+
+  destinationCommand
+    .command('phone <name> <number>')
+    .description('Set the real phone number phone aliases text, or "none" to clear it')
+    .action((name, number) => {
+      setDestinationPhone(configPath, name, (number === 'none') ? undefined : number);
+
+      Logger.info(`Destination "${name}" phone updated. Run "mm deploy" to apply.`);
 
       return;
     });
@@ -272,7 +316,7 @@ async function main(): Cli_Index_Main_Returns {
     .description('List destination inboxes')
     .action(() => {
       for (const destination of listDestinations(configPath)) {
-        process.stdout.write(`${destination['name']}\t${destination['email']}\n`);
+        process.stdout.write(`${destination['name']}\t${destination['email']}\t${destination['phone'] ?? ''}\n`);
       }
 
       return;
@@ -522,9 +566,233 @@ async function main(): Cli_Index_Main_Returns {
       return;
     });
 
+  const phoneCommand: Cli_Index_Main_PhoneCommand = new Command('phone').description('Manage phone aliases');
+  const phoneProviderCommand: Cli_Index_Main_PhoneProviderCommand = new Command('provider').description('Manage Telnyx and Plivo accounts');
+
+  phoneProviderCommand
+    .command('add-telnyx <name>')
+    .description('Add a Telnyx account')
+    .requiredOption('--api-key <key>', 'Telnyx API key')
+    .requiredOption('--public-key <key>', 'Telnyx public key for webhook signatures (base64)')
+    .option('--countries <codes>', 'Comma-separated country codes the numbers may text (default: every country)')
+    .action((name, options) => {
+      const destinationCountries: Cli_Index_Main_DestinationCountries = splitSenders(options['countries']);
+
+      addPhoneProvider(configPath, {
+        type: 'telnyx',
+        name,
+        api_key: options['apiKey'],
+        public_key: options['publicKey'],
+        ...((destinationCountries !== undefined && destinationCountries.length > 0) ? { destination_countries: destinationCountries.map((destinationCountry) => destinationCountry.toUpperCase()) } : {}),
+      });
+
+      Logger.info(`Phone provider "${name}" added. Run "mm phone provider check ${name}" to test the keys.`);
+
+      return;
+    });
+
+  phoneProviderCommand
+    .command('add-plivo <name>')
+    .description('Add a Plivo account')
+    .requiredOption('--auth-id <id>', 'Plivo auth ID')
+    .requiredOption('--auth-token <token>', 'Plivo auth token')
+    .action((name, options) => {
+      addPhoneProvider(configPath, {
+        type: 'plivo',
+        name,
+        auth_id: options['authId'],
+        auth_token: options['authToken'],
+      });
+
+      Logger.info(`Phone provider "${name}" added. Run "mm phone provider check ${name}" to test the credentials.`);
+
+      return;
+    });
+
+  phoneProviderCommand
+    .command('list')
+    .description('List phone providers')
+    .action(() => {
+      for (const phoneProvider of listPhoneProviders(configPath)) {
+        process.stdout.write(`${phoneProvider['name']}\t${phoneProvider['type']}\n`);
+      }
+
+      return;
+    });
+
+  phoneProviderCommand
+    .command('check <name>')
+    .description('Check a phone provider\'s credentials')
+    .action(async (name) => {
+      await checkPhoneProvider(configPath, name);
+
+      Logger.info(`Phone provider "${name}" accepted the credentials.`);
+
+      return;
+    });
+
+  phoneProviderCommand
+    .command('connect')
+    .description('Point every phone alias number at the deployed Worker')
+    .action(async () => {
+      const connectSettings: Cli_Index_Main_ConnectSettings = getSettings(configPath);
+      const connectedProviders: Cli_Index_Main_ConnectedProviders = await connectPhoneProviders(configPath, `https://${connectSettings['base_domain']}`);
+
+      Logger.info((connectedProviders.length === 0) ? 'No phone aliases to connect.' : `Connected phone numbers on ${connectedProviders.join(', ')}.`);
+
+      return;
+    });
+
+  phoneProviderCommand
+    .command('remove <name>')
+    .description('Remove a phone provider')
+    .action((name) => {
+      removePhoneProvider(configPath, name);
+
+      Logger.info(`Phone provider "${name}" removed.`);
+
+      return;
+    });
+
+  phoneCommand.addCommand(phoneProviderCommand);
+
+  phoneCommand
+    .command('search <provider>')
+    .description('List numbers a provider can sell (buys nothing)')
+    .option('-c, --country <code>', 'Two-letter country code', 'US')
+    .option('-a, --area-code <code>', 'Area code to search in')
+    .option('-n, --limit <count>', 'Most numbers to list', '10')
+    .action(async (provider, options) => {
+      const availableNumbers: Cli_Index_Main_AvailableNumbers = await searchPhoneNumbers(configPath, provider, {
+        countryCode: String(options['country']).toUpperCase(),
+        areaCode: options['areaCode'],
+        limit: parseInt(options['limit'], 10),
+      });
+
+      for (const availableNumber of availableNumbers) {
+        process.stdout.write(`${availableNumber['number']}\t${availableNumber['features'].join(',')}\n`);
+      }
+
+      return;
+    });
+
+  phoneCommand
+    .command('add <number>')
+    .description('Create a phone alias from a number on the provider account')
+    .requiredOption('-p, --provider <name>', 'Phone provider that owns the number')
+    .requiredOption('-d, --destination <name>', 'Destination whose phone receives the texts')
+    .option('--buy', 'Buy the number first (charges the provider account)', false)
+    .option('-l, --label <label>', 'Where you used this number')
+    .option('-e, --expires <when>', 'Expiry: 30m, 12h, 7d, 4w, an ISO date, or never')
+    .option('--allow <senders>', 'Comma-separated numbers or sender names allowed to text (e.g. +1555*, ACME)')
+    .option('--block <senders>', 'Comma-separated numbers or sender names to drop')
+    .option('--yes', 'Confirm the purchase that --buy makes', false)
+    .action(async (number, options) => {
+      if (options['buy'] === true && options['yes'] !== true) {
+        Logger.error(`Buying "${number}" charges the "${options['provider']}" account. Run again with --buy --yes to buy it.`);
+
+        process.exitCode = 1;
+
+        return;
+      }
+
+      const phoneResult: Cli_Index_Main_PhoneResult = await addPhoneAlias(configPath, {
+        number,
+        buy: options['buy'] === true,
+        provider: options['provider'],
+        destination: options['destination'],
+        label: options['label'],
+        expires: options['expires'],
+        allowedSenders: splitSenders(options['allow']),
+        blockedSenders: splitSenders(options['block']),
+      });
+
+      Logger.info(`Created phone alias ${phoneResult['phoneAlias']['number']} (${phoneResult['status']}). Run "mm deploy" to apply.`);
+
+      return;
+    });
+
+  phoneCommand
+    .command('list')
+    .description('List phone aliases')
+    .action(() => {
+      const phoneNow: Cli_Index_Main_PhoneNow = Date.now();
+
+      for (const phoneAlias of listPhoneAliases(configPath)) {
+        process.stdout.write(`${phoneAlias['number']}\t${phoneAlias['provider']}\t${phoneAlias['destination']}\t${describePhoneAliasStatus(phoneAlias, phoneNow)}\t${phoneAlias['label'] ?? ''}\n`);
+      }
+
+      return;
+    });
+
+  phoneCommand
+    .command('enable <number>')
+    .description('Enable a phone alias')
+    .action((number) => {
+      setPhoneAliasEnabled(configPath, number, true);
+
+      Logger.info(`Phone alias "${number}" enabled. Run "mm deploy" to apply.`);
+
+      return;
+    });
+
+  phoneCommand
+    .command('disable <number>')
+    .description('Disable a phone alias (the number stays on the account)')
+    .action((number) => {
+      setPhoneAliasEnabled(configPath, number, false);
+
+      Logger.info(`Phone alias "${number}" disabled. Run "mm deploy" to apply.`);
+
+      return;
+    });
+
+  phoneCommand
+    .command('expire <number> <when>')
+    .description('Set when a phone alias expires (30m, 12h, 7d, 4w, an ISO date, or never)')
+    .action((number, when) => {
+      const phoneExpiresAt: Cli_Index_Main_PhoneExpiresAt = setPhoneAliasExpiry(configPath, number, when);
+
+      Logger.info(`Phone alias "${number}" now expires: ${phoneExpiresAt ?? 'never'}. Run "mm deploy" to apply.`);
+
+      return;
+    });
+
+  phoneCommand
+    .command('remove <number>')
+    .description('Remove a phone alias but keep the number on the provider account')
+    .action((number) => {
+      removePhoneAlias(configPath, number);
+
+      Logger.info(`Phone alias "${number}" removed. The number is still on the provider account. Run "mm deploy" to apply.`);
+
+      return;
+    });
+
+  phoneCommand
+    .command('release <number>')
+    .description('Give the number back to the provider and remove the phone alias')
+    .option('--yes', 'Confirm the release, which cannot be undone', false)
+    .action(async (number, options) => {
+      if (options['yes'] !== true) {
+        Logger.error(`Releasing "${number}" gives it back to the provider and cannot be undone. Run again with --yes to release it.`);
+
+        process.exitCode = 1;
+
+        return;
+      }
+
+      await releasePhoneAlias(configPath, number);
+
+      Logger.info(`Released "${number}" and removed its phone alias. Run "mm deploy" to apply.`);
+
+      return;
+    });
+
   program.addCommand(aliasCommand);
   program.addCommand(destinationCommand);
   program.addCommand(notifierCommand);
+  program.addCommand(phoneCommand);
 
   program
     .command('validate')

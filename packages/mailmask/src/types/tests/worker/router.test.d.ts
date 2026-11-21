@@ -65,3 +65,10 @@ export type Tests_Worker_Router_ResolveRoute_RefusesDisabledExpiredAndForeignRec
  * @since 1.1.0
  */
 export type Tests_Worker_Router_ResolveRoute_RejectsUnknownRecipientsAndRefusalsInsteadOfForwardingThem_Config = { [Key in keyof Lib_Schema_ConfigSchema]: Lib_Schema_ConfigSchema[Key] };
+
+/**
+ * Tests - Worker - Router - Resolve Route - Sends Mail From The Alias Inbox To A Reply Address Through The Alias.
+ *
+ * @since 1.2.0
+ */
+export type Tests_Worker_Router_ResolveRoute_SendsMailFromTheAliasInboxToAReplyAddressThroughTheAlias_Config = { [Key in keyof Lib_Schema_ConfigSchema]: Lib_Schema_ConfigSchema[Key] };

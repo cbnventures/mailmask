@@ -269,6 +269,15 @@ A CLI test payload uses `event: "test"`, title `Mailmask test notification`, mes
 
 The content and headers of the refused email are never included.
 
+### Phone Alias Refusals
+
+A text that a <Terminology title="A rented number that forwards its texts to you" to="/docs/reference/terminology#phone-aliases">phone alias</Terminology> drops uses the same version 1 contract with a few different values. The text itself is never included.
+
+- **`title`** — `Mailmask refused a text`.
+- **`message`** — `Text to {number} from {sender} was dropped: {routing reason}.`
+- **`tags`** — `['sms']`.
+- **`details`** — `alias` and `recipient` are the phone alias number, and `envelopeSender` is the sender's number, short code, or sender name.
+
 ## Delivery Behavior
 
 Mailmask applies the reject decision first, then schedules all configured notifiers together in the background. Notifications are best effort and never delay or change routing; each notifier has its own 10-second timeout, and every failure produces one `Notifier "…" (…) failed:` warning in the Worker logs.

@@ -1,0 +1,106 @@
+---
+id: sending-from-aliases
+title: Sending From Aliases
+description: Reply to mail and start new conversations from an alias, so the people you write to only ever see the alias and never your real inbox address.
+sidebar_position: 6
+keywords:
+  - mailmask
+  - send from alias
+  - reply from alias
+  - reverse alias
+  - email sending
+tags:
+  - features
+  - aliases
+---
+
+import { Terminology } from '@cbnventures/docusaurus-preset-nova/blocks';
+
+Reply to mail and write new messages from an <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology>, so the other side never learns your real address.
+
+## Why Use This Feature?
+
+1. Keeps your real address private in both directions, not only for the mail you receive.
+2. Lets you press **Reply** in your usual mail app, with no copying of addresses.
+3. Starts new conversations from an alias by writing to one address on your own domain.
+4. Keeps the same switches as receiving, so a disabled or expired alias can't send either.
+
+## Requirements
+
+- **The setting** — `send_from_aliases` set to `true` in `settings`, or **Send and reply from aliases?** answered yes in the interactive **Settings** menu.
+- **Workers Paid** — Replies go to addresses outside your account, which Cloudflare Email Sending only allows on the Workers Paid plan ([Cloudflare docs](https://developers.cloudflare.com/email-service/platform/pricing/)). Deploy onboards your <Terminology title="The domain every alias lives on" to="/docs/reference/terminology#cloudflare-and-deploy">base domain</Terminology> to Email Sending and adds its DNS records, so the upgrade is the only step left to you.
+- **Three more token permissions** — `Zone > Email Sending > Edit`, `Zone > DNS > Edit`, and `Account > Billing > Read`, which deploy checks for before it changes anything, as [Deployment](/docs/getting-started/deployment/#api-token-permissions) lists. Billing is read-only and lets deploy see which Workers plan the account is on.
+- **A mail provider that passes DMARC** — The <Terminology title="Mailmask itself, running on your Cloudflare account" to="/docs/reference/terminology#cloudflare-and-deploy">Worker</Terminology> only sends mail that passed DMARC for your <Terminology title="Your real inbox, where an alias's mail ends up" to="/docs/reference/terminology#aliases-and-mail-flow">destination</Terminology> address, which large providers such as Gmail and Fastmail do.
+
+## Usage
+
+```json title="config.json"
+{
+  "settings": {
+    "worker_name": "mailmask",
+    "base_domain": "example.com",
+    "subaddressing": true,
+    "add_alias_headers": true,
+    "send_from_aliases": true
+  }
+}
+```
+
+Run `mm deploy` after turning it on. Deploy sets up everything sending needs:
+
+- **Email Sending** — Onboards the base domain to Cloudflare Email Sending, unless it already is.
+- **DNS records** — Adds the `cf-bounce` MX, SPF, and DKIM records, and a DMARC record when the domain has none, skipping any that already exist.
+- **Subaddressing** — Turns on Email Routing subaddressing so reply addresses reach the alias.
+- **Binding** — Gives the `MAILMASK_EMAIL` `send_email` binding no recipient allowlist, so replies can reach anyone.
+
+Running deploy again changes nothing that is already in place. After the setup, deploy runs two checks:
+
+- **Records resolve** — Cloudflare's API has no "verified" state for a sending domain, so deploy looks each Email Sending record up on public DNS through Cloudflare's resolver (1.1.1.1), for up to a minute. Any record that doesn't resolve yet is named in a "pending" warning; deploy again later to check it.
+- **Workers plan** — Deploy reads the account's subscriptions. It warns about Workers Paid only when the account is on Workers Free, or when the plan can't be read, and the warning says which.
+
+Every deploy also reminds you that **Reply All** exposes your real address.
+
+:::info
+New DNS records usually work within 5 to 15 minutes on Cloudflare DNS, and can take up to 24 hours ([Cloudflare docs](https://developers.cloudflare.com/email-service/configuration/domains/)), so a "pending" warning right after the first deploy is normal.
+:::
+
+## Replying
+
+With the setting on, mail to `shop@example.com` from `news@store.example.com` arrives from `shop+news=store.example.com@example.com`, the alias's <Terminology title="One sender's own address under an alias" to="/docs/reference/terminology#aliases-and-mail-flow">reply address</Terminology> for that sender. Your mail app shows the sender's real address as the name, and **Reply** goes to the reply address.
+
+The Worker then sends your reply from `shop@example.com` to `news@store.example.com`. The subject, date, content, attachments, and threading headers go along, and every other header, including your name, mail client, and real address, is left out.
+
+:::warning
+Use **Reply**, not **Reply All**. Other recipients of the original message, and the alias itself, are not reply addresses, so **Reply All** would mail them straight from your real inbox.
+:::
+
+## Writing a New Message
+
+To write to someone from an <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology>, send mail from the alias's destination to the alias, a `+`, their address with `=` in place of `@`, and your domain:
+
+```text
+To write to       bob@example.net
+from the alias    shop@example.com
+send mail to      shop+bob=example.net@example.com
+```
+
+Mail from anyone other than the alias's own destination address to a reply address is treated as ordinary mail to the alias, so nobody else can send as your alias.
+
+## Limits
+
+- **Workers Free** — Cloudflare Email Sending to outside addresses is not part of the free plan, so a reply bounces back to you with the Cloudflare error until you upgrade. Forwarding still works, because sends to your own verified destination are free on every plan ([Cloudflare docs](https://developers.cloudflare.com/email-service/platform/pricing/)).
+- **Monthly quota** — Workers Paid includes 3,000 outbound emails a month, then charges per 1,000, and sends to your verified destinations don't count toward it ([Cloudflare docs](https://developers.cloudflare.com/email-service/platform/pricing/)).
+- **Daily quota and size** — New accounts start with a daily sending quota that grows over time, and each message can be up to 25 MiB ([Cloudflare docs](https://developers.cloudflare.com/email-service/platform/limits/)).
+- **Long addresses** — The part before the `@` of a reply address can be at most 64 characters. When the alias and the sender's address are too long together, the message is forwarded the plain way, and a reply to it would come from your real address.
+- **Lowercase** — Reply addresses are lowercase, so a sender whose mailbox name depends on capital letters may not get your reply.
+- **One recipient** — A reply goes only to the sender its reply address stands for, even if you add more people in `To` or `Cc`.
+- **Your message as written** — The body is sent unchanged, so quoted text and your signature go along as you wrote them.
+
+## How It Works
+
+1. A forwarded message is rebuilt with `From` and `Reply-To` set to the reply address, then sent to your destination through the `send_email` binding. If that send fails, the Worker forwards the original the plain way instead.
+2. Mail to a reply address reaches the alias's routing rule, because Email Routing subaddressing matches `alias+anything@`.
+3. The Worker checks that the `From` address is the alias's destination and that Cloudflare's first `Authentication-Results` header shows `dmarc=pass`. Mail that fails is rejected with `Sender could not be verified`.
+4. It checks that the alias is enabled and not expired, rebuilds the headers, and sends the message from the alias to the sender.
+
+Mail is handled in memory and never stored, the same as forwarding.

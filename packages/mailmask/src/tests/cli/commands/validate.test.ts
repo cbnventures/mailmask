@@ -20,6 +20,7 @@ import type {
   Tests_Cli_Commands_Validate_ValidateConfig_IgnoresRetiredUnknownAddressSettingsWithOneNotice_SecondResult,
   Tests_Cli_Commands_Validate_ValidateConfig_IgnoresRetiredUnknownAddressSettingsWithOneNotice_WarnSpy,
   Tests_Cli_Commands_Validate_ValidateConfig_ReportsMissingDestinationsAndDuplicateAliases_Result,
+  Tests_Cli_Commands_Validate_ValidateConfig_ReportsPhoneAliasProblems_Result,
 } from '../../../types/tests/cli/commands/validate.test.d.ts';
 
 const testConfigPath: Tests_Cli_Commands_Validate_TestConfigPath = join(tmpdir(), `mailmask-test-validate-${randomUUID()}.json`);
@@ -120,6 +121,66 @@ describe('validateConfig', () => {
     expect(warnSpy.mock.calls[0]).toEqual([expect.stringContaining('Ignoring unknown_alias_action and default_destination')]);
 
     vi.restoreAllMocks();
+
+    return;
+  });
+
+  it('reports phone alias problems', () => {
+    writeFileSync(testConfigPath, JSON.stringify({
+      destinations: [
+        {
+          name: 'personal',
+          email: 'me@inbox.test',
+          phone: '+15550100101',
+        },
+        {
+          name: 'inbox-only',
+          email: 'other@inbox.test',
+        },
+      ],
+      aliases: [],
+      phone_providers: [{
+        type: 'telnyx',
+        name: 'telnyx',
+        api_key: 'KEY_TEST_ONLY',
+        public_key: 'cHVibGljLWtleS1wbGFjZWhvbGRlci0zMi1ieXRlcyE=',
+      }],
+      phone_aliases: [
+        {
+          number: '+15550100100',
+          provider: 'missing',
+          destination: 'inbox-only',
+          enabled: true,
+        },
+        {
+          number: '+15550100101',
+          provider: 'telnyx',
+          destination: 'personal',
+          enabled: true,
+        },
+        {
+          number: '+15550100101',
+          provider: 'telnyx',
+          destination: 'nobody',
+          enabled: true,
+        },
+      ],
+      notifiers: [],
+      settings: baseSettings,
+    }));
+
+    const result: Tests_Cli_Commands_Validate_ValidateConfig_ReportsPhoneAliasProblems_Result = validateConfig(testConfigPath);
+
+    expect(result['valid']).toBe(false);
+
+    expect(result['errors']).toEqual([
+      'Phone alias "+15550100100": phone provider "missing" does not exist (missing).',
+      'Phone alias "+15550100100": destination "inbox-only" has no phone number to text.',
+      'Phone alias "+15550100101" is also a destination phone number.',
+      'Duplicate phone alias number "+15550100101".',
+      'Phone alias "+15550100101": destination "nobody" does not exist (missing).',
+      'Phone alias "+15550100101" is also a destination phone number.',
+    ]);
 
     return;
   });

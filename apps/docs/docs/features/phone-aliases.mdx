@@ -1,0 +1,117 @@
+---
+id: phone-aliases
+title: Phone Aliases
+description: Hand out a different phone number to every site or app, forward its texts to your real phone, and text back from the same number through Telnyx or Plivo.
+sidebar_position: 5
+keywords:
+  - mailmask
+  - phone aliases
+  - masked number
+  - sms forwarding
+  - telnyx
+  - plivo
+tags:
+  - features
+  - phone
+---
+
+import { Terminology } from '@cbnventures/docusaurus-preset-nova/blocks';
+
+Give every sign-up form that asks for a phone number its own <Terminology title="A rented number that forwards its texts to you" to="/docs/reference/terminology#phone-aliases">phone alias</Terminology>, forward the texts it receives to your real phone, and text back from the same number.
+
+## Why Use This Feature?
+
+1. Keeps your real number off sign-up forms, delivery apps, and loyalty programs so a leak or a spam list never reaches it.
+2. Works both ways, so the people and services you text back only ever see the phone alias.
+3. Shares the same switches as email aliases (label, expiry, sender rules, and disable) so one habit covers both.
+4. Works with Telnyx or Plivo, so you can pick the <Terminology title="The Telnyx or Plivo account that rents your numbers" to="/docs/reference/terminology#phone-aliases">phone provider</Terminology> with the best prices and coverage for your country.
+
+## Requirements
+
+- **A deployed Worker** — The <Terminology title="Mailmask itself, running on your Cloudflare account" to="/docs/reference/terminology#cloudflare-and-deploy">Worker</Terminology> needs its <Terminology title="Your Worker's own web addresses" to="/docs/reference/terminology#cloudflare-and-deploy">custom domain</Terminology> on the <Terminology title="The domain every alias lives on" to="/docs/reference/terminology#cloudflare-and-deploy">base domain</Terminology>, because providers send texts to `https://example.com/phone/...`.
+- **A phone provider account** — A Telnyx or Plivo account with API access. [Phone Providers](/docs/getting-started/phone-providers/) walks through both.
+- **A destination phone** — The <Terminology title="Your real inbox, where an alias's mail ends up" to="/docs/reference/terminology#aliases-and-mail-flow">destination</Terminology> needs your real number in its `phone` field. Phone aliases only forward to phones, never to email.
+
+## Usage
+
+```bash
+# Give the personal destination your real number.
+mm destination phone personal +15550100199
+
+# Look for numbers in an area code (this buys nothing).
+mm phone search telnyx --area-code 555
+
+# Buy one and forward its texts to your phone.
+mm phone add +15550100100 --provider telnyx --destination personal --buy --yes --label "Food delivery app"
+
+# Or use a number the account already has.
+mm phone add +15550100101 --provider plivo --destination personal
+
+# Send the changes to Cloudflare and point the numbers at the Worker.
+mm deploy
+```
+
+The interactive menu's **Manage Phone Aliases** screen does the same with a guided search. When you pick a number to buy, it asks one last time before anything is charged.
+
+Every command that changes a <Terminology title="A rented number that forwards its texts to you" to="/docs/reference/terminology#phone-aliases">phone alias</Terminology> only edits `config.json`, except `--buy` and `release`, which change the provider account right away.
+
+## Receiving Texts
+
+A text to the <Terminology title="A rented number that forwards its texts to you" to="/docs/reference/terminology#phone-aliases">phone alias</Terminology> reaches your phone from the phone alias itself and starts with the original sender, such as `+15550100200: Your code is 123456`. Pictures in an MMS travel along as the provider's media links, so the text arrives as an MMS.
+
+## Sending Texts
+
+To text someone from a <Terminology title="A rented number that forwards its texts to you" to="/docs/reference/terminology#phone-aliases">phone alias</Terminology>, text the phone alias from your destination phone and start with their number and a colon:
+
+```text
++15550100200: Running 5 minutes late
+```
+
+The Worker sends `Running 5 minutes late` from the phone alias to `+15550100200`, so they only see the phone alias. Pictures you attach go along too.
+
+- **Replying** — A forwarded text already starts with `+15550100200:`, so a reply is that same start followed by your answer.
+- **Short codes** — A short code such as `12345: STOP` works the same way, wherever the provider can text it.
+- **No number** — A text without a number at the start gets a short reply that shows the form to use, and nothing is sent.
+- **Failed sends** — When the provider refuses a text, such as for a blocked country, the phone alias texts you the reason.
+
+Texts from your destination phone always go out instead of being forwarded, so you can't text yourself through your own phone alias.
+
+:::warning
+The Worker knows a text came from your destination phone only by the caller number the provider reports, and carrier caller ID can be spoofed. Someone who fakes your number could send texts from your phone alias, so `mm deploy` prints this reminder whenever phone aliases are set up.
+:::
+
+## Expiry, Sender Rules, and Disabling
+
+- **Expiry** — `mm phone expire <number> <when>` takes the same `30m`, `7d`, ISO date, or `never` values as email aliases.
+- **Sender rules** — `--allow` and `--block` take full numbers (`+15550100200`), short codes (`12345`), <Terminology title="A name such as ACME that a sender texts from" to="/docs/reference/terminology#phone-aliases">sender names</Terminology> (`ACME`), or prefixes ending in `*` (`+1555*`). Sender names ignore case and spaces, and a block always wins over an allow.
+- **Disabling** — `mm phone disable <number>` stops forwarding and sending but keeps the number on your provider account, so you can turn it back on.
+
+Texts to a disabled or expired number, or from a sender the rules turn away, are a <Terminology title="Mail an alias turns away instead of forwarding" to="/docs/reference/terminology#aliases-and-mail-flow">refusal</Terminology>. A text has no bounce, so the Worker drops it and sends the same [refusal notification](/docs/features/notifications/) as email, tagged `sms`.
+
+## Calls
+
+Phone aliases handle texts only, and numbers are not set up for voice. A call to a Plivo number gets an empty answer from the Worker and ends, and Telnyx numbers have no voice connection.
+
+## Removing and Releasing
+
+```bash
+# Stop using the number with Mailmask, but keep it on the provider account.
+mm phone remove +15550100101
+
+# Give the number back to the provider. This cannot be undone.
+mm phone release +15550100100 --yes
+```
+
+:::danger
+A released number goes back to the provider, which can give it to someone else. Texts meant for you, such as sign-in codes, could then reach a stranger, so it is recommended to change the number on every account first.
+:::
+
+## How It Works
+
+1. The provider receives a text and posts it to `https://example.com/phone/<provider>/messages`.
+2. The Worker checks the <Terminology title="Proof a request really came from the provider" to="/docs/reference/terminology#phone-aliases">webhook signature</Terminology> and answers `401` to anything that fails, without reading the text.
+3. It finds the <Terminology title="A rented number that forwards its texts to you" to="/docs/reference/terminology#phone-aliases">phone alias</Terminology> for that provider and applies the enabled switch and expiry.
+4. A text from the destination phone is sent on to the number it starts with. Any other text goes through the sender rules and is forwarded to the destination phone.
+5. It answers the provider. If forwarding fails, it answers with an error so the provider tries again.
+
+Texts are handled in memory and never stored, and Plivo is asked not to log their content. Delivery reports for sent texts reach the same address and are acknowledged without any work.

@@ -1,3 +1,5 @@
+import { decodeReverseTag } from './relay.js';
+
 import type {
   Worker_Router_MatchesSender_NormalizedPattern,
   Worker_Router_MatchesSender_Pattern,
@@ -12,13 +14,19 @@ import type {
   Worker_Router_ResolveRoute_Destination,
   Worker_Router_ResolveRoute_Domain,
   Worker_Router_ResolveRoute_ExpiresAt,
+  Worker_Router_ResolveRoute_HeaderSender,
   Worker_Router_ResolveRoute_LocalPart,
   Worker_Router_ResolveRoute_NormalizedSender,
   Worker_Router_ResolveRoute_Now,
   Worker_Router_ResolveRoute_PlusIndex,
   Worker_Router_ResolveRoute_Recipient,
+  Worker_Router_ResolveRoute_RecipientEmail,
   Worker_Router_ResolveRoute_Returns,
+  Worker_Router_ResolveRoute_SendAlias,
+  Worker_Router_ResolveRoute_SendDestination,
   Worker_Router_ResolveRoute_Sender,
+  Worker_Router_ResolveRoute_SendExpiresAt,
+  Worker_Router_ResolveRoute_SendReason,
   Worker_Router_ResolveRoute_Settings,
 } from '../types/worker/router.d.ts';
 
@@ -50,20 +58,21 @@ function matchesSender(sender: Worker_Router_MatchesSender_Sender, pattern: Work
 /**
  * Worker - Router - Resolve Route.
  *
- * Decides what happens to an inbound message. Known, active aliases forward
- * to their destination unless a sender rule refuses the message; every
- * refusal and unknown recipient is rejected so the sender gets a bounce.
+ * Decides what happens to an inbound message. Mail from an alias's own inbox to
+ * a reply address is sent on from the alias; other mail to a known, active alias
+ * forwards unless a sender rule refuses it, and every refusal is rejected.
  *
- * @param {Worker_Router_ResolveRoute_Recipient} recipient - Recipient.
- * @param {Worker_Router_ResolveRoute_Sender}    sender    - Sender.
- * @param {Worker_Router_ResolveRoute_Config}    config    - Config.
- * @param {Worker_Router_ResolveRoute_Now}       now       - Now.
+ * @param {Worker_Router_ResolveRoute_Recipient}    recipient      - Recipient.
+ * @param {Worker_Router_ResolveRoute_Sender}       sender         - Sender.
+ * @param {Worker_Router_ResolveRoute_Config}       config         - Config.
+ * @param {Worker_Router_ResolveRoute_Now}          now            - Now.
+ * @param {Worker_Router_ResolveRoute_HeaderSender} [headerSender] - Header sender.
  *
  * @returns {Worker_Router_ResolveRoute_Returns}
  *
- * @since 1.1.0
+ * @since 1.2.0
  */
-function resolveRoute(recipient: Worker_Router_ResolveRoute_Recipient, sender: Worker_Router_ResolveRoute_Sender, config: Worker_Router_ResolveRoute_Config, now: Worker_Router_ResolveRoute_Now): Worker_Router_ResolveRoute_Returns {
+function resolveRoute(recipient: Worker_Router_ResolveRoute_Recipient, sender: Worker_Router_ResolveRoute_Sender, config: Worker_Router_ResolveRoute_Config, now: Worker_Router_ResolveRoute_Now, headerSender?: Worker_Router_ResolveRoute_HeaderSender): Worker_Router_ResolveRoute_Returns {
   const settings: Worker_Router_ResolveRoute_Settings = config['settings'];
   const atIndex: Worker_Router_ResolveRoute_AtIndex = recipient.lastIndexOf('@');
   const domain: Worker_Router_ResolveRoute_Domain = recipient.slice(atIndex + 1).toLowerCase();
@@ -76,16 +85,51 @@ function resolveRoute(recipient: Worker_Router_ResolveRoute_Recipient, sender: W
       destinationEmail: undefined,
       aliasAddress: undefined,
       aliasLabel: undefined,
+      recipientEmail: undefined,
     };
   }
 
-  // Strip a "+tag" suffix so "alias+shop@domain" resolves to "alias".
-  if (settings['subaddressing'] === true) {
-    const plusIndex: Worker_Router_ResolveRoute_PlusIndex = localPart.indexOf('+');
+  const plusIndex: Worker_Router_ResolveRoute_PlusIndex = localPart.indexOf('+');
 
-    if (plusIndex > 0) {
-      localPart = localPart.slice(0, plusIndex);
+  // Mail from the alias's own inbox to "alias+local=domain@" is the user writing back through the alias.
+  if (
+    settings['send_from_aliases'] === true
+    && plusIndex > 0
+    && headerSender !== undefined
+  ) {
+    const sendAlias: Worker_Router_ResolveRoute_SendAlias = config['aliases'].find((configAlias) => configAlias['address'] === localPart.slice(0, plusIndex));
+    const sendDestination: Worker_Router_ResolveRoute_SendDestination = (sendAlias === undefined) ? undefined : config['destinations'].find((configDestination) => configDestination['name'] === sendAlias['destination']);
+    const recipientEmail: Worker_Router_ResolveRoute_RecipientEmail = decodeReverseTag(localPart.slice(plusIndex + 1));
+
+    if (
+      sendAlias !== undefined
+      && sendDestination !== undefined
+      && recipientEmail !== undefined
+      && sendDestination['email'].toLowerCase() === headerSender.toLowerCase()
+    ) {
+      const sendExpiresAt: Worker_Router_ResolveRoute_SendExpiresAt = sendAlias['expires_at'];
+      let sendReason: Worker_Router_ResolveRoute_SendReason = undefined;
+
+      if (sendAlias['enabled'] === false) {
+        sendReason = 'Address is disabled';
+      } else if (sendExpiresAt !== undefined && Date.parse(sendExpiresAt) <= now) {
+        sendReason = 'Address has expired';
+      }
+
+      return {
+        action: (sendReason === undefined) ? 'send' : 'reject',
+        reason: sendReason ?? 'Mail sent from the alias',
+        destinationEmail: sendDestination['email'],
+        aliasAddress: sendAlias['address'],
+        aliasLabel: sendAlias['label'],
+        recipientEmail,
+      };
     }
+  }
+
+  // Strip a "+tag" suffix so "alias+shop@domain" resolves to "alias".
+  if (settings['subaddressing'] === true && plusIndex > 0) {
+    localPart = localPart.slice(0, plusIndex);
   }
 
   const alias: Worker_Router_ResolveRoute_Alias = config['aliases'].find((configAlias) => configAlias['address'] === localPart);
@@ -98,6 +142,7 @@ function resolveRoute(recipient: Worker_Router_ResolveRoute_Recipient, sender: W
       destinationEmail: undefined,
       aliasAddress: undefined,
       aliasLabel: undefined,
+      recipientEmail: undefined,
     };
   }
 
@@ -108,6 +153,7 @@ function resolveRoute(recipient: Worker_Router_ResolveRoute_Recipient, sender: W
       destinationEmail: undefined,
       aliasAddress: alias['address'],
       aliasLabel: alias['label'],
+      recipientEmail: undefined,
     };
   }
 
@@ -120,6 +166,7 @@ function resolveRoute(recipient: Worker_Router_ResolveRoute_Recipient, sender: W
       destinationEmail: undefined,
       aliasAddress: alias['address'],
       aliasLabel: alias['label'],
+      recipientEmail: undefined,
     };
   }
 
@@ -134,6 +181,7 @@ function resolveRoute(recipient: Worker_Router_ResolveRoute_Recipient, sender: W
       destinationEmail: undefined,
       aliasAddress: alias['address'],
       aliasLabel: alias['label'],
+      recipientEmail: undefined,
     };
   }
 
@@ -147,6 +195,7 @@ function resolveRoute(recipient: Worker_Router_ResolveRoute_Recipient, sender: W
       destinationEmail: undefined,
       aliasAddress: alias['address'],
       aliasLabel: alias['label'],
+      recipientEmail: undefined,
     };
   }
 
@@ -159,6 +208,7 @@ function resolveRoute(recipient: Worker_Router_ResolveRoute_Recipient, sender: W
       destinationEmail: undefined,
       aliasAddress: alias['address'],
       aliasLabel: alias['label'],
+      recipientEmail: undefined,
     };
   }
 
@@ -168,6 +218,7 @@ function resolveRoute(recipient: Worker_Router_ResolveRoute_Recipient, sender: W
     destinationEmail: destination['email'],
     aliasAddress: alias['address'],
     aliasLabel: alias['label'],
+    recipientEmail: undefined,
   };
 }
 

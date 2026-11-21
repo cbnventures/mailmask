@@ -14,6 +14,7 @@ import type {
   Tests_Worker_Router_ResolveRoute_IgnoresCaseAndStripsSubaddressTags_Decision,
   Tests_Worker_Router_ResolveRoute_RefusesDisabledExpiredAndForeignRecipients_Config,
   Tests_Worker_Router_ResolveRoute_RejectsUnknownRecipientsAndRefusalsInsteadOfForwardingThem_Config,
+  Tests_Worker_Router_ResolveRoute_SendsMailFromTheAliasInboxToAReplyAddressThroughTheAlias_Config,
 } from '../../types/tests/worker/router.test.d.ts';
 
 const now: Tests_Worker_Router_Now = Date.parse('2026-10-24T12:00:00.000Z');
@@ -108,7 +109,36 @@ describe('resolveRoute', () => {
       destinationEmail: 'me@inbox.test',
       aliasAddress: 'shop',
       aliasLabel: 'Shopping',
+      recipientEmail: undefined,
     });
+
+    return;
+  });
+
+  it('sends mail from the alias inbox to a reply address through the alias', () => {
+    const config: Tests_Worker_Router_ResolveRoute_SendsMailFromTheAliasInboxToAReplyAddressThroughTheAlias_Config = configSchema.parse(baseConfig);
+
+    Reflect.set(config['settings'], 'send_from_aliases', true);
+
+    expect(resolveRoute('shop+news=store.example.com@mail.example.com', 'bounce@inbox.test', config, now, 'Me@Inbox.test')).toStrictEqual({
+      action: 'send',
+      reason: 'Mail sent from the alias',
+      destinationEmail: 'me@inbox.test',
+      aliasAddress: 'shop',
+      aliasLabel: 'Shopping',
+      recipientEmail: 'news@store.example.com',
+    });
+
+    expect(resolveRoute('old+news=store.example.com@mail.example.com', 'me@inbox.test', config, now, 'me@inbox.test')).toMatchObject({
+      action: 'reject',
+      reason: 'Address is disabled',
+    });
+
+    expect(resolveRoute('shop+news=store.example.com@mail.example.com', 'news@store.example.com', config, now, 'news@store.example.com')['action']).toBe('forward');
+
+    Reflect.set(config['settings'], 'send_from_aliases', false);
+
+    expect(resolveRoute('shop+news=store.example.com@mail.example.com', 'me@inbox.test', config, now, 'me@inbox.test')['action']).toBe('forward');
 
     return;
   });
@@ -164,6 +194,7 @@ describe('resolveRoute', () => {
       destinationEmail: undefined,
       aliasAddress: undefined,
       aliasLabel: undefined,
+      recipientEmail: undefined,
     });
 
     expect(resolveRoute('old@mail.example.com', 'a@b.test', config, now)['action']).toBe('reject');

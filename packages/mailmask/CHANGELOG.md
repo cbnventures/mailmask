@@ -1,5 +1,18 @@
 # mailmask
 
+## 1.2.0 - 2026-11-21
+
+### UPDATED
+- The package's internal file layout now places compiled files in `build/cli/` and `build/worker/` instead of `build/src/`, and its test setup drops a `sequence` option that only repeated Vitest's default. The `mailmask` and `mm` commands are unchanged.
+- Tests now report coverage through a `check:coverage` script, which fails when line, function, branch or statement coverage drops below the project minimum, and the README badges now include that coverage.
+- Notification delivery now uses one adapter per service, with no change to notifier configuration or the requests each notifier sends.
+- Nova 0.49.0, which keeps error stack traces on one line in non-interactive output such as CI logs, and type-checks the package without `skipLibCheck`.
+- The package description now reads "Disposable email and phone aliases for your own domain, forwarded to your real inbox or phone".
+
+### ADDED
+- Phone aliases give every site or app its own Telnyx or Plivo number that forwards texts to your real phone, and texting a phone alias with "number: message" sends it on from that number, so replies never show your real one. They share the email aliases' expiry, sender rules (sender names like "ACME" included), and on and off switch, and the menu walks through adding a provider and buying a number, with a final confirmation before any purchase ("mm phone add --buy" needs "--yes"). Deploy ends with a reminder that sending relies on the caller number the provider reports, and, for Plivo, that destination countries are set in its console.
+- Sending and replying from aliases, turned on with the "send_from_aliases" setting, delivers forwarded mail from a reply address for each sender, so pressing Reply sends your answer from the alias and the other side never sees your real address. Deploy onboards the base domain to Cloudflare Email Sending, adds its missing DNS records, waits up to a minute for them to resolve on public DNS and names any still pending, and reads the account's Workers plan through the "Account > Billing > Read" token permission, so it warns about Workers Paid only when the account is on Workers Free or the plan can't be read. It ends with a reminder that Reply All still exposes your real address.
+
 ## 1.1.1 - 2026-11-17
 
 ### FIXED

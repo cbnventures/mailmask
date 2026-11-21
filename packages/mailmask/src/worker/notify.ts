@@ -1,8 +1,6 @@
-import {
-  buildEmailMessage,
-  buildNotifierRequest,
-  NOTIFICATION_TIMEOUT_MILLISECONDS,
-} from '../lib/notification.js';
+import { NOTIFICATION_TIMEOUT_MILLISECONDS } from '../lib/notification.js';
+import { Runner as NotifierRegistry } from '../lib/notifiers/registry.js';
+import { sendTextEmail } from './cloudflare-email.js';
 
 import type {
   Worker_Notify_RunWithTimeout_Controller,
@@ -11,13 +9,12 @@ import type {
   Worker_Notify_RunWithTimeout_Timeout,
   Worker_Notify_RunWithTimeout_TimeoutId,
   Worker_Notify_SendNotification_Controller,
+  Worker_Notify_SendNotification_Dependencies,
   Worker_Notify_SendNotification_EmailBinding,
-  Worker_Notify_SendNotification_EmailOperation,
-  Worker_Notify_SendNotification_HttpOperation,
   Worker_Notify_SendNotification_Notifier,
+  Worker_Notify_SendNotification_NotifierAdapter,
+  Worker_Notify_SendNotification_Operation,
   Worker_Notify_SendNotification_Payload,
-  Worker_Notify_SendNotification_Request,
-  Worker_Notify_SendNotification_Response,
   Worker_Notify_SendNotification_Returns,
   Worker_Notify_SendNotifications_EmailBinding,
   Worker_Notify_SendNotifications_ErrorMessage,
@@ -92,59 +89,24 @@ async function runWithTimeout(operation: Worker_Notify_RunWithTimeout_Operation,
  */
 async function sendNotification(notifier: Worker_Notify_SendNotification_Notifier, payload: Worker_Notify_SendNotification_Payload, emailBinding: Worker_Notify_SendNotification_EmailBinding): Worker_Notify_SendNotification_Returns {
   const controller: Worker_Notify_SendNotification_Controller = new AbortController();
-
-  if (notifier['type'] === 'email') {
-    if (emailBinding === undefined) {
-      throw new Error('The MAILMASK_EMAIL send_email binding is not configured.');
-    }
-
-    const emailOperation: Worker_Notify_SendNotification_EmailOperation = (async () => {
-      try {
-        await emailBinding.send(buildEmailMessage(notifier, payload));
-      } catch {
-        throw new Error('delivery failed.');
+  const notifierAdapter: Worker_Notify_SendNotification_NotifierAdapter = NotifierRegistry.create(notifier);
+  const dependencies: Worker_Notify_SendNotification_Dependencies = {
+    emailBinding,
+    fetch: (input, init) => fetch(input, init),
+    sendEmail: async (message) => {
+      if (emailBinding === undefined) {
+        throw new Error('The MAILMASK_EMAIL send_email binding is not configured.');
       }
+
+      await sendTextEmail(emailBinding, message);
 
       return;
-    })();
+    },
+    signal: controller.signal,
+  };
+  const operation: Worker_Notify_SendNotification_Operation = notifierAdapter.send(payload, dependencies);
 
-    await runWithTimeout(emailOperation, controller);
-
-    return;
-  }
-
-  const request: Worker_Notify_SendNotification_Request = buildNotifierRequest(notifier, payload);
-
-  if (request === undefined) {
-    throw new Error('does not have an HTTP request.');
-  }
-
-  const httpOperation: Worker_Notify_SendNotification_HttpOperation = (async () => {
-    let response: Worker_Notify_SendNotification_Response = undefined;
-
-    try {
-      response = await fetch(request['url'], {
-        method: request['method'],
-        headers: request['headers'],
-        body: request['body'],
-        signal: controller.signal,
-      });
-    } catch {
-      if (controller.signal.aborted === true) {
-        return;
-      }
-
-      throw new Error('request failed.');
-    }
-
-    if (response['ok'] === false) {
-      throw new Error(`returned HTTP ${String(response['status'])}.`);
-    }
-
-    return;
-  })();
-
-  await runWithTimeout(httpOperation, controller);
+  await runWithTimeout(operation, controller);
 
   return;
 }

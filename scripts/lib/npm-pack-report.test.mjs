@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { getNpmPackFilePaths } from './npm-pack-report.mjs';
 
 /**
- * Lib - npm Pack Report Test - npm Pack Report.
+ * Lib - npm Pack Report - npm Pack Report.
  *
  * The build verifies the npm package on both local and GitHub runners,
  * which may use different npm major versions and JSON output shapes.
@@ -13,17 +13,17 @@ import { getNpmPackFilePaths } from './npm-pack-report.mjs';
 describe('npm pack report', () => {
   it('reads the npm 11 array format', () => {
     expect(getNpmPackFilePaths(
-      [{ files: [{ path: 'build/src/cli/index.js' }] }],
+      [{ files: [{ path: 'build/cli/index.js' }] }],
       'mailmask',
-    )).toEqual(['build/src/cli/index.js']);
+    )).toEqual(['build/cli/index.js']);
 
     return;
   });
 
   it('reads the npm 12 package-keyed format', () => {
     expect(getNpmPackFilePaths({
-      'mailmask': { files: [{ path: 'build/src/cli/index.js' }] },
-    }, 'mailmask')).toEqual(['build/src/cli/index.js']);
+      'mailmask': { files: [{ path: 'build/cli/index.js' }] },
+    }, 'mailmask')).toEqual(['build/cli/index.js']);
 
     return;
   });

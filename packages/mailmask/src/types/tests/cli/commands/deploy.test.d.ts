@@ -3,11 +3,8 @@ import type { resolveMx } from 'node:dns/promises';
 import type { Mock, MockInstance } from 'vitest';
 
 import type { Cli_Commands_Deploy_PlanRoutingRules_Plan } from '../../../cli/commands/deploy.d.ts';
-import type {
-  Lib_Schema_AliasConfig,
-  Lib_Schema_CloudflareEmailRoutingSettings,
-  Lib_Schema_CloudflareRoutingRule,
-} from '../../../lib/schema.d.ts';
+import type { Lib_Schema_AliasConfig, Lib_Schema_CloudflareRoutingRule } from '../../../lib/schema.d.ts';
+import type { Shared_CloudflareEmailRouting } from '../../../shared.d.ts';
 
 /**
  * Tests - CLI - Commands - Deploy.
@@ -40,6 +37,29 @@ export type Tests_Cli_Commands_Deploy_AttachCustomDomains_AttachesEachMissingHos
 export type Tests_Cli_Commands_Deploy_AttachCustomDomains_WarnsAndContinuesWhenCloudflareRefusesAHost_CallCount = number;
 
 export type Tests_Cli_Commands_Deploy_AttachCustomDomains_WarnsAndContinuesWhenCloudflareRefusesAHost_FetchSpy = MockInstance<typeof fetch>;
+
+/**
+ * Tests - CLI - Commands - Deploy - Build Deploy Warnings - Lists Only The Caveats That Apply.
+ *
+ * @since 1.2.0
+ */
+export type Tests_Cli_Commands_Deploy_BuildDeployWarnings_ListsOnlyTheCaveatsThatApply_Warnings = string[];
+
+/**
+ * Tests - CLI - Commands - Deploy - Build Deploy Warnings - Names Email Sending Records That Do Not Resolve Yet.
+ *
+ * @since 1.2.0
+ */
+export type Tests_Cli_Commands_Deploy_BuildDeployWarnings_NamesEmailSendingRecordsThatDoNotResolveYet_Warnings = string[];
+
+/**
+ * Tests - CLI - Commands - Deploy - Build Deploy Warnings - Warns About Workers Paid Only When The Plan Is Free Or Unreadable.
+ *
+ * @since 1.2.0
+ */
+export type Tests_Cli_Commands_Deploy_BuildDeployWarnings_WarnsAboutWorkersPaidOnlyWhenThePlanIsFreeOrUnreadable_PaidWarnings = string[];
+
+export type Tests_Cli_Commands_Deploy_BuildDeployWarnings_WarnsAboutWorkersPaidOnlyWhenThePlanIsFreeOrUnreadable_UnknownWarnings = string[];
 
 /**
  * Tests - CLI - Commands - Deploy - Cloudflare Response.
@@ -86,21 +106,21 @@ export type Tests_Cli_Commands_Deploy_EnableSubaddressing_TurnsSubaddressingOnOn
  *
  * @since 1.1.0
  */
-export type Tests_Cli_Commands_Deploy_EnsureEmailRoutingEnabled_AcceptsASubdomainWhoseMxRecordsPointToCloudflare_Routing = { [Key in keyof Lib_Schema_CloudflareEmailRoutingSettings]: Lib_Schema_CloudflareEmailRoutingSettings[Key] };
+export type Tests_Cli_Commands_Deploy_EnsureEmailRoutingEnabled_AcceptsASubdomainWhoseMxRecordsPointToCloudflare_Routing = { [Key in keyof Shared_CloudflareEmailRouting]: Shared_CloudflareEmailRouting[Key] };
 
 /**
  * Tests - CLI - Commands - Deploy - Ensure Email Routing Enabled - Stops For An Apex Without Email Routing.
  *
  * @since 1.1.0
  */
-export type Tests_Cli_Commands_Deploy_EnsureEmailRoutingEnabled_StopsForAnApexWithoutEmailRouting_RoutingCheck = Promise<Lib_Schema_CloudflareEmailRoutingSettings>;
+export type Tests_Cli_Commands_Deploy_EnsureEmailRoutingEnabled_StopsForAnApexWithoutEmailRouting_RoutingCheck = Promise<Shared_CloudflareEmailRouting>;
 
 /**
  * Tests - CLI - Commands - Deploy - Ensure Email Routing Enabled - Stops For A Subdomain Without Cloudflare Mx Records.
  *
  * @since 1.1.0
  */
-export type Tests_Cli_Commands_Deploy_EnsureEmailRoutingEnabled_StopsForASubdomainWithoutCloudflareMxRecords_RoutingCheck = Promise<Lib_Schema_CloudflareEmailRoutingSettings>;
+export type Tests_Cli_Commands_Deploy_EnsureEmailRoutingEnabled_StopsForASubdomainWithoutCloudflareMxRecords_RoutingCheck = Promise<Shared_CloudflareEmailRouting>;
 
 /**
  * Tests - CLI - Commands - Deploy - Find Missing Permissions - Accepts A Null Error List On Success.

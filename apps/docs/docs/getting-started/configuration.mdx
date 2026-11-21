@@ -1,7 +1,7 @@
 ---
 id: configuration
 title: Configuration
-description: Configure destinations, aliases, notifiers, and settings in Mailmask's config.json, including expiry, sender rules, and notification services.
+description: Configure destinations, aliases, phone aliases, notifiers, and settings in Mailmask's config.json, including expiry and sender rules.
 sidebar_position: 2
 keywords:
   - mailmask
@@ -35,7 +35,7 @@ The CLI looks for `config.json` in these locations, in order:
 
 If none exists, the CLI copies the bundled starter template into the platform config directory. When several files are found, the interactive menu asks which one to use, while direct commands always use the first one in this order.
 
-The starter template is sample data: a `personal` <Terminology title="Your real inbox, where an alias's mail ends up" to="/docs/reference/terminology#aliases-and-mail-flow">destination</Terminology> for `you@example.com`, two aliases that forward to it, one placeholder for every supported notifier type, and a sample `base_domain`. Replace or remove all sample entries, and set `base_domain` to your own apex domain or Email Routing subdomain, before the first deploy, as the [Quick Start](/docs/getting-started/quick-start/#first-time-setup) shows.
+The starter template is sample data: a `personal` <Terminology title="Your real inbox, where an alias's mail ends up" to="/docs/reference/terminology#aliases-and-mail-flow">destination</Terminology> for `you@example.com`, two aliases and two phone aliases that forward to it, placeholder Telnyx and Plivo accounts, one placeholder for every supported notifier type, and a sample `base_domain`. Replace or remove all sample entries, and set `base_domain` to your own apex domain or Email Routing subdomain, before the first deploy, as the [Quick Start](/docs/getting-started/quick-start/#first-time-setup) shows.
 
 :::warning
 The <Terminology title="The one file that holds every alias and setting" to="/docs/reference/terminology#cloudflare-and-deploy">config</Terminology> lists your real inboxes and every <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology> you own. It is recommended to keep it out of version control; the repository's ignore rules already exclude it.
@@ -44,6 +44,8 @@ The <Terminology title="The one file that holds every alias and setting" to="/do
 ## Example
 
 All four top-level keys (`destinations`, `aliases`, `notifiers`, and `settings`) are required, though the three lists can be empty. Every field in `settings` is required too, and none has a default.
+
+The `phone_providers` and `phone_aliases` lists are optional, so a config without phone aliases leaves them out. They are described under [Phone Providers](#phone-providers) and [Phone Aliases](#phone-aliases) below.
 
 ```json title="config.json"
 {
@@ -76,7 +78,8 @@ All four top-level keys (`destinations`, `aliases`, `notifiers`, and `settings`)
     "worker_name": "mailmask",
     "base_domain": "example.com",
     "subaddressing": true,
-    "add_alias_headers": true
+    "add_alias_headers": true,
+    "send_from_aliases": true
   }
 }
 ```
@@ -85,10 +88,11 @@ All four top-level keys (`destinations`, `aliases`, `notifiers`, and `settings`)
 
 Each <Terminology title="Your real inbox, where an alias's mail ends up" to="/docs/reference/terminology#aliases-and-mail-flow">destination</Terminology> is a real inbox that aliases forward to.
 
-| Field   | Description                                                                                      |
-|---------|--------------------------------------------------------------------------------------------------|
-| `name`  | Short identifier used by aliases. Lowercase letters and numbers, with hyphens only between them. |
-| `email` | The inbox address. Cloudflare sends it a verification email on the first deploy.                 |
+| Field   | Description                                                                                                                                                     |
+|---------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `name`  | Short identifier used by aliases. Lowercase letters and numbers, with hyphens only between them.                                                                |
+| `email` | The inbox address. Cloudflare sends it a verification email on the first deploy.                                                                                |
+| `phone` | Optional real phone number in E.164 form, such as `+15550100199`. Phone aliases forward texts to this number, and texts from it go out through the phone alias. |
 
 ## Aliases
 
@@ -106,14 +110,69 @@ Each <Terminology title="A stand-in address; mail still lands in your real inbox
 
 A <Terminology title="Who an alias will or won't take mail from" to="/docs/reference/terminology#aliases-and-mail-flow">sender rule</Terminology> is either a full address (`news@shop.com`) or a domain wildcard (`*@shop.com`), matched against the envelope sender (`Return-Path`) rather than the visible `From` header. See [Sender Rules](/docs/features/sender-rules/) for how the two lists combine.
 
+## Phone Providers
+
+Each <Terminology title="The Telnyx or Plivo account that rents your numbers" to="/docs/reference/terminology#phone-aliases">phone provider</Terminology> is a Telnyx or Plivo account. [Phone Providers](/docs/getting-started/phone-providers/) shows where each value comes from.
+
+| `type`   | Required fields                 | Optional fields                                 |
+|----------|---------------------------------|-------------------------------------------------|
+| `telnyx` | `name`, `api_key`, `public_key` | `messaging_profile_id`, `destination_countries` |
+| `plivo`  | `name`, `auth_id`, `auth_token` | `application_id`                                |
+
+Provider names follow the same rules as destination names. Deploy fills in `messaging_profile_id` and `application_id` the first time it points numbers at the <Terminology title="Mailmask itself, running on your Cloudflare account" to="/docs/reference/terminology#cloudflare-and-deploy">Worker</Terminology>, so you rarely set them by hand.
+
+`destination_countries` is an optional list of two-letter country codes, such as `["US", "CA"]`, that the Telnyx messaging profile may text. Without it, the profile may text every country.
+
+## Phone Aliases
+
+Each <Terminology title="A rented number that forwards its texts to you" to="/docs/reference/terminology#phone-aliases">phone alias</Terminology> is a number on one provider account.
+
+| Field             | Description                                                                                                                                     |
+|-------------------|-------------------------------------------------------------------------------------------------------------------------------------------------|
+| `number`          | The number in E.164 form, such as `+15550100100`.                                                                                               |
+| `provider`        | The `name` of the phone provider that rents the number.                                                                                         |
+| `destination`     | The `name` of the destination whose `phone` receives the texts.                                                                                 |
+| `label`           | Optional note about where you used the number.                                                                                                  |
+| `enabled`         | `false` drops every text while keeping the number.                                                                                              |
+| `expires_at`      | Optional ISO 8601 timestamp with a time zone. Texts arriving at or after this time are dropped.                                                 |
+| `allowed_senders` | Optional list of numbers, short codes, sender names such as `ACME`, or prefixes ending in `*`. When present, only matching senders get through. |
+| `blocked_senders` | Optional list in the same form. Matching senders are always dropped, even if they are also allowed.                                             |
+
+```json title="config.json"
+{
+  "phone_providers": [
+    {
+      "type": "telnyx",
+      "name": "telnyx",
+      "api_key": "KEYxxxxxxxx",
+      "public_key": "base64-public-key"
+    }
+  ],
+  "phone_aliases": [
+    {
+      "number": "+15550100100",
+      "provider": "telnyx",
+      "destination": "personal",
+      "label": "Food delivery app",
+      "enabled": true,
+      "allowed_senders": [
+        "+1555*",
+        "ACME"
+      ]
+    }
+  ]
+}
+```
+
 ## Settings
 
-| Field               | Description                                                                                                                                   |
-|---------------------|-----------------------------------------------------------------------------------------------------------------------------------------------|
-| `worker_name`       | Name of the Cloudflare Worker. Lowercase letters and numbers, with hyphens only between them.                                                 |
-| `base_domain`       | The domain every alias lives on: your zone's apex, such as `example.com`, or a subdomain set up in Email Routing, such as `mail.example.com`. |
-| `subaddressing`     | When `true`, `alias+tag@` is treated as `alias@`, and deploy turns on Email Routing subaddressing so the tag matches the alias's rule.        |
-| `add_alias_headers` | When `true`, forwarded mail carries `X-Mailmask-Alias` and `X-Mailmask-Label` headers.                                                        |
+| Field               | Description                                                                                                                                                                |
+|---------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `worker_name`       | Name of the Cloudflare Worker. Lowercase letters and numbers, with hyphens only between them.                                                                              |
+| `base_domain`       | The domain every alias lives on: your zone's apex, such as `example.com`, or a subdomain set up in Email Routing, such as `mail.example.com`.                              |
+| `subaddressing`     | When `true`, `alias+tag@` is treated as `alias@`, and deploy turns on Email Routing subaddressing so the tag matches the alias's rule.                                     |
+| `add_alias_headers` | When `true`, forwarded mail carries `X-Mailmask-Alias` and `X-Mailmask-Label` headers.                                                                                     |
+| `send_from_aliases` | Optional. When `true`, you can send and reply from your aliases, as [Sending From Aliases](/docs/features/sending-from-aliases/) explains. Left out, aliases only receive. |
 
 The interactive **Settings** menu edits every field. Mail to addresses that are not aliases is rejected by Cloudflare, as [Unknown Addresses](/docs/features/unknown-addresses/) explains, so there is no setting for it.
 
@@ -143,10 +202,12 @@ All configured URLs must use HTTPS. Discord and Slack webhook URLs must use thei
 
 The email notifier's `from` address must use a domain onboarded for Cloudflare Email Sending, and its `to` address must be a verified Cloudflare destination. Deploy creates the `send_email` binding allowlist and registers a new recipient for verification.
 
+With `send_from_aliases` on, the binding has no allowlist, because replies go to whoever wrote to the alias.
+
 See [Refusal Notifications](/docs/features/notifications/) for setup steps, request formats, the exact webhook payload, and service-specific limits.
 
 :::warning
-Notifier tokens, webhook URLs, and other credentials are stored in `config.json` and copied to `.wrangler/mailmask/config.json` for bundling into the Worker. Keep both paths out of version control.
+Notifier tokens, phone provider keys, webhook URLs, and other credentials are stored in `config.json` and copied to `.wrangler/mailmask/config.json` for bundling into the Worker. Keep both paths out of version control.
 :::
 
 ## Validation
@@ -156,6 +217,8 @@ Notifier tokens, webhook URLs, and other credentials are stored in `config.json`
 - Every <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology> points to a <Terminology title="Your real inbox, where an alias's mail ends up" to="/docs/reference/terminology#aliases-and-mail-flow">destination</Terminology> that exists.
 - No two destinations share a name, and no two aliases share an address.
 - No two notifiers share a name.
+- Every phone alias points to a phone provider and a destination that exist, and no two phone aliases share a number.
+- Every phone alias has a destination with a `phone`, and no phone alias is also a destination's `phone`.
 
 The cross-reference checks only run once the schema check passes, so fixing schema errors can reveal more problems on the next run.
 
@@ -166,5 +229,5 @@ Deploy runs the same validation and stops if the file is invalid, so nothing bro
 Alias and setting changes take effect on the next deploy, because the <Terminology title="The one file that holds every alias and setting" to="/docs/reference/terminology#cloudflare-and-deploy">config</Terminology> ships with the <Terminology title="Mailmask itself, running on your Cloudflare account" to="/docs/reference/terminology#cloudflare-and-deploy">Worker</Terminology>. Every CLI command that changes the file reminds you to run `mm deploy`.
 
 :::info
-Every CLI save rewrites the whole file: destinations are sorted by name, aliases by address, keys are put in a fixed order, and unknown top-level keys are dropped. Unknown keys inside a <Terminology title="Your real inbox, where an alias's mail ends up" to="/docs/reference/terminology#aliases-and-mail-flow">destination</Terminology>, <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology>, notifier, or the settings fail validation instead.
+Every CLI save rewrites the whole file: destinations, aliases, phone providers, and phone aliases are sorted, keys are put in a fixed order, and unknown top-level keys are dropped. Unknown keys inside a <Terminology title="Your real inbox, where an alias's mail ends up" to="/docs/reference/terminology#aliases-and-mail-flow">destination</Terminology>, <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology>, notifier, or the settings fail validation instead.
 :::

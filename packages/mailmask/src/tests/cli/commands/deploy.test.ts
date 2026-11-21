@@ -7,13 +7,14 @@ import {
 import {
   applyRoutingRules,
   attachCustomDomains,
+  buildDeployWarnings,
   enableSubaddressing,
   ensureEmailRoutingEnabled,
-  findMissingPermissions,
   planCustomDomains,
   planRoutingRules,
   releaseCatchAll,
 } from '../../../cli/commands/deploy.js';
+import { Runner as CloudflareAdapter } from '../../../lib/cloudflare.js';
 
 import type {
   Tests_Cli_Commands_Deploy_Aliases,
@@ -21,6 +22,10 @@ import type {
   Tests_Cli_Commands_Deploy_AttachCustomDomains_AttachesEachMissingHostToTheWorker_FetchSpy,
   Tests_Cli_Commands_Deploy_AttachCustomDomains_WarnsAndContinuesWhenCloudflareRefusesAHost_CallCount,
   Tests_Cli_Commands_Deploy_AttachCustomDomains_WarnsAndContinuesWhenCloudflareRefusesAHost_FetchSpy,
+  Tests_Cli_Commands_Deploy_BuildDeployWarnings_ListsOnlyTheCaveatsThatApply_Warnings,
+  Tests_Cli_Commands_Deploy_BuildDeployWarnings_NamesEmailSendingRecordsThatDoNotResolveYet_Warnings,
+  Tests_Cli_Commands_Deploy_BuildDeployWarnings_WarnsAboutWorkersPaidOnlyWhenThePlanIsFreeOrUnreadable_PaidWarnings,
+  Tests_Cli_Commands_Deploy_BuildDeployWarnings_WarnsAboutWorkersPaidOnlyWhenThePlanIsFreeOrUnreadable_UnknownWarnings,
   Tests_Cli_Commands_Deploy_CloudflareResponse_Result,
   Tests_Cli_Commands_Deploy_CloudflareResponse_Returns,
   Tests_Cli_Commands_Deploy_CloudflareResponse_Success,
@@ -224,7 +229,7 @@ afterEach(() => {
 describe('findMissingPermissions', () => {
   it('returns nothing when every probe succeeds', async () => {
     const fetchSpy: Tests_Cli_Commands_Deploy_FindMissingPermissions_ReturnsNothingWhenEveryProbeSucceeds_FetchSpy = vi.spyOn(globalThis, 'fetch').mockImplementation(async () => cloudflareResponse(true, []));
-    const missing: Tests_Cli_Commands_Deploy_FindMissingPermissions_ReturnsNothingWhenEveryProbeSucceeds_Missing = await findMissingPermissions('token', 'zone-id', 'account-id');
+    const missing: Tests_Cli_Commands_Deploy_FindMissingPermissions_ReturnsNothingWhenEveryProbeSucceeds_Missing = await CloudflareAdapter.findMissingPermissions('token', 'zone-id', 'account-id');
     const paths: Tests_Cli_Commands_Deploy_FindMissingPermissions_ReturnsNothingWhenEveryProbeSucceeds_Paths = fetchSpy.mock.calls.map((call) => getRequestPath(call[0]));
 
     expect(missing).toEqual([]);
@@ -277,7 +282,7 @@ describe('findMissingPermissions', () => {
     for (const testCase of cases) {
       vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => cloudflareResponse(testCase['failingPaths'].includes(getRequestPath(input)) === false, []));
 
-      const missing: Tests_Cli_Commands_Deploy_FindMissingPermissions_NamesEachMissingPermission_Missing = await findMissingPermissions('token', 'zone-id', 'account-id');
+      const missing: Tests_Cli_Commands_Deploy_FindMissingPermissions_NamesEachMissingPermission_Missing = await CloudflareAdapter.findMissingPermissions('token', 'zone-id', 'account-id');
 
       expect(missing).toEqual([testCase['permission']]);
 
@@ -298,7 +303,7 @@ describe('findMissingPermissions', () => {
       headers: { 'Content-Type': 'application/json' },
     }));
 
-    const missing: Tests_Cli_Commands_Deploy_FindMissingPermissions_AcceptsANullErrorListOnSuccess_Missing = await findMissingPermissions('token', 'zone-id', 'account-id');
+    const missing: Tests_Cli_Commands_Deploy_FindMissingPermissions_AcceptsANullErrorListOnSuccess_Missing = await CloudflareAdapter.findMissingPermissions('token', 'zone-id', 'account-id');
 
     expect(missing).toEqual([]);
 
@@ -308,7 +313,7 @@ describe('findMissingPermissions', () => {
   it('names each permission once when every probe fails', async () => {
     vi.spyOn(globalThis, 'fetch').mockImplementation(async () => cloudflareResponse(false, null));
 
-    const missing: Tests_Cli_Commands_Deploy_FindMissingPermissions_NamesEachPermissionOnceWhenEveryProbeFails_Missing = await findMissingPermissions('token', 'zone-id', 'account-id');
+    const missing: Tests_Cli_Commands_Deploy_FindMissingPermissions_NamesEachPermissionOnceWhenEveryProbeFails_Missing = await CloudflareAdapter.findMissingPermissions('token', 'zone-id', 'account-id');
 
     expect(missing).toEqual([
       'Account > Workers Scripts > Edit',
@@ -374,7 +379,7 @@ describe('ensureEmailRoutingEnabled', () => {
 
     expect(routing).toEqual({
       enabled: true,
-      support_subaddress: false,
+      subaddressing: false,
     });
 
     return;
@@ -394,12 +399,15 @@ describe('enableSubaddressing', () => {
 
     await enableSubaddressing('token', 'zone-id', {
       enabled: true,
-      support_subaddress: true,
+      subaddressing: true,
     });
 
     expect(fetchSpy).not.toHaveBeenCalled();
 
-    await enableSubaddressing('token', 'zone-id', { enabled: true });
+    await enableSubaddressing('token', 'zone-id', {
+      enabled: true,
+      subaddressing: false,
+    });
 
     expect(describeRequests(fetchSpy.mock.calls)).toEqual([{
       request: 'PATCH /zones/zone-id/email/routing',
@@ -858,6 +866,94 @@ describe('attachCustomDomains', () => {
     ])).resolves.toBeUndefined();
 
     expect(fetchSpy).toHaveBeenCalledTimes(2);
+
+    return;
+  });
+
+  return;
+});
+
+/**
+ * Tests - CLI - Commands - Deploy - Build Deploy Warnings.
+ *
+ * @since 1.2.0
+ */
+describe('buildDeployWarnings', () => {
+  it('lists only the caveats that apply', () => {
+    const warnings: Tests_Cli_Commands_Deploy_BuildDeployWarnings_ListsOnlyTheCaveatsThatApply_Warnings = buildDeployWarnings({
+      worker_name: 'mailmask',
+      base_domain: 'example.com',
+      subaddressing: true,
+      add_alias_headers: true,
+      send_from_aliases: true,
+    }, true, true, true, 'free', []);
+
+    expect(warnings).toHaveLength(4);
+
+    expect(warnings[0]).toContain('Reply All');
+
+    expect(warnings[1]).toBe('This account is on Workers Free, so replies to outside addresses bounce. Upgrade to Workers Paid to send them.');
+
+    expect(warnings[2]).toContain('caller ID can be spoofed');
+
+    expect(warnings[3]).toContain('Geo Permissions');
+
+    expect(buildDeployWarnings({
+      worker_name: 'mailmask',
+      base_domain: 'example.com',
+      subaddressing: true,
+      add_alias_headers: true,
+      send_from_aliases: true,
+    }, false, false, false, 'paid', [])[1]).toContain('Email Sending is not set up for "example.com"');
+
+    expect(buildDeployWarnings({
+      worker_name: 'mailmask',
+      base_domain: 'example.com',
+      subaddressing: true,
+      add_alias_headers: true,
+    }, false, false, false, 'unknown', [])).toEqual([]);
+
+    return;
+  });
+
+  it('warns about workers paid only when the plan is free or unreadable', () => {
+    const paidWarnings: Tests_Cli_Commands_Deploy_BuildDeployWarnings_WarnsAboutWorkersPaidOnlyWhenThePlanIsFreeOrUnreadable_PaidWarnings = buildDeployWarnings({
+      worker_name: 'mailmask',
+      base_domain: 'example.com',
+      subaddressing: true,
+      add_alias_headers: true,
+      send_from_aliases: true,
+    }, true, false, false, 'paid', []);
+    const unknownWarnings: Tests_Cli_Commands_Deploy_BuildDeployWarnings_WarnsAboutWorkersPaidOnlyWhenThePlanIsFreeOrUnreadable_UnknownWarnings = buildDeployWarnings({
+      worker_name: 'mailmask',
+      base_domain: 'example.com',
+      subaddressing: true,
+      add_alias_headers: true,
+      send_from_aliases: true,
+    }, true, false, false, 'unknown', []);
+
+    expect(paidWarnings).toEqual(['Sending from aliases is on. Use Reply, not Reply All: Reply All mails the other recipients straight from your real address.']);
+
+    expect(unknownWarnings[1]).toBe('Could not read this account\'s Workers plan from Cloudflare. If replies bounce, upgrade to Workers Paid.');
+
+    return;
+  });
+
+  it('names email sending records that do not resolve yet', () => {
+    const warnings: Tests_Cli_Commands_Deploy_BuildDeployWarnings_NamesEmailSendingRecordsThatDoNotResolveYet_Warnings = buildDeployWarnings({
+      worker_name: 'mailmask',
+      base_domain: 'example.com',
+      subaddressing: true,
+      add_alias_headers: true,
+      send_from_aliases: true,
+    }, true, false, false, 'paid', [
+      'MX cf-bounce.example.com',
+      'TXT cf-bounce.example.com',
+    ]);
+
+    expect(warnings).toHaveLength(2);
+
+    expect(warnings[1]).toBe('Email Sending is set up for "example.com", but these DNS records don\'t resolve publicly yet: MX cf-bounce.example.com, TXT cf-bounce.example.com. Replies can bounce until they do; deploy again later to check.');
 
     return;
   });

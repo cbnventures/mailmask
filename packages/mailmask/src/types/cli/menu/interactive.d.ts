@@ -4,8 +4,30 @@ import type {
   Lib_Schema_AliasConfig,
   Lib_Schema_DestinationConfig,
   Lib_Schema_NotifierConfig,
+  Lib_Schema_PhoneAliasConfig,
+  Lib_Schema_PhoneProviderConfig,
   Lib_Schema_SettingsConfig,
 } from '../../lib/schema.d.ts';
+import type { Shared_PhoneAvailableNumber } from '../../shared.d.ts';
+
+/**
+ * CLI - Menu - Interactive - Add Phone Provider Flow.
+ *
+ * @since 1.2.0
+ */
+export type Cli_Menu_Interactive_AddPhoneProviderFlow_ConfigPath = string;
+
+export type Cli_Menu_Interactive_AddPhoneProviderFlow_Returns = Promise<void>;
+
+export type Cli_Menu_Interactive_AddPhoneProviderFlow_Response = prompts.Answers<string>;
+
+export type Cli_Menu_Interactive_AddPhoneProviderFlow_Name = string;
+
+export type Cli_Menu_Interactive_AddPhoneProviderFlow_DestinationCountry = string;
+
+export type Cli_Menu_Interactive_AddPhoneProviderFlow_DestinationCountries = Cli_Menu_Interactive_AddPhoneProviderFlow_DestinationCountry[] | undefined;
+
+export type Cli_Menu_Interactive_AddPhoneProviderFlow_ErrorMessage = string;
 
 /**
  * CLI - Menu - Interactive - Alias Menu.
@@ -40,6 +62,42 @@ export type Cli_Menu_Interactive_CreateAliasFlow_Settings = { [Key in keyof Lib_
 export type Cli_Menu_Interactive_CreateAliasFlow_Response = prompts.Answers<string>;
 
 export type Cli_Menu_Interactive_CreateAliasFlow_Alias = { [Key in keyof Lib_Schema_AliasConfig]: Lib_Schema_AliasConfig[Key] };
+
+/**
+ * CLI - Menu - Interactive - Create Phone Alias Flow.
+ *
+ * @since 1.2.0
+ */
+export type Cli_Menu_Interactive_CreatePhoneAliasFlow_ConfigPath = string;
+
+export type Cli_Menu_Interactive_CreatePhoneAliasFlow_Returns = Promise<void>;
+
+export type Cli_Menu_Interactive_CreatePhoneAliasFlow_PhoneProviders = Array<Lib_Schema_PhoneProviderConfig>;
+
+export type Cli_Menu_Interactive_CreatePhoneAliasFlow_PhoneDestinations = Array<Lib_Schema_DestinationConfig>;
+
+export type Cli_Menu_Interactive_CreatePhoneAliasFlow_SourceResponse = prompts.Answers<string>;
+
+export type Cli_Menu_Interactive_CreatePhoneAliasFlow_Number = string | undefined;
+
+export type Cli_Menu_Interactive_CreatePhoneAliasFlow_ExistingResponse = prompts.Answers<string>;
+
+export type Cli_Menu_Interactive_CreatePhoneAliasFlow_SearchResponse = prompts.Answers<string>;
+
+export type Cli_Menu_Interactive_CreatePhoneAliasFlow_AvailableNumbers = Array<Shared_PhoneAvailableNumber>;
+
+export type Cli_Menu_Interactive_CreatePhoneAliasFlow_PickResponse = prompts.Answers<string>;
+
+export type Cli_Menu_Interactive_CreatePhoneAliasFlow_DetailsResponse = prompts.Answers<string>;
+
+export type Cli_Menu_Interactive_CreatePhoneAliasFlow_PhoneResult_PhoneAlias = Lib_Schema_PhoneAliasConfig;
+
+export type Cli_Menu_Interactive_CreatePhoneAliasFlow_PhoneResult_Status = string;
+
+export type Cli_Menu_Interactive_CreatePhoneAliasFlow_PhoneResult = {
+  phoneAlias: Cli_Menu_Interactive_CreatePhoneAliasFlow_PhoneResult_PhoneAlias;
+  status: Cli_Menu_Interactive_CreatePhoneAliasFlow_PhoneResult_Status;
+};
 
 /**
  * CLI - Menu - Interactive - Destination Menu.
@@ -111,6 +169,25 @@ export type Cli_Menu_Interactive_ModifyAliasFlow_Action = string | undefined;
 export type Cli_Menu_Interactive_ModifyAliasFlow_ExpiresAt = string | undefined;
 
 /**
+ * CLI - Menu - Interactive - Modify Phone Alias Flow.
+ *
+ * @since 1.2.0
+ */
+export type Cli_Menu_Interactive_ModifyPhoneAliasFlow_ConfigPath = string;
+
+export type Cli_Menu_Interactive_ModifyPhoneAliasFlow_Returns = Promise<void>;
+
+export type Cli_Menu_Interactive_ModifyPhoneAliasFlow_PhoneAliases = Array<Lib_Schema_PhoneAliasConfig>;
+
+export type Cli_Menu_Interactive_ModifyPhoneAliasFlow_Now = number;
+
+export type Cli_Menu_Interactive_ModifyPhoneAliasFlow_Response = prompts.Answers<string>;
+
+export type Cli_Menu_Interactive_ModifyPhoneAliasFlow_Action = string | undefined;
+
+export type Cli_Menu_Interactive_ModifyPhoneAliasFlow_ExpiresAt = string | undefined;
+
+/**
  * CLI - Menu - Interactive - Notifier Menu.
  *
  * @since 1.0.0
@@ -136,6 +213,44 @@ export type Cli_Menu_Interactive_NotifierMenu_RemoveResponse = prompts.Answers<s
 export type Cli_Menu_Interactive_NotifierMenu_ErrorMessage = string;
 
 /**
+ * CLI - Menu - Interactive - Phone Alias Menu.
+ *
+ * @since 1.2.0
+ */
+export type Cli_Menu_Interactive_PhoneAliasMenu_ConfigPath = string;
+
+export type Cli_Menu_Interactive_PhoneAliasMenu_Returns = Promise<void>;
+
+export type Cli_Menu_Interactive_PhoneAliasMenu_InMenu = boolean;
+
+export type Cli_Menu_Interactive_PhoneAliasMenu_Response = prompts.Answers<string>;
+
+export type Cli_Menu_Interactive_PhoneAliasMenu_Action = string | undefined;
+
+export type Cli_Menu_Interactive_PhoneAliasMenu_ErrorMessage = string;
+
+/**
+ * CLI - Menu - Interactive - Phone Provider Menu.
+ *
+ * @since 1.2.0
+ */
+export type Cli_Menu_Interactive_PhoneProviderMenu_ConfigPath = string;
+
+export type Cli_Menu_Interactive_PhoneProviderMenu_Returns = Promise<void>;
+
+export type Cli_Menu_Interactive_PhoneProviderMenu_InMenu = boolean;
+
+export type Cli_Menu_Interactive_PhoneProviderMenu_Response = prompts.Answers<string>;
+
+export type Cli_Menu_Interactive_PhoneProviderMenu_Action = string | undefined;
+
+export type Cli_Menu_Interactive_PhoneProviderMenu_PhoneProviders = Array<Lib_Schema_PhoneProviderConfig>;
+
+export type Cli_Menu_Interactive_PhoneProviderMenu_RemoveResponse = prompts.Answers<string>;
+
+export type Cli_Menu_Interactive_PhoneProviderMenu_ErrorMessage = string;
+
+/**
  * CLI - Menu - Interactive - Print Aliases.
  *
  * @since 0.0.1
@@ -153,6 +268,23 @@ export type Cli_Menu_Interactive_PrintAliases_Now = number;
 export type Cli_Menu_Interactive_PrintAliases_Status = string;
 
 export type Cli_Menu_Interactive_PrintAliases_LabelSuffix = string;
+
+/**
+ * CLI - Menu - Interactive - Print Phone Aliases.
+ *
+ * @since 1.2.0
+ */
+export type Cli_Menu_Interactive_PrintPhoneAliases_ConfigPath = string;
+
+export type Cli_Menu_Interactive_PrintPhoneAliases_Returns = void;
+
+export type Cli_Menu_Interactive_PrintPhoneAliases_PhoneAliases = Array<Lib_Schema_PhoneAliasConfig>;
+
+export type Cli_Menu_Interactive_PrintPhoneAliases_Now = number;
+
+export type Cli_Menu_Interactive_PrintPhoneAliases_Status = string;
+
+export type Cli_Menu_Interactive_PrintPhoneAliases_LabelSuffix = string;
 
 /**
  * CLI - Menu - Interactive - Settings Flow.

@@ -2,7 +2,8 @@
   "destinations": [
     {
       "name": "personal",
-      "email": "you@example.com"
+      "email": "you@example.com",
+      "phone": "+15550100199"
     }
   ],
   "aliases": [
@@ -20,6 +21,41 @@
       "expires_at": "2026-12-31T00:00:00.000Z",
       "allowed_senders": [
         "*@example-saas.com"
+      ]
+    }
+  ],
+  "phone_providers": [
+    {
+      "type": "plivo",
+      "name": "plivo",
+      "auth_id": "replace_with_your_auth_id",
+      "auth_token": "replace_with_your_auth_token"
+    },
+    {
+      "type": "telnyx",
+      "name": "telnyx",
+      "api_key": "replace_with_your_api_key",
+      "public_key": "replace_with_your_base64_public_key"
+    }
+  ],
+  "phone_aliases": [
+    {
+      "number": "+15550100100",
+      "provider": "telnyx",
+      "destination": "personal",
+      "label": "Food delivery app",
+      "enabled": true
+    },
+    {
+      "number": "+15550100101",
+      "provider": "plivo",
+      "destination": "personal",
+      "label": "Store loyalty program",
+      "enabled": true,
+      "expires_at": "2026-12-31T00:00:00.000Z",
+      "allowed_senders": [
+        "+1555*",
+        "ACME"
       ]
     }
   ],
@@ -94,6 +130,7 @@
     "worker_name": "mailmask",
     "base_domain": "example.com",
     "subaddressing": true,
-    "add_alias_headers": true
+    "add_alias_headers": true,
+    "send_from_aliases": true
   }
 }

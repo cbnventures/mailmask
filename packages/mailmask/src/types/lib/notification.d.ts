@@ -31,10 +31,6 @@ export type Lib_Notification_BuildNotifierRequest_Payload = Shared_NotificationP
 
 export type Lib_Notification_BuildNotifierRequest_Returns = Shared_NotificationRequest | undefined;
 
-export type Lib_Notification_BuildNotifierRequest_BearerHeaders = Record<string, string>;
-
-export type Lib_Notification_BuildNotifierRequest_TransactionId = string;
-
 /**
  * Lib - Notification - Build Refusal Notification.
  *
@@ -70,21 +66,18 @@ export type Lib_Notification_BuildTestNotification_OccurredAt = number | undefin
 export type Lib_Notification_BuildTestNotification_Returns = Shared_NotificationPayload;
 
 /**
- * Lib - Notification - Escape Slack.
+ * Lib - Notification - Build Text Refusal Notification.
  *
- * @since 1.0.0
+ * @since 1.2.0
  */
-export type Lib_Notification_EscapeSlack_Value = string;
+export type Lib_Notification_BuildTextRefusalNotification_Alias = string;
 
-export type Lib_Notification_EscapeSlack_Returns = string;
+export type Lib_Notification_BuildTextRefusalNotification_Sender = string;
 
-/**
- * Lib - Notification - Trim Trailing Slashes.
- *
- * @since 1.0.0
- */
-export type Lib_Notification_TrimTrailingSlashes_Value = string;
+export type Lib_Notification_BuildTextRefusalNotification_Reason = string;
 
-export type Lib_Notification_TrimTrailingSlashes_Returns = string;
+export type Lib_Notification_BuildTextRefusalNotification_OccurredAt = number;
 
-export type Lib_Notification_TrimTrailingSlashes_Trimmed = string;
+export type Lib_Notification_BuildTextRefusalNotification_Returns = Shared_NotificationPayload;
+
+export type Lib_Notification_BuildTextRefusalNotification_ReasonCode = Shared_NotificationPayload_DetailsReason;

@@ -31,6 +31,8 @@ export type Cli_Commands_Generate_GenerateWranglerToml_EmailDestination = string
 
 export type Cli_Commands_Generate_GenerateWranglerToml_EmailDestinations = Cli_Commands_Generate_GenerateWranglerToml_EmailDestination[];
 
+export type Cli_Commands_Generate_GenerateWranglerToml_SendFromAliases = boolean;
+
 export type Cli_Commands_Generate_GenerateWranglerToml_RealBundleDir = string;
 
 export type Cli_Commands_Generate_GenerateWranglerToml_WorkerEntryPath = string;

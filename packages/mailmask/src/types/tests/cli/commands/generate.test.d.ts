@@ -10,6 +10,17 @@ export type Tests_Cli_Commands_Generate_OutputDir = string;
 export type Tests_Cli_Commands_Generate_SampleConfigPath = string;
 
 /**
+ * Tests - CLI - Commands - Generate - Generate Wrangler Toml - Limits The Binding To Notifier Addresses Without Sending From Aliases.
+ *
+ * @since 1.2.0
+ */
+export type Tests_Cli_Commands_Generate_GenerateWranglerToml_LimitsTheBindingToNotifierAddressesWithoutSendingFromAliases_ConfigPath = string;
+
+export type Tests_Cli_Commands_Generate_GenerateWranglerToml_LimitsTheBindingToNotifierAddressesWithoutSendingFromAliases_SampleConfig = { [Key in keyof Lib_Schema_ConfigSchema]: Lib_Schema_ConfigSchema[Key] };
+
+export type Tests_Cli_Commands_Generate_GenerateWranglerToml_LimitsTheBindingToNotifierAddressesWithoutSendingFromAliases_Toml = string;
+
+/**
  * Tests - CLI - Commands - Generate - Generate Wrangler Toml - Points Main At The Bundled Entry And Disables Public Urls.
  *
  * @since 1.0.0

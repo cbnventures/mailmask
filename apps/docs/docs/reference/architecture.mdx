@@ -77,7 +77,16 @@ The <Terminology title="Mailmask itself, running on your Cloudflare account" to=
 - `X-Mailmask-Alias` — The original recipient, including any `+tag`.
 - `X-Mailmask-Label` — The <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology> label, when one is set.
 
-The message body is never read, stored, or logged.
+The message body is never stored or logged.
+
+## Sending and Replying
+
+With `send_from_aliases` on, the <Terminology title="Mailmask itself, running on your Cloudflare account" to="/docs/reference/terminology#cloudflare-and-deploy">Worker</Terminology> handles two more cases through the `MAILMASK_EMAIL` `send_email` binding:
+
+- **Forwarding** — It rebuilds the message headers so `From` and `Reply-To` are the alias's <Terminology title="One sender's own address under an alias" to="/docs/reference/terminology#aliases-and-mail-flow">reply address</Terminology> for the sender, then sends it to the destination. The body bytes are passed on unchanged, and a failed send falls back to `message.forward()`.
+- **Sending** — Mail to a reply address whose `From` is the alias's own destination, with a passing DMARC result in Cloudflare's first `Authentication-Results` header, goes out from the alias to the sender the address stands for. Only the subject, date, content, and threading headers are kept.
+
+Mail that claims to come from the destination but fails DMARC is rejected with `Sender could not be verified`.
 
 ## Deploy Pipeline
 

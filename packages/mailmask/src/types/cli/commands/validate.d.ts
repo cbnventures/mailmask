@@ -1,6 +1,6 @@
 import type { z } from 'zod';
 
-import type { Lib_Schema_ConfigSchema } from '../../lib/schema.d.ts';
+import type { Lib_Schema_ConfigSchema, Lib_Schema_DestinationConfig } from '../../lib/schema.d.ts';
 
 /**
  * CLI - Commands - Validate - Validate Config.
@@ -28,6 +28,14 @@ export type Cli_Commands_Validate_ValidateConfig_AddressCounts = Map<string, num
 export type Cli_Commands_Validate_ValidateConfig_EntryAddress = string;
 
 export type Cli_Commands_Validate_ValidateConfig_EntryCount = number;
+
+export type Cli_Commands_Validate_ValidateConfig_ProviderNames = Set<string>;
+
+export type Cli_Commands_Validate_ValidateConfig_PhoneNumbers = Set<string>;
+
+export type Cli_Commands_Validate_ValidateConfig_DestinationPhones = Set<string | undefined>;
+
+export type Cli_Commands_Validate_ValidateConfig_PhoneAliasDestination = Lib_Schema_DestinationConfig | undefined;
 
 export type Cli_Commands_Validate_ValidateConfig_ResultValid = boolean;
 

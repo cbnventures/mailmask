@@ -5,8 +5,8 @@
       "slug": "mailmask"
     },
     "description": {
-      "short": "Self-hosted disposable email aliases on Cloudflare Workers that forward to your real inbox",
-      "long": "Disposable, expiring email aliases for your own domain, powered by Cloudflare Email Routing and Cloudflare Workers. Hand out a different address to every site, forward mail to your real inbox, block or allow senders per alias, and switch off any alias the moment it starts getting spam. Interactive CLI for alias management, validation, and deployment."
+      "short": "Disposable email and phone aliases for your own domain, forwarded to your real inbox or phone",
+      "long": "Hand out a different email address or phone number to every site and app, and cut one off the moment it turns into spam. Aliases can expire, allow or block specific senders, and forward to your real inbox or phone through Cloudflare, Telnyx, or Plivo."
     },
     "keywords": [
       "email",
@@ -15,7 +15,11 @@
       "temporary-email",
       "privacy",
       "cloudflare-workers",
-      "email-routing"
+      "email-routing",
+      "phone-alias",
+      "sms-forwarding",
+      "telnyx",
+      "plivo"
     ],
     "legalName": "CBN Ventures LLC",
     "pronouns": "business",
@@ -165,8 +169,152 @@
     ],
     "issueTemplate": {
       "bugReportFields": [
-        "nodejs"
-      ]
+        "nodejs",
+        "cloudflare-worker",
+        "web",
+        "screenshots",
+        "notifications"
+      ],
+      "customQuestions": {
+        "bug": [
+          {
+            "type": "dropdown",
+            "id": "alias-type",
+            "attributes": {
+              "label": "Alias Type",
+              "description": "Select the alias type involved.",
+              "options": [
+                "Email Alias",
+                "Phone Alias",
+                "Both"
+              ]
+            },
+            "validations": {
+              "required": true
+            }
+          },
+          {
+            "type": "dropdown",
+            "id": "message-direction",
+            "attributes": {
+              "label": "Message Direction",
+              "description": "Select the affected message direction.",
+              "options": [
+                "Incoming Email",
+                "Outgoing Email or Reply",
+                "Incoming Text",
+                "Outgoing Text",
+                "Not Applicable"
+              ]
+            },
+            "validations": {
+              "required": true
+            }
+          },
+          {
+            "type": "dropdown",
+            "id": "phone-provider",
+            "attributes": {
+              "label": "Phone Provider",
+              "description": "Select the phone provider involved.",
+              "options": [
+                "Telnyx",
+                "Plivo",
+                "Not Applicable"
+              ]
+            },
+            "validations": {
+              "required": false
+            }
+          }
+        ],
+        "feature": [
+          {
+            "type": "dropdown",
+            "id": "alias-type",
+            "attributes": {
+              "label": "Alias Type",
+              "description": "Select the alias type involved.",
+              "options": [
+                "Email Alias",
+                "Phone Alias",
+                "Both"
+              ]
+            },
+            "validations": {
+              "required": true
+            }
+          },
+          {
+            "type": "dropdown",
+            "id": "phone-provider",
+            "attributes": {
+              "label": "Phone Provider",
+              "description": "Select the phone provider involved.",
+              "options": [
+                "Telnyx",
+                "Plivo",
+                "Not Applicable"
+              ]
+            },
+            "validations": {
+              "required": false
+            }
+          }
+        ],
+        "support": [
+          {
+            "type": "dropdown",
+            "id": "alias-type",
+            "attributes": {
+              "label": "Alias Type",
+              "description": "Select the alias type involved.",
+              "options": [
+                "Email Alias",
+                "Phone Alias",
+                "Both"
+              ]
+            },
+            "validations": {
+              "required": true
+            }
+          },
+          {
+            "type": "dropdown",
+            "id": "message-direction",
+            "attributes": {
+              "label": "Message Direction",
+              "description": "Select the affected message direction.",
+              "options": [
+                "Incoming Email",
+                "Outgoing Email or Reply",
+                "Incoming Text",
+                "Outgoing Text",
+                "Not Applicable"
+              ]
+            },
+            "validations": {
+              "required": true
+            }
+          },
+          {
+            "type": "dropdown",
+            "id": "phone-provider",
+            "attributes": {
+              "label": "Phone Provider",
+              "description": "Select the phone provider involved.",
+              "options": [
+                "Telnyx",
+                "Plivo",
+                "Not Applicable"
+              ]
+            },
+            "validations": {
+              "required": false
+            }
+          }
+        ]
+      }
     }
   },
   "workflows": [
@@ -196,7 +344,7 @@
         "tag-push"
       ],
       "runsOn": "ubuntu-24.04",
-      "timeoutMinutes": 15,
+      "timeoutMinutes": 30,
       "build": [
         "./packages/mailmask",
         "./apps/docs"
@@ -242,6 +390,7 @@
       "github-release",
       "github-top-language",
       "github-license",
+      "coverage",
       "funding"
     ]
   },
@@ -385,6 +534,11 @@
         "enabled": true
       },
       "update-introduction": {
+        "enabled": true
+      }
+    },
+    "tsconfig": {
+      "sync-references": {
         "enabled": true
       }
     },
@@ -551,6 +705,9 @@
     }
   },
   "settings": {
+    "coverage": {
+      "minimum": 70
+    },
     "lockStepVersioning": true,
     "runWorkspaces": {
       "cache": {

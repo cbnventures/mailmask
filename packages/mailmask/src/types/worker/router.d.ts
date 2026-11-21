@@ -24,7 +24,7 @@ export type Worker_Router_MatchesSender_SenderDomain = string;
 /**
  * Worker - Router - Resolve Route.
  *
- * @since 1.1.0
+ * @since 1.2.0
  */
 export type Worker_Router_ResolveRoute_Recipient = string;
 
@@ -33,6 +33,8 @@ export type Worker_Router_ResolveRoute_Sender = string;
 export type Worker_Router_ResolveRoute_Config = { [Key in keyof Lib_Schema_ConfigSchema]: Lib_Schema_ConfigSchema[Key] };
 
 export type Worker_Router_ResolveRoute_Now = number;
+
+export type Worker_Router_ResolveRoute_HeaderSender = string | undefined;
 
 export type Worker_Router_ResolveRoute_Returns = Shared_RouteDecision;
 
@@ -45,6 +47,16 @@ export type Worker_Router_ResolveRoute_Domain = string;
 export type Worker_Router_ResolveRoute_LocalPart = string;
 
 export type Worker_Router_ResolveRoute_PlusIndex = number;
+
+export type Worker_Router_ResolveRoute_SendAlias = Lib_Schema_AliasConfig | undefined;
+
+export type Worker_Router_ResolveRoute_SendDestination = Lib_Schema_DestinationConfig | undefined;
+
+export type Worker_Router_ResolveRoute_RecipientEmail = string | undefined;
+
+export type Worker_Router_ResolveRoute_SendExpiresAt = string | undefined;
+
+export type Worker_Router_ResolveRoute_SendReason = string | undefined;
 
 export type Worker_Router_ResolveRoute_Alias = Lib_Schema_AliasConfig | undefined;
 

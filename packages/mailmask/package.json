@@ -1,7 +1,7 @@
 {
   "name": "mailmask",
-  "version": "1.1.1",
-  "description": "Self-hosted disposable email aliases on Cloudflare Workers that forward to your real inbox",
+  "version": "1.2.0",
+  "description": "Disposable email and phone aliases for your own domain, forwarded to your real inbox or phone",
   "keywords": [
     "email",
     "email-alias",
@@ -9,7 +9,11 @@
     "temporary-email",
     "privacy",
     "cloudflare-workers",
-    "email-routing"
+    "email-routing",
+    "phone-alias",
+    "sms-forwarding",
+    "telnyx",
+    "plivo"
   ],
   "license": "MIT",
   "homepage": "https://mailmask.cbnventures.io/",
@@ -43,8 +47,8 @@
     "build"
   ],
   "bin": {
-    "mailmask": "build/src/cli/index.js",
-    "mm": "build/src/cli/index.js"
+    "mailmask": "build/cli/index.js",
+    "mm": "build/cli/index.js"
   },
   "private": false,
   "scripts": {
@@ -58,16 +62,17 @@
     "check:types-config": "nova utility type-check --project tsconfig.config.json",
     "check:types-tests": "nova utility type-check --project tsconfig.tests.json",
     "check:test": "vitest run",
+    "check:coverage": "vitest run --coverage",
     "build": "nova utility run-scripts --sequential --node-env production \"build:*\"",
     "build:generate-types": "node ../../scripts/generate-wrangler-types.mjs",
     "build:transpile-cli": "nova utility transpile --project tsconfig.cli.json",
     "build:transpile-worker": "nova utility transpile --project tsconfig.worker.json",
-    "build:copy-types": "shx rm -rf \"./build/src/types\" && shx cp -r \"./src/types\" \"./build/src/types\"",
+    "build:copy-types": "shx rm -rf \"./build/types\" && shx cp -r \"./src/types\" \"./build/types\"",
     "build:copy-config": "shx cp ../../config.sample.json ./build/config.sample.json",
-    "build:fix-perms": "shx chmod +x ./build/src/cli/index.js",
+    "build:fix-perms": "shx chmod +x ./build/cli/index.js",
     "build:verify-package": "node ../../scripts/verify-package.mjs",
     "deploy": "nova utility run-scripts --sequential --node-env production \"deploy:*\"",
-    "deploy:worker": "node build/src/cli/index.js deploy",
+    "deploy:worker": "node build/cli/index.js deploy",
     "clean": "nova utility run-scripts --parallel \"clean:*\"",
     "clean:build": "shx rm -rf ./build",
     "manage": "tsx src/cli/index.ts"
@@ -76,7 +81,7 @@
     "node": "^22 || ^24 || ^26"
   },
   "dependencies": {
-    "@cbnventures/nova": "0.44.0",
+    "@cbnventures/nova": "0.49.0",
     "@scure/bip39": "2.4.0",
     "chalk": "6.0.0",
     "commander": "15.0.0",
@@ -88,12 +93,13 @@
     "@cloudflare/workers-types": "5.20261015.1",
     "@types/node": "24.9.1",
     "@types/prompts": "2.4.9",
+    "@vitest/coverage-v8": "4.1.12",
     "eslint": "9.39.5",
     "glob": "13.0.6",
     "node-pty": "1.2.0-beta.14",
     "shx": "0.4.0",
     "tsx": "4.23.15",
     "typescript": "6.0.3",
-    "vitest": "4.1.11"
+    "vitest": "4.1.12"
   }
 }

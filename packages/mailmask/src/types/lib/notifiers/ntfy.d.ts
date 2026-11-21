@@ -1,0 +1,20 @@
+import type {
+  Shared_NotificationPayload,
+  Shared_NotificationRequest,
+  Shared_NotifierDependencies,
+} from '../../shared.d.ts';
+import type { Lib_Schema_NtfyNotifierConfig } from '../schema.d.ts';
+
+export type Lib_Notifiers_Ntfy_Runner_Notifier = Lib_Schema_NtfyNotifierConfig;
+
+export type Lib_Notifiers_Ntfy_Runner_BuildRequest_Payload = Shared_NotificationPayload;
+export type Lib_Notifiers_Ntfy_Runner_BuildRequest_Returns = Shared_NotificationRequest;
+
+export type Lib_Notifiers_Ntfy_Runner_Constructor_Notifier = Lib_Schema_NtfyNotifierConfig;
+
+export type Lib_Notifiers_Ntfy_Runner_Send_Payload = Shared_NotificationPayload;
+export type Lib_Notifiers_Ntfy_Runner_Send_Dependencies = Shared_NotifierDependencies;
+export type Lib_Notifiers_Ntfy_Runner_Send_Returns = Promise<void>;
+
+export type Lib_Notifiers_Ntfy_Runner_Validate_Value = unknown;
+export type Lib_Notifiers_Ntfy_Runner_Validate_Returns = boolean;

@@ -1,7 +1,7 @@
 ---
 id: terminology
 title: Terminology
-description: Define alias, destination, notifier, notification payload, refusal, sender rule, and the other terms used throughout Mailmask.
+description: Define alias, phone alias, destination, notifier, refusal, sender rule, and the other terms used throughout the Mailmask docs.
 sidebar_position: 6
 keywords:
   - mailmask
@@ -19,7 +19,7 @@ tags:
 
 import { Terminology } from '@cbnventures/docusaurus-preset-nova/blocks';
 
-Short, practical definitions for the alias, routing, and Cloudflare terms used throughout the Mailmask documentation. Tables list the term first, also known as, then the definition.
+Short, practical definitions for the alias, phone, routing, and Cloudflare terms used throughout the Mailmask documentation. Tables list the term first, also known as, then the definition.
 
 :::tip[Glossary Terms]
 Throughout the docs, you will see <Terminology title="A quick reminder, right where you read it" to="/docs/reference/terminology">highlighted terms</Terminology> with a dotted underline. Hover over any of them for a quick reminder of what they mean, or click to jump to the full definition.
@@ -35,6 +35,16 @@ Throughout the docs, you will see <Terminology title="A quick reminder, right wh
 | **sender rule**     | allow or block entry | An entry in an alias's allow or block list: a full address (`news@shop.com`) or a domain wildcard (`*@shop.com`), matched against the envelope sender.                                                 |
 | **refusal**         | —                    | Mail a known alias turns away because it is disabled but still reached, expired, blocked by its sender rules, or missing its destination. The Worker rejects it, so the sender gets a bounce.          |
 | **unknown address** | —                    | An address on the base domain that is not an enabled alias. It has no routing rule, so Cloudflare rejects it with `Address does not exist` before it reaches the Worker.                               |
+| **reply address**   | reverse alias        | An address such as `shop+news=store.example.com@example.com` that stands for one sender of one alias. Mail you send to it goes out from the alias to that sender, so they only see the alias.          |
+
+## Phone Aliases
+
+| Term                  | Also known as          | Definition                                                                                                                                                                                                                                                              |
+|-----------------------|------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **phone alias**       | masked number          | A phone number rented from a phone provider, such as `+15550100100`, that forwards the texts it receives to a destination's phone and sends that phone's texts on under its own number. It has the same label, expiry, sender rules, and on and off switch as an alias. |
+| **phone provider**    | carrier account        | A Telnyx or Plivo account whose numbers become phone aliases. Mailmask uses its API to buy, release, and point numbers, and to send texts from them.                                                                                                                    |
+| **sender name**       | alphanumeric sender ID | A name such as `ACME` that some senders text from instead of a number. Sender rules can allow or block it like a number.                                                                                                                                                |
+| **webhook signature** | signed webhook         | The proof a phone provider attaches to every text it sends the Worker. The Worker checks it with the provider's key and ignores any request that fails.                                                                                                                 |
 
 ## Cloudflare and Deploy
 

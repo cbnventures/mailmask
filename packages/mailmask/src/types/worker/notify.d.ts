@@ -1,7 +1,8 @@
 import type { Lib_Schema_NotifierConfig } from '../lib/schema.d.ts';
 import type {
   Shared_NotificationPayload,
-  Shared_NotificationRequest,
+  Shared_Notifier,
+  Shared_NotifierDependencies,
 } from '../shared.d.ts';
 
 /**
@@ -34,13 +35,11 @@ export type Worker_Notify_SendNotification_Returns = Promise<void>;
 
 export type Worker_Notify_SendNotification_Controller = AbortController;
 
-export type Worker_Notify_SendNotification_EmailOperation = Promise<unknown>;
+export type Worker_Notify_SendNotification_NotifierAdapter = Shared_Notifier;
 
-export type Worker_Notify_SendNotification_Request = Shared_NotificationRequest | undefined;
+export type Worker_Notify_SendNotification_Dependencies = Shared_NotifierDependencies;
 
-export type Worker_Notify_SendNotification_HttpOperation = Promise<unknown>;
-
-export type Worker_Notify_SendNotification_Response = Response | undefined;
+export type Worker_Notify_SendNotification_Operation = Promise<void>;
 
 /**
  * Worker - Notify - Send Notifications.

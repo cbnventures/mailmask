@@ -24,11 +24,11 @@ Publish your aliases to Cloudflare with a single `mm deploy` that handles the <T
 - **Cloudflare account** — Free or paid.
 - **A domain managed by Cloudflare DNS** — The <Terminology title="The domain every alias lives on" to="/docs/reference/terminology#cloudflare-and-deploy">base domain</Terminology> can be the zone's apex (root) domain, such as `example.com`, or a subdomain, such as `mail.example.com`.
 - **Email Routing receiving mail for the base domain** — For an apex, open **Email Routing** for the domain, go to **Settings**, and under **DNS records** select **Add missing records** so Cloudflare adds the MX and SPF records. For a subdomain, add it under **Email Routing > Settings > Subdomains** so Cloudflare adds its records ([Cloudflare docs](https://developers.cloudflare.com/email-service/configuration/subdomains/)).
-- **Email Sending configured when using an email notifier** — Onboard the notifier's sender domain in Cloudflare Email Sending. Other notifier types do not need this service.
+- **Email Sending configured when using an email notifier** — Onboard the notifier's sender domain in Cloudflare Email Sending. Other notifier types do not need this service. With `send_from_aliases` on, deploy onboards the base domain for you.
 - **An API token** — With the permissions listed below.
 
 :::info
-Adding Email Routing records changes your DNS, so Mailmask leaves that step to you. If the base domain isn't set up, deploy stops before changing anything, with a message that names the dashboard steps.
+Adding Email Routing records changes your DNS, so Mailmask leaves that step to you. If the base domain isn't set up, deploy stops before changing anything, with a message that names the dashboard steps. The only DNS records deploy adds are the Email Sending ones, and only with `send_from_aliases` on.
 :::
 
 ## API Token Permissions
@@ -44,6 +44,9 @@ Under **Account policy**, select your account; under **Zone policy**, select the
 | Zone > Zone Settings > Edit              | Reads the Email Routing status and turns on subaddressing when `subaddressing` is `true`. |
 | Zone > Email Routing Rules > Edit        | Adds, updates, and removes alias routing rules and turns off a catch-all for the Worker.  |
 | Zone > Workers Routes > Edit             | Attaches the base domain and its `www` host to the Worker as custom domains.              |
+| Zone > Email Sending > Edit              | Only with `send_from_aliases` on: onboards the base domain to Cloudflare Email Sending.   |
+| Zone > DNS > Edit                        | Only with `send_from_aliases` on: adds the DNS records Email Sending needs.               |
+| Account > Billing > Read                 | Only with `send_from_aliases` on: reads whether the account is on Workers Paid.           |
 
 ## Providing the Token
 
@@ -66,15 +69,17 @@ The permission check only confirms the token can read each resource, so it can't
 4. **Checks Email Routing** — Confirms <Terminology title="Cloudflare's mail intake that hands messages to Mailmask" to="/docs/reference/terminology#cloudflare-and-deploy">Cloudflare Email Routing</Terminology> is enabled on an apex, or that a subdomain's MX records point to Cloudflare.
 5. **Plans the changes** — Lists the zone's <Terminology title="Your Worker's own web addresses" to="/docs/reference/terminology#cloudflare-and-deploy">custom domains</Terminology> and <Terminology title="Sends one alias's mail to Mailmask" to="/docs/reference/terminology#cloudflare-and-deploy">routing rules</Terminology>, and stops before any change when a host belongs to another Worker or the domain would pass Cloudflare's rule limit.
 6. **Registers destinations** — Adds any new forwarding destination or email-notifier recipient to Email Routing, which triggers a verification email, and lists the ones still unverified.
-7. **Generates `wrangler.toml`** — Writes the <Terminology title="Mailmask itself, running on your Cloudflare account" to="/docs/reference/terminology#cloudflare-and-deploy">Worker</Terminology> configuration next to your `config.json`, plus `.wrangler/mailmask/config.json` beside it with your whole config, notifier tokens included, which ships inside the Worker. When email notifiers exist, it also generates the `MAILMASK_EMAIL` `send_email` binding and its recipient allowlist. It is recommended to keep `.wrangler/` out of version control.
+7. **Generates `wrangler.toml`** — Writes the <Terminology title="Mailmask itself, running on your Cloudflare account" to="/docs/reference/terminology#cloudflare-and-deploy">Worker</Terminology> configuration next to your `config.json`, plus `.wrangler/mailmask/config.json` beside it with your whole config, notifier tokens included, which ships inside the Worker. When email notifiers exist, it also generates the `MAILMASK_EMAIL` `send_email` binding and its recipient allowlist. With `send_from_aliases` on, the binding is always generated and has no allowlist, so replies can reach any recipient. It is recommended to keep `.wrangler/` out of version control.
 8. **Publishes the Worker** — Runs `wrangler deploy`.
 9. **Attaches custom domains** — Adds the base domain and `www.` plus the base domain as <Terminology title="Your Worker's own web addresses" to="/docs/reference/terminology#cloudflare-and-deploy">custom domains</Terminology> of the Worker, unless they already are.
-10. **Turns on subaddressing** — When `subaddressing` is `true`, turns on Email Routing subaddressing so `alias+tag@` matches the alias's rule. It never turns the setting off.
+10. **Turns on subaddressing** — When `subaddressing` or `send_from_aliases` is `true`, turns on Email Routing subaddressing so `alias+tag@` and reply addresses match the alias's rule. It never turns the setting off.
 11. **Syncs routing rules** — Adds a <Terminology title="Sends one alias's mail to Mailmask" to="/docs/reference/terminology#cloudflare-and-deploy">routing rule</Terminology> for each enabled <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology>, fixes rules that changed, and removes the ones for disabled or removed aliases.
 12. **Hands back the catch-all** — Turns off any <Terminology title="Cloudflare's rule for addresses without their own rule" to="/docs/reference/terminology#cloudflare-and-deploy">catch-all</Terminology> that points at the Worker, such as the one Mailmask 1.0.0 set up, once every enabled alias has its own rule.
-13. **Prints a summary** — Lists every <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology> with its full address, <Terminology title="Your real inbox, where an alias's mail ends up" to="/docs/reference/terminology#aliases-and-mail-flow">destination</Terminology>, and status.
+13. **Sets up Email Sending** — When `send_from_aliases` is on, onboards the base domain to Cloudflare Email Sending unless it already is, then adds each DNS record Email Sending expects that the zone lacks. An existing DMARC record is kept. If Cloudflare refuses, deploy warns and carries on, because mail still forwards. It then waits up to a minute for those records to resolve on public DNS, and reads the account's Workers plan.
+14. **Connects phone numbers** — When the config has phone aliases, points each <Terminology title="The Telnyx or Plivo account that rents your numbers" to="/docs/reference/terminology#phone-aliases">phone provider</Terminology>'s numbers at `https://<base_domain>/phone/<provider>/messages`, as [Phone Providers](/docs/getting-started/phone-providers/) describes.
+15. **Prints a summary** — Lists every <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology> and <Terminology title="A rented number that forwards its texts to you" to="/docs/reference/terminology#phone-aliases">phone alias</Terminology> with its <Terminology title="Your real inbox, where an alias's mail ends up" to="/docs/reference/terminology#aliases-and-mail-flow">destination</Terminology> and status, then warns about the caveats that apply: **Reply All** when `send_from_aliases` is on, Email Sending records that are still pending, Workers Paid when the account is on Workers Free or its plan can't be read, caller ID when there are phone aliases, and console-only country limits when there is a Plivo account.
 
-Running deploy again changes only what differs in destinations, custom domains, and routing rules, so a redeploy with no config changes adds, updates, and removes none of them. It still regenerates `wrangler.toml` and publishes the Worker on every run.
+Running deploy again changes only what differs in destinations, custom domains, routing rules, and Email Sending setup, so a redeploy with no config changes adds, updates, and removes none of them. It still regenerates `wrangler.toml` and publishes the Worker on every run.
 
 ## Routing Rules
 

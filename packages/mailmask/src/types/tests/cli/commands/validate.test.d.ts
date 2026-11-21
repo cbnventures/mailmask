@@ -77,3 +77,17 @@ export type Tests_Cli_Commands_Validate_ValidateConfig_ReportsMissingDestination
   valid: Tests_Cli_Commands_Validate_ValidateConfig_ReportsMissingDestinationsAndDuplicateAliases_Result_Valid;
   errors: Tests_Cli_Commands_Validate_ValidateConfig_ReportsMissingDestinationsAndDuplicateAliases_Result_Errors;
 };
+
+/**
+ * Tests - CLI - Commands - Validate - Validate Config - Reports Phone Alias Problems.
+ *
+ * @since 1.2.0
+ */
+export type Tests_Cli_Commands_Validate_ValidateConfig_ReportsPhoneAliasProblems_Result_Valid = boolean;
+
+export type Tests_Cli_Commands_Validate_ValidateConfig_ReportsPhoneAliasProblems_Result_Errors = string[];
+
+export type Tests_Cli_Commands_Validate_ValidateConfig_ReportsPhoneAliasProblems_Result = {
+  valid: Tests_Cli_Commands_Validate_ValidateConfig_ReportsPhoneAliasProblems_Result_Valid;
+  errors: Tests_Cli_Commands_Validate_ValidateConfig_ReportsPhoneAliasProblems_Result_Errors;
+};

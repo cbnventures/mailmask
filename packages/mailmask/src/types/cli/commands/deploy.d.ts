@@ -1,27 +1,21 @@
-import type { SpawnSyncReturns } from 'node:child_process';
-import type { MxRecord } from 'node:dns';
-
-import type { z } from 'zod';
-
 import type {
   Lib_Schema_AliasConfig,
-  Lib_Schema_CloudflareCatchAll,
-  Lib_Schema_CloudflareDestinationAddress,
-  Lib_Schema_CloudflareDestinationAddresses,
-  Lib_Schema_CloudflareEmailRoutingSettings,
-  Lib_Schema_CloudflareEnvelope,
-  Lib_Schema_CloudflareRoutingRule,
-  Lib_Schema_CloudflareRoutingRuleAction,
-  Lib_Schema_CloudflareRoutingRuleMatcher,
-  Lib_Schema_CloudflareRoutingRules,
-  Lib_Schema_CloudflareWorkerDomain,
-  Lib_Schema_CloudflareWorkerDomains,
-  Lib_Schema_CloudflareZone,
-  Lib_Schema_CloudflareZones,
   Lib_Schema_DestinationConfig,
+  Lib_Schema_PhoneAliasConfig,
   Lib_Schema_SettingsConfig,
 } from '../../lib/schema.d.ts';
-import type { Shared_RoutingRulePlan } from '../../shared.d.ts';
+import type {
+  Shared_CloudflareCatchAll,
+  Shared_CloudflareDestinationAddress,
+  Shared_CloudflareEmailRouting,
+  Shared_CloudflareEmailSendingSetup,
+  Shared_CloudflareEmailSendingSetup_Records,
+  Shared_CloudflareRoutingRule,
+  Shared_CloudflareWorkerDomain,
+  Shared_CloudflareWorkersPlan,
+  Shared_CloudflareZone,
+  Shared_RoutingRulePlan,
+} from '../../shared.d.ts';
 import type { Cli_Commands_Validate_ValidateConfig_Returns } from './validate.d.ts';
 
 /**
@@ -63,38 +57,55 @@ export type Cli_Commands_Deploy_AttachCustomDomains_Returns = Promise<void>;
 export type Cli_Commands_Deploy_AttachCustomDomains_ErrorMessage = string;
 
 /**
- * CLI - Commands - Deploy - Build Routing Rule.
+ * CLI - Commands - Deploy - Build Deploy Warnings.
  *
- * @since 1.1.0
+ * @since 1.2.0
  */
-export type Cli_Commands_Deploy_BuildRoutingRule_WorkerName = string;
+export type Cli_Commands_Deploy_BuildDeployWarnings_Settings = { [Key in keyof Lib_Schema_SettingsConfig]: Lib_Schema_SettingsConfig[Key] };
 
-export type Cli_Commands_Deploy_BuildRoutingRule_Address = string;
+export type Cli_Commands_Deploy_BuildDeployWarnings_EmailSendingReady = boolean;
 
-export type Cli_Commands_Deploy_BuildRoutingRule_Returns = Record<string, unknown>;
+export type Cli_Commands_Deploy_BuildDeployWarnings_HasPhoneAliases = boolean;
+
+export type Cli_Commands_Deploy_BuildDeployWarnings_HasPlivo = boolean;
+
+export type Cli_Commands_Deploy_BuildDeployWarnings_WorkersPlan = Shared_CloudflareWorkersPlan;
+
+export type Cli_Commands_Deploy_BuildDeployWarnings_PendingRecord = string;
+
+export type Cli_Commands_Deploy_BuildDeployWarnings_PendingRecords = Cli_Commands_Deploy_BuildDeployWarnings_PendingRecord[];
+
+export type Cli_Commands_Deploy_BuildDeployWarnings_Returns = string[];
+
+export type Cli_Commands_Deploy_BuildDeployWarnings_SendingWarning = string;
+
+export type Cli_Commands_Deploy_BuildDeployWarnings_SendingWarnings = Cli_Commands_Deploy_BuildDeployWarnings_SendingWarning[];
 
 /**
- * CLI - Commands - Deploy - Cloudflare Request.
+ * CLI - Commands - Deploy - Build Routing Rule Name.
  *
- * @since 0.0.1
+ * @since 1.2.0
  */
-export type Cli_Commands_Deploy_CloudflareRequest_Token = string;
+export type Cli_Commands_Deploy_BuildRoutingRuleName_WorkerName = string;
 
-export type Cli_Commands_Deploy_CloudflareRequest_Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+export type Cli_Commands_Deploy_BuildRoutingRuleName_Address = string;
 
-export type Cli_Commands_Deploy_CloudflareRequest_Path = string;
+export type Cli_Commands_Deploy_BuildRoutingRuleName_Returns = string;
 
-export type Cli_Commands_Deploy_CloudflareRequest_Body = Record<string, unknown> | undefined;
+/**
+ * CLI - Commands - Deploy - Check Email Sending Records.
+ *
+ * @since 1.2.0
+ */
+export type Cli_Commands_Deploy_CheckEmailSendingRecords_BaseDomain = string;
 
-export type Cli_Commands_Deploy_CloudflareRequest_Returns = Promise<unknown>;
+export type Cli_Commands_Deploy_CheckEmailSendingRecords_Records = Shared_CloudflareEmailSendingSetup_Records;
 
-export type Cli_Commands_Deploy_CloudflareRequest_Response = Response;
+export type Cli_Commands_Deploy_CheckEmailSendingRecords_Returns = Promise<Cli_Commands_Deploy_CheckEmailSendingRecords_PendingRecords>;
 
-export type Cli_Commands_Deploy_CloudflareRequest_ResponseData = unknown;
+export type Cli_Commands_Deploy_CheckEmailSendingRecords_PendingRecord = string;
 
-export type Cli_Commands_Deploy_CloudflareRequest_Envelope = { [Key in keyof Lib_Schema_CloudflareEnvelope]: Lib_Schema_CloudflareEnvelope[Key] };
-
-export type Cli_Commands_Deploy_CloudflareRequest_ErrorDetails = string;
+export type Cli_Commands_Deploy_CheckEmailSendingRecords_PendingRecords = Cli_Commands_Deploy_CheckEmailSendingRecords_PendingRecord[];
 
 /**
  * CLI - Commands - Deploy - Deploy.
@@ -113,21 +124,11 @@ export type Cli_Commands_Deploy_Deploy_Result = { [Key in keyof Cli_Commands_Val
 
 export type Cli_Commands_Deploy_Deploy_Settings = { [Key in keyof Lib_Schema_SettingsConfig]: Lib_Schema_SettingsConfig[Key] };
 
-export type Cli_Commands_Deploy_Deploy_ZoneInfo_ZoneId = string;
-
-export type Cli_Commands_Deploy_Deploy_ZoneInfo_AccountId = string;
-
-export type Cli_Commands_Deploy_Deploy_ZoneInfo_ZoneName = string;
-
-export type Cli_Commands_Deploy_Deploy_ZoneInfo = {
-  zoneId: Cli_Commands_Deploy_Deploy_ZoneInfo_ZoneId;
-  accountId: Cli_Commands_Deploy_Deploy_ZoneInfo_AccountId;
-  zoneName: Cli_Commands_Deploy_Deploy_ZoneInfo_ZoneName;
-};
+export type Cli_Commands_Deploy_Deploy_ZoneInfo = { [Key in keyof Shared_CloudflareZone]: Shared_CloudflareZone[Key] };
 
 export type Cli_Commands_Deploy_Deploy_AccountId = string;
 
-export type Cli_Commands_Deploy_Deploy_Routing = { [Key in keyof Lib_Schema_CloudflareEmailRoutingSettings]: Lib_Schema_CloudflareEmailRoutingSettings[Key] };
+export type Cli_Commands_Deploy_Deploy_Routing = { [Key in keyof Shared_CloudflareEmailRouting]: Shared_CloudflareEmailRouting[Key] };
 
 export type Cli_Commands_Deploy_Deploy_MissingHostname = string;
 
@@ -137,36 +138,37 @@ export type Cli_Commands_Deploy_Deploy_RoutingPlan = { [Key in keyof Shared_Rout
 
 export type Cli_Commands_Deploy_Deploy_WranglerTomlPath = string;
 
-/**
- * CLI - Commands - Deploy - Deploy Worker.
- *
- * @since 0.0.1
- */
-export type Cli_Commands_Deploy_DeployWorker_WranglerTomlPath = string;
+export type Cli_Commands_Deploy_Deploy_EmailSendingReady = boolean;
 
-export type Cli_Commands_Deploy_DeployWorker_Returns = void;
+export type Cli_Commands_Deploy_Deploy_PendingRecord = string;
 
-export type Cli_Commands_Deploy_DeployWorker_WranglerCliPath = string;
+export type Cli_Commands_Deploy_Deploy_PendingRecords = Cli_Commands_Deploy_Deploy_PendingRecord[];
 
-export type Cli_Commands_Deploy_DeployWorker_DeployResult = SpawnSyncReturns<string>;
+export type Cli_Commands_Deploy_Deploy_WorkersPlan = Shared_CloudflareWorkersPlan;
+
+export type Cli_Commands_Deploy_Deploy_SendingRecords = Shared_CloudflareEmailSendingSetup_Records | undefined;
+
+export type Cli_Commands_Deploy_Deploy_ConnectedProvider = string;
+
+export type Cli_Commands_Deploy_Deploy_ConnectedProviders = Cli_Commands_Deploy_Deploy_ConnectedProvider[];
 
 /**
  * CLI - Commands - Deploy - Enable Subaddressing.
  *
- * @since 1.1.0
+ * @since 1.2.0
  */
 export type Cli_Commands_Deploy_EnableSubaddressing_Token = string;
 
 export type Cli_Commands_Deploy_EnableSubaddressing_ZoneId = string;
 
-export type Cli_Commands_Deploy_EnableSubaddressing_Routing = { [Key in keyof Lib_Schema_CloudflareEmailRoutingSettings]: Lib_Schema_CloudflareEmailRoutingSettings[Key] };
+export type Cli_Commands_Deploy_EnableSubaddressing_Routing = { [Key in keyof Shared_CloudflareEmailRouting]: Shared_CloudflareEmailRouting[Key] };
 
 export type Cli_Commands_Deploy_EnableSubaddressing_Returns = Promise<void>;
 
 /**
  * CLI - Commands - Deploy - Ensure Destination Addresses.
  *
- * @since 1.0.0
+ * @since 1.2.0
  */
 export type Cli_Commands_Deploy_EnsureDestinationAddresses_ConfigPath = string;
 
@@ -190,13 +192,7 @@ export type Cli_Commands_Deploy_EnsureDestinationAddresses_Email = string;
 
 export type Cli_Commands_Deploy_EnsureDestinationAddresses_Emails = Cli_Commands_Deploy_EnsureDestinationAddresses_Email[];
 
-export type Cli_Commands_Deploy_EnsureDestinationAddresses_ExistingAddresses = { [Key in keyof Lib_Schema_CloudflareDestinationAddresses]: Lib_Schema_CloudflareDestinationAddresses[Key] };
-
-export type Cli_Commands_Deploy_EnsureDestinationAddresses_Page = number;
-
-export type Cli_Commands_Deploy_EnsureDestinationAddresses_PageAddresses = { [Key in keyof Lib_Schema_CloudflareDestinationAddresses]: Lib_Schema_CloudflareDestinationAddresses[Key] };
-
-export type Cli_Commands_Deploy_EnsureDestinationAddresses_Result = unknown;
+export type Cli_Commands_Deploy_EnsureDestinationAddresses_ExistingAddresses = Shared_CloudflareDestinationAddress[];
 
 export type Cli_Commands_Deploy_EnsureDestinationAddresses_PendingEmail = string;
 
@@ -204,12 +200,12 @@ export type Cli_Commands_Deploy_EnsureDestinationAddresses_Pending = Cli_Command
 
 export type Cli_Commands_Deploy_EnsureDestinationAddresses_NormalizedEmail = string;
 
-export type Cli_Commands_Deploy_EnsureDestinationAddresses_Existing = Lib_Schema_CloudflareDestinationAddress | undefined;
+export type Cli_Commands_Deploy_EnsureDestinationAddresses_Existing = Shared_CloudflareDestinationAddress | undefined;
 
 /**
  * CLI - Commands - Deploy - Ensure Email Routing Enabled.
  *
- * @since 1.1.0
+ * @since 1.2.0
  */
 export type Cli_Commands_Deploy_EnsureEmailRoutingEnabled_Token = string;
 
@@ -221,73 +217,18 @@ export type Cli_Commands_Deploy_EnsureEmailRoutingEnabled_BaseDomain = string;
 
 export type Cli_Commands_Deploy_EnsureEmailRoutingEnabled_Returns = Promise<Cli_Commands_Deploy_EnsureEmailRoutingEnabled_Routing>;
 
-export type Cli_Commands_Deploy_EnsureEmailRoutingEnabled_Result = unknown;
-
-export type Cli_Commands_Deploy_EnsureEmailRoutingEnabled_Routing = { [Key in keyof Lib_Schema_CloudflareEmailRoutingSettings]: Lib_Schema_CloudflareEmailRoutingSettings[Key] };
-
-export type Cli_Commands_Deploy_EnsureEmailRoutingEnabled_MxRecords = MxRecord[];
-
-/**
- * CLI - Commands - Deploy - Find Missing Permissions.
- *
- * @since 1.1.0
- */
-export type Cli_Commands_Deploy_FindMissingPermissions_Token = string;
-
-export type Cli_Commands_Deploy_FindMissingPermissions_ZoneId = string;
-
-export type Cli_Commands_Deploy_FindMissingPermissions_AccountId = string;
-
-export type Cli_Commands_Deploy_FindMissingPermissions_Returns = Promise<Cli_Commands_Deploy_FindMissingPermissions_Missing>;
-
-export type Cli_Commands_Deploy_FindMissingPermissions_Probe_Permission = string;
-
-export type Cli_Commands_Deploy_FindMissingPermissions_Probe_Path = string;
-
-export type Cli_Commands_Deploy_FindMissingPermissions_Probe = {
-  permission: Cli_Commands_Deploy_FindMissingPermissions_Probe_Permission;
-  path: Cli_Commands_Deploy_FindMissingPermissions_Probe_Path;
-};
-
-export type Cli_Commands_Deploy_FindMissingPermissions_Probes = Cli_Commands_Deploy_FindMissingPermissions_Probe[];
-
-export type Cli_Commands_Deploy_FindMissingPermissions_Permission = string;
-
-export type Cli_Commands_Deploy_FindMissingPermissions_Missing = Cli_Commands_Deploy_FindMissingPermissions_Permission[];
-
-/**
- * CLI - Commands - Deploy - Get Literal Address.
- *
- * @since 1.1.0
- */
-export type Cli_Commands_Deploy_GetLiteralAddress_Rule = { [Key in keyof Lib_Schema_CloudflareRoutingRule]: Lib_Schema_CloudflareRoutingRule[Key] };
-
-export type Cli_Commands_Deploy_GetLiteralAddress_Returns = string | undefined;
-
-export type Cli_Commands_Deploy_GetLiteralAddress_Matcher = Lib_Schema_CloudflareRoutingRuleMatcher | undefined;
+export type Cli_Commands_Deploy_EnsureEmailRoutingEnabled_Routing = { [Key in keyof Shared_CloudflareEmailRouting]: Shared_CloudflareEmailRouting[Key] };
 
 /**
  * CLI - Commands - Deploy - Get Zone Info.
  *
- * @since 0.0.1
+ * @since 1.2.0
  */
 export type Cli_Commands_Deploy_GetZoneInfo_Token = string;
 
 export type Cli_Commands_Deploy_GetZoneInfo_BaseDomain = string;
 
-export type Cli_Commands_Deploy_GetZoneInfo_Returns = Promise<Cli_Commands_Deploy_GetZoneInfo_ZoneInfo>;
-
-export type Cli_Commands_Deploy_GetZoneInfo_ZoneInfo_ZoneId = string;
-
-export type Cli_Commands_Deploy_GetZoneInfo_ZoneInfo_AccountId = string;
-
-export type Cli_Commands_Deploy_GetZoneInfo_ZoneInfo_ZoneName = string;
-
-export type Cli_Commands_Deploy_GetZoneInfo_ZoneInfo = {
-  zoneId: Cli_Commands_Deploy_GetZoneInfo_ZoneInfo_ZoneId;
-  accountId: Cli_Commands_Deploy_GetZoneInfo_ZoneInfo_AccountId;
-  zoneName: Cli_Commands_Deploy_GetZoneInfo_ZoneInfo_ZoneName;
-};
+export type Cli_Commands_Deploy_GetZoneInfo_Returns = Promise<Shared_CloudflareZone>;
 
 export type Cli_Commands_Deploy_GetZoneInfo_Parts = string[];
 
@@ -295,41 +236,7 @@ export type Cli_Commands_Deploy_GetZoneInfo_Candidate = string;
 
 export type Cli_Commands_Deploy_GetZoneInfo_Candidates = Cli_Commands_Deploy_GetZoneInfo_Candidate[];
 
-export type Cli_Commands_Deploy_GetZoneInfo_Result = unknown;
-
-export type Cli_Commands_Deploy_GetZoneInfo_Zones = { [Key in keyof Lib_Schema_CloudflareZones]: Lib_Schema_CloudflareZones[Key] };
-
-export type Cli_Commands_Deploy_GetZoneInfo_FirstZone = Lib_Schema_CloudflareZone | undefined;
-
-/**
- * CLI - Commands - Deploy - Has Permission.
- *
- * @since 0.0.1
- */
-export type Cli_Commands_Deploy_HasPermission_Token = string;
-
-export type Cli_Commands_Deploy_HasPermission_Path = string;
-
-export type Cli_Commands_Deploy_HasPermission_Returns = Promise<boolean>;
-
-/**
- * CLI - Commands - Deploy - List Routing Rules.
- *
- * @since 1.1.0
- */
-export type Cli_Commands_Deploy_ListRoutingRules_Token = string;
-
-export type Cli_Commands_Deploy_ListRoutingRules_ZoneId = string;
-
-export type Cli_Commands_Deploy_ListRoutingRules_Returns = Promise<Cli_Commands_Deploy_ListRoutingRules_Rules>;
-
-export type Cli_Commands_Deploy_ListRoutingRules_Rules = { [Key in keyof Lib_Schema_CloudflareRoutingRules]: Lib_Schema_CloudflareRoutingRules[Key] };
-
-export type Cli_Commands_Deploy_ListRoutingRules_Page = number;
-
-export type Cli_Commands_Deploy_ListRoutingRules_PageRules = { [Key in keyof Lib_Schema_CloudflareRoutingRules]: Lib_Schema_CloudflareRoutingRules[Key] };
-
-export type Cli_Commands_Deploy_ListRoutingRules_Result = unknown;
+export type Cli_Commands_Deploy_GetZoneInfo_Zone = Shared_CloudflareZone | undefined;
 
 /**
  * CLI - Commands - Deploy - Load Env Token.
@@ -349,7 +256,7 @@ export type Cli_Commands_Deploy_LoadEnvToken_Value = string;
 /**
  * CLI - Commands - Deploy - Plan Custom Domains.
  *
- * @since 1.1.0
+ * @since 1.2.0
  */
 export type Cli_Commands_Deploy_PlanCustomDomains_Token = string;
 
@@ -369,9 +276,7 @@ export type Cli_Commands_Deploy_PlanCustomDomains_Hostname = string;
 
 export type Cli_Commands_Deploy_PlanCustomDomains_Hostnames = Cli_Commands_Deploy_PlanCustomDomains_Hostname[];
 
-export type Cli_Commands_Deploy_PlanCustomDomains_Result = unknown;
-
-export type Cli_Commands_Deploy_PlanCustomDomains_Domains = { [Key in keyof Lib_Schema_CloudflareWorkerDomains]: Lib_Schema_CloudflareWorkerDomains[Key] };
+export type Cli_Commands_Deploy_PlanCustomDomains_Domains = Shared_CloudflareWorkerDomain[];
 
 export type Cli_Commands_Deploy_PlanCustomDomains_MissingHostname = string;
 
@@ -381,12 +286,12 @@ export type Cli_Commands_Deploy_PlanCustomDomains_Conflict = string;
 
 export type Cli_Commands_Deploy_PlanCustomDomains_Conflicts = Cli_Commands_Deploy_PlanCustomDomains_Conflict[];
 
-export type Cli_Commands_Deploy_PlanCustomDomains_Existing = Lib_Schema_CloudflareWorkerDomain | undefined;
+export type Cli_Commands_Deploy_PlanCustomDomains_Existing = Shared_CloudflareWorkerDomain | undefined;
 
 /**
  * CLI - Commands - Deploy - Plan Routing Rules.
  *
- * @since 1.1.0
+ * @since 1.2.0
  */
 export type Cli_Commands_Deploy_PlanRoutingRules_Token = string;
 
@@ -400,15 +305,15 @@ export type Cli_Commands_Deploy_PlanRoutingRules_Aliases = Array<Lib_Schema_Alia
 
 export type Cli_Commands_Deploy_PlanRoutingRules_Returns = Promise<Cli_Commands_Deploy_PlanRoutingRules_Plan>;
 
-export type Cli_Commands_Deploy_PlanRoutingRules_Rules = { [Key in keyof Lib_Schema_CloudflareRoutingRules]: Lib_Schema_CloudflareRoutingRules[Key] };
+export type Cli_Commands_Deploy_PlanRoutingRules_Rules = Shared_CloudflareRoutingRule[];
 
 export type Cli_Commands_Deploy_PlanRoutingRules_OwnerPrefix = string;
 
 export type Cli_Commands_Deploy_PlanRoutingRules_DomainSuffix = string;
 
-export type Cli_Commands_Deploy_PlanRoutingRules_OwnedRules = { [Key in keyof Lib_Schema_CloudflareRoutingRules]: Lib_Schema_CloudflareRoutingRules[Key] };
+export type Cli_Commands_Deploy_PlanRoutingRules_OwnedRules = Shared_CloudflareRoutingRule[];
 
-export type Cli_Commands_Deploy_PlanRoutingRules_OtherRules = { [Key in keyof Lib_Schema_CloudflareRoutingRules]: Lib_Schema_CloudflareRoutingRules[Key] };
+export type Cli_Commands_Deploy_PlanRoutingRules_OtherRules = Shared_CloudflareRoutingRule[];
 
 export type Cli_Commands_Deploy_PlanRoutingRules_WantedAddress = string;
 
@@ -416,11 +321,7 @@ export type Cli_Commands_Deploy_PlanRoutingRules_WantedAddresses = Cli_Commands_
 
 export type Cli_Commands_Deploy_PlanRoutingRules_Plan = { [Key in keyof Shared_RoutingRulePlan]: Shared_RoutingRulePlan[Key] };
 
-export type Cli_Commands_Deploy_PlanRoutingRules_OwnedRule = Lib_Schema_CloudflareRoutingRule | undefined;
-
-export type Cli_Commands_Deploy_PlanRoutingRules_OwnedAction = Lib_Schema_CloudflareRoutingRuleAction | undefined;
-
-export type Cli_Commands_Deploy_PlanRoutingRules_IsCurrent = boolean;
+export type Cli_Commands_Deploy_PlanRoutingRules_OwnedRule = Shared_CloudflareRoutingRule | undefined;
 
 export type Cli_Commands_Deploy_PlanRoutingRules_OwnedAddress = string | undefined;
 
@@ -439,6 +340,8 @@ export type Cli_Commands_Deploy_PrintAliasSummary_Returns = void;
 
 export type Cli_Commands_Deploy_PrintAliasSummary_Aliases = Array<Lib_Schema_AliasConfig>;
 
+export type Cli_Commands_Deploy_PrintAliasSummary_PhoneAliases = Array<Lib_Schema_PhoneAliasConfig>;
+
 export type Cli_Commands_Deploy_PrintAliasSummary_Settings = { [Key in keyof Lib_Schema_SettingsConfig]: Lib_Schema_SettingsConfig[Key] };
 
 export type Cli_Commands_Deploy_PrintAliasSummary_Now = number;
@@ -446,6 +349,29 @@ export type Cli_Commands_Deploy_PrintAliasSummary_Now = number;
 export type Cli_Commands_Deploy_PrintAliasSummary_StatusDescription = string;
 
 export type Cli_Commands_Deploy_PrintAliasSummary_Status = string;
+
+export type Cli_Commands_Deploy_PrintAliasSummary_PhoneStatus = string;
+
+/**
+ * CLI - Commands - Deploy - Print Deploy Warnings.
+ *
+ * @since 1.2.0
+ */
+export type Cli_Commands_Deploy_PrintDeployWarnings_ConfigPath = string;
+
+export type Cli_Commands_Deploy_PrintDeployWarnings_EmailSendingReady = boolean;
+
+export type Cli_Commands_Deploy_PrintDeployWarnings_WorkersPlan = Shared_CloudflareWorkersPlan;
+
+export type Cli_Commands_Deploy_PrintDeployWarnings_PendingRecord = string;
+
+export type Cli_Commands_Deploy_PrintDeployWarnings_PendingRecords = Cli_Commands_Deploy_PrintDeployWarnings_PendingRecord[];
+
+export type Cli_Commands_Deploy_PrintDeployWarnings_Returns = void;
+
+export type Cli_Commands_Deploy_PrintDeployWarnings_Warning = string;
+
+export type Cli_Commands_Deploy_PrintDeployWarnings_Warnings = Cli_Commands_Deploy_PrintDeployWarnings_Warning[];
 
 /**
  * CLI - Commands - Deploy - Prompt For Api Token.
@@ -465,7 +391,7 @@ export type Cli_Commands_Deploy_PromptForApiToken_Token = string;
 /**
  * CLI - Commands - Deploy - Release Catch All.
  *
- * @since 1.1.0
+ * @since 1.2.0
  */
 export type Cli_Commands_Deploy_ReleaseCatchAll_Token = string;
 
@@ -475,11 +401,7 @@ export type Cli_Commands_Deploy_ReleaseCatchAll_WorkerName = string;
 
 export type Cli_Commands_Deploy_ReleaseCatchAll_Returns = Promise<void>;
 
-export type Cli_Commands_Deploy_ReleaseCatchAll_Result = unknown;
-
-export type Cli_Commands_Deploy_ReleaseCatchAll_CatchAll = { [Key in keyof Lib_Schema_CloudflareCatchAll]: Lib_Schema_CloudflareCatchAll[Key] };
-
-export type Cli_Commands_Deploy_ReleaseCatchAll_PointsAtWorker = boolean;
+export type Cli_Commands_Deploy_ReleaseCatchAll_CatchAll = { [Key in keyof Shared_CloudflareCatchAll]: Shared_CloudflareCatchAll[Key] };
 
 /**
  * CLI - Commands - Deploy - Resolve Api Token.
@@ -506,24 +428,28 @@ export type Cli_Commands_Deploy_SaveEnvToken_Content = string;
 export type Cli_Commands_Deploy_SaveEnvToken_Regex = RegExp;
 
 /**
- * CLI - Commands - Deploy - Verify Api Token.
+ * CLI - Commands - Deploy - Set Up Email Sending.
  *
- * @since 0.0.1
+ * @since 1.2.0
  */
-export type Cli_Commands_Deploy_VerifyApiToken_Token = string;
+export type Cli_Commands_Deploy_SetUpEmailSending_Token = string;
 
-export type Cli_Commands_Deploy_VerifyApiToken_Returns = Promise<boolean>;
+export type Cli_Commands_Deploy_SetUpEmailSending_ZoneId = string;
 
-export type Cli_Commands_Deploy_VerifyApiToken_Response = Response;
+export type Cli_Commands_Deploy_SetUpEmailSending_ZoneName = string;
 
-export type Cli_Commands_Deploy_VerifyApiToken_ResponseData = unknown;
+export type Cli_Commands_Deploy_SetUpEmailSending_BaseDomain = string;
 
-export type Cli_Commands_Deploy_VerifyApiToken_Envelope = z.ZodSafeParseResult<Lib_Schema_CloudflareEnvelope>;
+export type Cli_Commands_Deploy_SetUpEmailSending_Returns = Promise<Shared_CloudflareEmailSendingSetup_Records | undefined>;
+
+export type Cli_Commands_Deploy_SetUpEmailSending_Setup = { [Key in keyof Shared_CloudflareEmailSendingSetup]: Shared_CloudflareEmailSendingSetup[Key] };
+
+export type Cli_Commands_Deploy_SetUpEmailSending_ErrorMessage = string;
 
 /**
  * CLI - Commands - Deploy - Verify Permissions.
  *
- * @since 0.0.1
+ * @since 1.2.0
  */
 export type Cli_Commands_Deploy_VerifyPermissions_Token = string;
 
@@ -532,6 +458,8 @@ export type Cli_Commands_Deploy_VerifyPermissions_ZoneId = string;
 export type Cli_Commands_Deploy_VerifyPermissions_AccountId = string;
 
 export type Cli_Commands_Deploy_VerifyPermissions_Interactive = boolean;
+
+export type Cli_Commands_Deploy_VerifyPermissions_EmailSending = boolean;
 
 export type Cli_Commands_Deploy_VerifyPermissions_Returns = Promise<string>;
 

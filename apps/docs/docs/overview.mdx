@@ -63,7 +63,7 @@ Mail for an <Terminology title="A stand-in address; mail still lands in your rea
 Mail for an address that isn't an enabled <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology> has no <Terminology title="Sends one alias's mail to Mailmask" to="/docs/reference/terminology#cloudflare-and-deploy">routing rule</Terminology>, so Cloudflare rejects it before it reaches the <Terminology title="Mailmask itself, running on your Cloudflare account" to="/docs/reference/terminology#cloudflare-and-deploy">Worker</Terminology>.
 
 :::info
-Mailmask is forward-only. You receive mail at an <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology>, but replies you send come from your real address, so it is recommended to reply only when you're comfortable revealing it.
+With `send_from_aliases` on, you can also reply and send from an <Terminology title="A stand-in address; mail still lands in your real inbox" to="/docs/reference/terminology#aliases-and-mail-flow">alias</Terminology>, so the other side only ever sees the alias. [Sending From Aliases](/docs/features/sending-from-aliases/) covers how it works and what Cloudflare needs for it.
 :::
 
 ## What You Will Need

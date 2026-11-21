@@ -40,3 +40,22 @@ export type Cli_Commands_Destination_RemoveDestination_Config = { [Key in keyof 
 export type Cli_Commands_Destination_RemoveDestination_Filtered = Array<Lib_Schema_DestinationConfig>;
 
 export type Cli_Commands_Destination_RemoveDestination_ReferencingAliases = string[];
+
+/**
+ * CLI - Commands - Destination - Set Destination Phone.
+ *
+ * @since 1.2.0
+ */
+export type Cli_Commands_Destination_SetDestinationPhone_ConfigPath = string;
+
+export type Cli_Commands_Destination_SetDestinationPhone_Name = string;
+
+export type Cli_Commands_Destination_SetDestinationPhone_Phone = string | undefined;
+
+export type Cli_Commands_Destination_SetDestinationPhone_Returns = void;
+
+export type Cli_Commands_Destination_SetDestinationPhone_Config = { [Key in keyof Lib_Schema_ConfigSchema]: Lib_Schema_ConfigSchema[Key] };
+
+export type Cli_Commands_Destination_SetDestinationPhone_Destination = Lib_Schema_DestinationConfig | undefined;
+
+export type Cli_Commands_Destination_SetDestinationPhone_PhoneAliases = string[];

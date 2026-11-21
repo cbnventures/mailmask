@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import {
-  copyFileSync, existsSync, mkdirSync, readFileSync, realpathSync, rmSync, symlinkSync,
+  copyFileSync, existsSync, mkdirSync, readFileSync, realpathSync, rmSync, symlinkSync, writeFileSync,
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import {
@@ -17,6 +17,9 @@ import { generateWranglerToml, getWranglerTomlPath } from '../../../cli/commands
 import { configSchema } from '../../../lib/schema.js';
 
 import type {
+  Tests_Cli_Commands_Generate_GenerateWranglerToml_LimitsTheBindingToNotifierAddressesWithoutSendingFromAliases_ConfigPath,
+  Tests_Cli_Commands_Generate_GenerateWranglerToml_LimitsTheBindingToNotifierAddressesWithoutSendingFromAliases_SampleConfig,
+  Tests_Cli_Commands_Generate_GenerateWranglerToml_LimitsTheBindingToNotifierAddressesWithoutSendingFromAliases_Toml,
   Tests_Cli_Commands_Generate_GenerateWranglerToml_PointsMainAtTheBundledEntryAndDisablesPublicUrls_OutputPath,
   Tests_Cli_Commands_Generate_GenerateWranglerToml_PointsMainAtTheBundledEntryAndDisablesPublicUrls_Toml,
   Tests_Cli_Commands_Generate_GenerateWranglerToml_ResolvesTheWorkerImportFromASymlinkedConfigFolder_BundleDir,
@@ -74,11 +77,34 @@ describe('generateWranglerToml', () => {
 
     expect(toml).toContain('name = "MAILMASK_EMAIL"');
 
-    expect(toml).toContain('allowed_destination_addresses = ["you@example.com"]');
+    expect(toml).not.toContain('allowed_destination_addresses');
 
     expect(toml).not.toContain('[vars]');
 
     expect(toml).not.toContain('routes');
+
+    return;
+  });
+
+  it('limits the binding to notifier addresses without sending from aliases', () => {
+    const configPath: Tests_Cli_Commands_Generate_GenerateWranglerToml_LimitsTheBindingToNotifierAddressesWithoutSendingFromAliases_ConfigPath = join(outputDir, 'config.json');
+    const sampleConfig: Tests_Cli_Commands_Generate_GenerateWranglerToml_LimitsTheBindingToNotifierAddressesWithoutSendingFromAliases_SampleConfig = configSchema.parse(loadConfig(sampleConfigPath));
+
+    mkdirSync(outputDir, { recursive: true });
+
+    writeFileSync(configPath, JSON.stringify({
+      ...sampleConfig,
+      settings: {
+        ...sampleConfig['settings'],
+        send_from_aliases: false,
+      },
+    }));
+
+    generateWranglerToml(configPath);
+
+    const toml: Tests_Cli_Commands_Generate_GenerateWranglerToml_LimitsTheBindingToNotifierAddressesWithoutSendingFromAliases_Toml = readFileSync(join(outputDir, 'wrangler.toml'), 'utf-8');
+
+    expect(toml).toContain('allowed_destination_addresses = ["you@example.com"]');
 
     return;
   });
@@ -97,11 +123,13 @@ describe('generateWranglerToml', () => {
 
     expect(bundledConfig).toEqual(expectedConfig);
 
+    expect(entry).toContain('import { EmailMessage } from "cloudflare:email";');
+
     expect(entry).toContain(`import { createWorker } from "${expectedImport}";`);
 
     expect(entry).toContain('import config from "./config.json";');
 
-    expect(entry).toContain('export default createWorker(config);');
+    expect(entry).toContain('export default createWorker(config, EmailMessage);');
 
     return;
   });
@@ -138,7 +166,7 @@ describe('generateWranglerToml', () => {
 
     const bundleDir: Tests_Cli_Commands_Generate_GenerateWranglerToml_ResolvesTheWorkerImportFromASymlinkedConfigFolder_BundleDir = realpathSync(join(linkedDir, '.wrangler', 'mailmask'));
     const entryLines: Tests_Cli_Commands_Generate_GenerateWranglerToml_ResolvesTheWorkerImportFromASymlinkedConfigFolder_EntryLines = readFileSync(join(bundleDir, 'worker.js'), 'utf-8').split('\n');
-    const importPath: Tests_Cli_Commands_Generate_GenerateWranglerToml_ResolvesTheWorkerImportFromASymlinkedConfigFolder_ImportPath = (entryLines[1] ?? '').split('"')[1] ?? '';
+    const importPath: Tests_Cli_Commands_Generate_GenerateWranglerToml_ResolvesTheWorkerImportFromASymlinkedConfigFolder_ImportPath = (entryLines.find((entryLine) => entryLine.startsWith('import { createWorker }') === true) ?? '').split('"')[1] ?? '';
 
     expect(existsSync(resolve(bundleDir, importPath))).toBe(true);
 

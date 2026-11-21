@@ -1,6 +1,11 @@
 import type { Command, Option } from 'commander';
 
-import type { Lib_Schema_AliasConfig, Lib_Schema_SettingsConfig } from '../lib/schema.d.ts';
+import type {
+  Lib_Schema_AliasConfig,
+  Lib_Schema_PhoneAliasConfig,
+  Lib_Schema_SettingsConfig,
+} from '../lib/schema.d.ts';
+import type { Shared_PhoneAvailableNumber } from '../shared.d.ts';
 import type { Cli_Commands_Validate_ValidateConfig_Returns } from './commands/validate.d.ts';
 
 /**
@@ -53,6 +58,35 @@ export type Cli_Index_Main_ExpiresAt = string | undefined;
 export type Cli_Index_Main_DestinationCommand = Command;
 
 export type Cli_Index_Main_NotifierCommand = Command;
+
+export type Cli_Index_Main_PhoneCommand = Command;
+
+export type Cli_Index_Main_PhoneProviderCommand = Command;
+
+export type Cli_Index_Main_DestinationCountry = string;
+
+export type Cli_Index_Main_DestinationCountries = Cli_Index_Main_DestinationCountry[] | undefined;
+
+export type Cli_Index_Main_ConnectSettings = { [Key in keyof Lib_Schema_SettingsConfig]: Lib_Schema_SettingsConfig[Key] };
+
+export type Cli_Index_Main_ConnectedProvider = string;
+
+export type Cli_Index_Main_ConnectedProviders = Cli_Index_Main_ConnectedProvider[];
+
+export type Cli_Index_Main_AvailableNumbers = Shared_PhoneAvailableNumber[];
+
+export type Cli_Index_Main_PhoneResult_PhoneAlias = Lib_Schema_PhoneAliasConfig;
+
+export type Cli_Index_Main_PhoneResult_Status = string;
+
+export type Cli_Index_Main_PhoneResult = {
+  phoneAlias: Cli_Index_Main_PhoneResult_PhoneAlias;
+  status: Cli_Index_Main_PhoneResult_Status;
+};
+
+export type Cli_Index_Main_PhoneNow = number;
+
+export type Cli_Index_Main_PhoneExpiresAt = string | undefined;
 
 export type Cli_Index_Main_Result = { [Key in keyof Cli_Commands_Validate_ValidateConfig_Returns]: Cli_Commands_Validate_ValidateConfig_Returns[Key] };
 

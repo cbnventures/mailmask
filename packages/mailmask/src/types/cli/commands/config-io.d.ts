@@ -50,6 +50,10 @@ export type Cli_Commands_ConfigIo_NormalizeConfig_SortedDestinations = Lib_Schem
 
 export type Cli_Commands_ConfigIo_NormalizeConfig_SortedAliases = Lib_Schema_ConfigSchema['aliases'];
 
+export type Cli_Commands_ConfigIo_NormalizeConfig_PhoneProviders = Lib_Schema_ConfigSchema['phone_providers'];
+
+export type Cli_Commands_ConfigIo_NormalizeConfig_PhoneAliases = Lib_Schema_ConfigSchema['phone_aliases'];
+
 /**
  * CLI - Commands - Config IO.
  *

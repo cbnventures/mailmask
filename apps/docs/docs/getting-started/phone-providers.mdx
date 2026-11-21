@@ -1,0 +1,104 @@
+---
+id: phone-providers
+title: Phone Providers
+description: Connect a Telnyx or Plivo account to Mailmask, check its credentials, and let deploy point your phone alias numbers at the Worker.
+sidebar_position: 4
+keywords:
+  - mailmask
+  - phone providers
+  - telnyx
+  - plivo
+  - webhook signature
+  - sms setup
+tags:
+  - getting started
+  - phone
+---
+
+import { Terminology } from '@cbnventures/docusaurus-preset-nova/blocks';
+
+Connect a Telnyx or Plivo account so its numbers can become phone aliases that forward and send texts through your <Terminology title="Mailmask itself, running on your Cloudflare account" to="/docs/reference/terminology#cloudflare-and-deploy">Worker</Terminology>.
+
+## Why Use This Setup?
+
+1. Lets the CLI search for, buy, and release numbers so you never copy numbers between dashboards.
+2. Checks the <Terminology title="Proof a request really came from the provider" to="/docs/reference/terminology#phone-aliases">webhook signature</Terminology> on every text so nobody else can post fake texts to your Worker.
+3. Points every number at the Worker on each deploy so a new <Terminology title="A rented number that forwards its texts to you" to="/docs/reference/terminology#phone-aliases">phone alias</Terminology> works without dashboard clicks.
+
+## Requirements
+
+- **A provider account with funds** — Buying numbers and sending texts, forwarded or your own, are billed by the provider.
+- **A deployed Worker with its custom domain** — Providers post texts to `https://<base_domain>/phone/<provider>/messages`, as [Deployment](/docs/getting-started/deployment/) sets up.
+- **Number registration where your country needs it** — In the United States, texting from local numbers usually needs a 10DLC campaign, and toll-free numbers need verification. Each provider handles this in its own dashboard.
+
+## Telnyx
+
+### Get the Credentials
+
+1. In the Telnyx portal, open **Keys & Credentials** and create an API key.
+2. On the same page, copy the **Public Key**. It's the base64 key Telnyx signs webhooks with, not the API key.
+
+### Add the Account
+
+```bash
+mm phone provider add-telnyx telnyx --api-key KEYxxxxxxxx --public-key "base64-public-key"
+mm phone provider check telnyx
+```
+
+### Destination Countries
+
+Telnyx lets a messaging profile text only the countries you list. Mailmask leaves every country open by default, and `--countries US,CA` on `add-telnyx`, or `destination_countries` in `config.json`, narrows it on the next deploy.
+
+### What Deploy Sets Up
+
+- **Messaging profile** — Deploy creates a `Mailmask (telnyx)` messaging profile on the first run, saves its ID as `messaging_profile_id`, and keeps its webhook URL pointed at `/phone/telnyx/messages` and its destination countries in step with the config.
+- **Numbers** — Every phone alias number on the account is assigned to that profile.
+- **Signatures** — The Worker checks the `telnyx-signature-ed25519` header over the `telnyx-timestamp` header and the raw body, and refuses timestamps more than five minutes from its clock.
+
+## Plivo
+
+### Get the Credentials
+
+1. In the Plivo console, copy the **Auth ID** and **Auth Token** from the account overview.
+2. Keep the token private. Plivo uses it both for API calls and to sign webhooks.
+
+### Add the Account
+
+```bash
+mm phone provider add-plivo plivo --auth-id MAxxxxxxxxxxxxxxxxxx --auth-token "auth-token"
+mm phone provider check plivo
+```
+
+### Destination Countries
+
+Plivo sets the countries an account may text under **Messaging > Settings > Geo Permissions** in its console, and its API has no way to change them. Texts to a country that isn't turned on there are refused, and the phone alias texts you the reason ([Plivo docs](https://www.plivo.com/docs/messaging/concepts/geo-permissions)). Deploy prints a reminder about this whenever the config has a Plivo account.
+
+### What Deploy Sets Up
+
+- **Application** — Deploy creates a `mailmask-plivo` application on the first run, saves its ID as `application_id`, and keeps its message URL on `/phone/plivo/messages` with content logging off. Plivo requires an answer URL too, so it gets the same address, whose empty answer ends any call.
+- **Numbers** — Every phone alias number on the account is linked to that application.
+- **Signatures** — The Worker checks `X-Plivo-Signature-V3` with the `X-Plivo-Signature-V3-Nonce` header, an HMAC-SHA256 of the URL and the sorted form fields keyed by your auth token.
+
+## Usage
+
+```bash
+# Find, buy, and forward a number in one go.
+mm phone search telnyx --country US --area-code 555
+mm phone add +15550100100 --provider telnyx --destination personal --buy --yes
+
+# Apply it, which also points the number at the Worker.
+mm deploy
+
+# Point the numbers again without a full deploy.
+mm phone provider connect
+```
+
+:::warning
+Provider credentials are stored in `config.json` and copied to `.wrangler/mailmask/config.json` for bundling into the Worker, just like notifier tokens. Keep both paths out of version control.
+:::
+
+## Troubleshooting
+
+- **Texts never arrive** — Run `mm phone provider connect`, then check that the <Terminology title="Your Worker's own web addresses" to="/docs/reference/terminology#cloudflare-and-deploy">custom domain</Terminology> on the base domain is attached, since deploy only warns when it can't attach one.
+- **The provider reports `401` from the Worker** — The saved public key or auth token doesn't match the account. Copy it again and deploy.
+- **Texts fail with a `4xx` from the provider** — The number may still need 10DLC or toll-free registration, the account may need funds, or the destination country may not be allowed.

@@ -12,6 +12,8 @@ import type {
   Cli_Commands_ConfigIo_LoadConfig_Parsed,
   Cli_Commands_ConfigIo_LoadConfig_Returns,
   Cli_Commands_ConfigIo_NormalizeConfig_Config,
+  Cli_Commands_ConfigIo_NormalizeConfig_PhoneAliases,
+  Cli_Commands_ConfigIo_NormalizeConfig_PhoneProviders,
   Cli_Commands_ConfigIo_NormalizeConfig_Returns,
   Cli_Commands_ConfigIo_NormalizeConfig_SortedAliases,
   Cli_Commands_ConfigIo_NormalizeConfig_SortedDestinations,
@@ -99,12 +101,12 @@ function dropRetiredSettings(configPath: Cli_Commands_ConfigIo_DropRetiredSettin
 /**
  * CLI - Commands - Config IO - Normalize Config.
  *
- * Reorders top-level keys to match the interactive menu order
- * and sorts destinations by name and aliases by address.
+ * Reorders top-level keys to match the interactive menu order and sorts
+ * destinations by name, aliases by address, and phone aliases by number.
  *
  * @returns {Cli_Commands_ConfigIo_NormalizeConfig_Returns}
  *
- * @since 0.0.1
+ * @since 1.2.0
  */
 function normalizeConfig(config: Cli_Commands_ConfigIo_NormalizeConfig_Config): Cli_Commands_ConfigIo_NormalizeConfig_Returns {
   const sortedDestinations: Cli_Commands_ConfigIo_NormalizeConfig_SortedDestinations = [...config['destinations']].sort(
@@ -115,9 +117,14 @@ function normalizeConfig(config: Cli_Commands_ConfigIo_NormalizeConfig_Config): 
     (a, b) => a['address'].localeCompare(b['address']),
   );
 
+  const phoneProviders: Cli_Commands_ConfigIo_NormalizeConfig_PhoneProviders = config['phone_providers'];
+  const phoneAliases: Cli_Commands_ConfigIo_NormalizeConfig_PhoneAliases = config['phone_aliases'];
+
   return {
     destinations: sortedDestinations,
     aliases: sortedAliases,
+    ...((phoneProviders !== undefined) ? { phone_providers: [...phoneProviders].sort((a, b) => a['name'].localeCompare(b['name'])) } : {}),
+    ...((phoneAliases !== undefined) ? { phone_aliases: [...phoneAliases].sort((a, b) => a['number'].localeCompare(b['number'])) } : {}),
     notifiers: config['notifiers'],
     settings: config['settings'],
   };
