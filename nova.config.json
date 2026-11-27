@@ -453,7 +453,6 @@
         "nova"
       ],
       "patterns": [
-        "/assets/",
         "!worker-configuration.d.ts",
         "wrangler.toml",
         "config.json",
@@ -705,6 +704,11 @@
     }
   },
   "settings": {
+    "changelog": {
+      "workspaceOrder": [
+        "mailmask"
+      ]
+    },
     "coverage": {
       "minimum": 70
     },
